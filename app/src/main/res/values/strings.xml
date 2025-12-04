@@ -1,0 +1,109 @@
+<resources>
+    <string name="app_name">NeWork</string>
+    <string name="nework">NeWork!</string>
+    <string name="avatar" translatable="false">avatar</string>
+    <string name="menu" translatable="false">menu</string>
+    <string name="like" translatable="false">like</string>
+    <string name="toShare" translatable="false">toShare</string>
+    <string name="views" translatable="false">views</string>
+    <string name="remove">Remove</string>
+    <string name="post_text">Post_text</string>
+    <string name="save" translatable="false">save</string>
+    <string name="error_empty_content">Error, the text field cannot be empty</string>
+    <string name="menu_edit">Edit</string>
+    <string name="edit_message">Edit message:</string>
+    <string name="edit" translatable="false">Edit</string>
+    <string name="cancel" translatable="false">Cancel</string>
+    <string name="chooser_share_post">Share post</string>
+    <string name="ok" translatable="false">Ok</string>
+    <string name="videoContent" translatable="false">VideoContent</string>
+    <string name="play" translatable="false">play</string>
+    <string name="previewTitle">High mountains and the sounds of nature.</string>
+    <string name="google_play_unavailable">Google Api Unavailable</string>
+    <string name="notification_user_liked">User %1$s liked %2$s\'s post</string>
+    <string name="channel_remote_name">Server notifications</string>
+    <string name="channel_remote_description">Notifications from remote server</string>
+    <string name="notification_creating_new_post">User %1$s posted a new post with name %2$s: </string>
+    <string name="notification_text">The Netology online School is a great place to gain new knowledge. Among its advantages are the following: a variety of courses, a logical course structure, curatorial support, access to relevant tools and technologies, the ability to combine training with work, and a career development center.</string>
+    <string name="empty">Empty</string>
+    <string name="retry">Retry</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="ImageContent" translatable="false">imageContent</string>
+    <string name="error_text">Dear user, an error has occurred! Please restart the application. If the error persists after restarting the application, we recommend deleting and installing the application again!</string>
+    <string name="error_image" translatable="false">errorImage</string>
+    <string name="error_header">Error!</string>
+    <string name="clearly">Clearly</string>
+    <string name="oops_something_went_wrong_please_try_again">Oops. Something went wrong… Please try again!</string>
+    <string name="image_error" translatable="false">imageError</string>
+    <string name="saved" translatable="false">saved</string>
+    <string name="recent_entries">Recent entries</string>
+    <string name="pick_photo" translatable="false">pick_photo</string>
+    <string name="take_photo" translatable="false">take_photo</string>
+    <string name="description_photo" translatable="false">description_photo</string>
+    <string name="photo" translatable="false">photo</string>
+    <string name="back" translatable="false">back</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_up">Sign up</string>
+    <string name="sign_out">Sign out</string>
+    <string name="authorization">Your cannot perform this action. Please, go through the authorization process.</string>
+    <string name="confirmation">Do you really want to get out?</string>
+    <string name="enter_your_login">Enter your login</string>
+    <string name="confirm_the_password">Confirm the password</string>
+    <string name="password_confirmation">The password and the confirmation password do not match!</string>
+    <string name="adding_a_picture_or_photo">You can add a picture or a photo for your avatar</string>
+    <string name="avatar_image" translatable="false">avatarImage</string>
+    <string name="your_avatar">Your avatar:</string>
+    <string name="empty_user_name">You didn\'t enter the username!</string>
+    <string name="empty_login">You didn\'t enter the login!</string>
+    <string name="empty_password">You didn\'t enter the password!</string>
+    <string name="empty_password_confirmation">You did not enter the password confirmation!</string>
+    <string name="push_successfully">%1$s has come successfully!</string>
+    <string name="push_text">Notification the one we are testing has arrived successfully!</string>
+    <string name="ad_description">Advertisement</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="on_last_week">On last week</string>
+    <string name="post">Post</string>
+    <string name="likers">Likers</string>
+    <string name="mentioned">Mentioned</string>
+    <string name="mentionedusers" translatable="false">mentionedUsers</string>
+    <string name="choose_users">Choose users</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
+    <string name="name">Name</string>
+    <string name="you">You</string>
+    <string name="you_photo" translatable="false">youPhoto</string>
+    <string name="wall">Wall</string>
+    <string name="jobs">Jobs</string>
+    <string name="new_job">New job</string>
+    <string name="title_job">Title job</string>
+    <string name="job_post">Post</string>
+    <string name="link">Link</string>
+    <string name="enter_date">Enter date</string>
+    <string name="press_enter_date">Press enter date</string>
+    <string name="create">Create</string>
+    <string name="select_date">Select date</string>
+    <string name="enter_dates">Enter dates</string>
+    <string name="date">Date</string>
+    <string name="preview_date" translatable="false">mm/dd/yyyy</string>
+    <string name="end_date">End date</string>
+    <string name="okay" translatable="false">OK</string>
+    <string name="cancel_date">Cancel</string>
+    <string name="new_post">New post</string>
+    <string name="new_location">New location</string>
+    <string name="title_point">Title point</string>
+    <string name="latitude_point">Latitude point</string>
+    <string name="longitude_point">Longitude point</string>
+    <string name="event">Event</string>
+    <string name="speakers">Speakers</string>
+    <string name="participants">Participants</string>
+    <string name="new_event">New event</string>
+    <string name="event_text">Event text</string>
+    <string name="helper_date" translatable="false">mm/dd/yyyy hh:mm</string>
+    <string name="type">Type</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
+    <string name="posts">Posts</string>
+    <string name="events">Events</string>
+    <string name="users">Users</string>
+</resources>

@@ -1,0 +1,101 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.hilt)
+
+//    alias(libs.plugins.google.gms.google.services)
+}
+
+ext {
+    mapkitApiKey = getMapkitApiKey()
+}
+
+private String getMapkitApiKey() {
+    def properties = new Properties()
+    project.file("maps.properties").withInputStream { properties.load(it) }
+    return properties.getProperty("MAPS_API_KEY", "")
+}
+
+android {
+    namespace 'ru.netology.nework'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "ru.netology.nework"
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "MAPS_API_KEY", "\"${mapkitApiKey}\""
+    }
+
+    buildFeatures {
+        buildConfig true
+        viewBinding true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            manifestPlaceholders.usesCleartextTraffic = false
+            buildConfigField "String", "BASE_URL", '"https://netomedia.ru"'
+        }
+
+        debug {
+            manifestPlaceholders.usesCleartextTraffic = true
+            buildConfigField "String", "BASE_URL", '"http://10.0.2.2:9999"'
+        }
+    }
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+        freeCompilerArgs = ['-XXLanguage:+PropertyParamAnnotationDefaultTargetMode']
+    }
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.activity
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.activityKtx
+    implementation libs.fragment
+    implementation libs.ui
+    implementation libs.room
+    implementation libs.okhttp
+    implementation libs.androidx.swiperefreshlayout
+    implementation libs.glide
+    implementation libs.retrofit
+    implementation libs.converter.gson
+    implementation libs.logging.interceptor
+    implementation libs.imagepicker
+    implementation libs.hilt.android
+    implementation libs.androidx.room.ktx
+    implementation libs.androidx.paging.runtime.ktx
+    implementation libs.androidx.room.paging
+    implementation libs.androidx.recyclerview
+    implementation libs.maps.mobile
+
+//    implementation libs.firebase.messaging
+//    implementation platform(libs.firebase.bom)
+//    implementation libs.play.services.base
+
+    coreLibraryDesugaring libs.desugar.jdk.libs
+    ksp libs.androidx.room.compiler
+    ksp libs.compiler.glide
+    ksp libs.hilt.compiler
+
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+}
