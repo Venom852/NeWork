@@ -31,12 +31,21 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
-                <data android:mimeType="video/*" />
-                <data android:scheme="https" />
-                <data android:host="*.rutube.ru" />
+                <data android:scheme="https"/>
+                <data android:scheme="http"/>
 
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
+
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.VIEW" />-->
+
+<!--                <data android:mimeType="video/*" />-->
+<!--                <data android:scheme="https" />-->
+<!--                <data android:host="*.rutube.ru" />-->
+
+<!--                <category android:name="android.intent.category.BROWSABLE" />-->
+<!--            </intent-filter>-->
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -46,12 +55,12 @@
         </activity>
     </application>
 
-    <queries>
-        <package android:name="ru.rutube.app" />
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="*" />
-        </intent>
-    </queries>
+<!--    <queries>-->
+<!--        <package android:name="ru.rutube.app" />-->
+<!--        <intent>-->
+<!--            <action android:name="android.intent.action.VIEW" />-->
+<!--            <data android:scheme="*" />-->
+<!--        </intent>-->
+<!--    </queries>-->
 
 </manifest>

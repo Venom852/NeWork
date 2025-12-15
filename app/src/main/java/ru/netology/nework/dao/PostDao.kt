@@ -5,8 +5,11 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import ru.netology.nework.dto.Attachment
+import ru.netology.nework.entity.AttachmentEmbeddable
 import ru.netology.nework.entity.ContentDraftEntity
 import ru.netology.nework.entity.PostEntity
+import ru.netology.nework.enumeration.AttachmentType
 
 @Dao
 interface PostDao {
@@ -36,11 +39,11 @@ interface PostDao {
     @Query("UPDATE PostEntity Set content = :text WHERE id = :id")
     suspend fun changeContentById(id: Long, text: String)
 
-    @Query("UPDATE PostEntity Set id = :newId, savedOnTheServer = :savedOnTheServer WHERE id = :id")
-    suspend fun changeIdPostById(id: Long, newId: Long, savedOnTheServer: Boolean)
+    @Query("UPDATE PostEntity Set id = :newId, url = :url, type = :type WHERE id = :id")
+    suspend fun changeIdPostById(id: Long, newId: Long, url: String?, type: AttachmentType?)
 
-    @Query("UPDATE PostEntity Set viewed = 1 WHERE viewed = 0")
-    suspend fun browse()
+//    @Query("UPDATE PostEntity Set viewed = 1 WHERE viewed = 0")
+//    suspend fun browse()
 
     suspend fun save(post: PostEntity) =
         if (post.id == 0L) insert(post) else changeContentById(post.id, post.content.toString())
@@ -58,7 +61,7 @@ interface PostDao {
     @Query(
         """
             UPDATE PostEntity SET
-                numberLikes = numberLikes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
+                likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
                 likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END
             WHERE id = :id;
         """

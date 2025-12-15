@@ -8,7 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import ru.netology.nework.repository.PostRepository
 import ru.netology.nework.auth.AuthState
-import ru.netology.nework.error.ErrorCode400And500
+import ru.netology.nework.error.ErrorCode403
 import ru.netology.nework.error.UnknownError
 import ru.netology.nework.model.FeedModelState
 import ru.netology.nework.util.SingleLiveEvent
@@ -32,7 +32,7 @@ class SignInViewModel @Inject constructor(
         viewModelScope.launch{
             try {
                 _authState.value = repository.signIn(login, password)
-            } catch (e: ErrorCode400And500) {
+            } catch (e: ErrorCode403) {
                 _bottomSheet.value = Unit
             } catch (e: UnknownError) {
                 _dataState.value = FeedModelState(errorCode300 = true)

@@ -59,7 +59,7 @@
             app:layout_constraintTop_toBottomOf="@+id/enterDates" />
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/date"
+            android:id="@+id/startDate"
             android:layout_width="128dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_22dp"
@@ -70,6 +70,7 @@
             app:layout_constraintStart_toStartOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/startDateInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:enabled="true"
@@ -91,6 +92,7 @@
             app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/endDateInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:enabled="true"

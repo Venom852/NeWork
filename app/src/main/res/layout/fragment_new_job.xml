@@ -51,6 +51,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/titleJobInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
@@ -75,6 +76,7 @@
             app:layout_constraintTop_toBottomOf="@id/titleJob">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/jobPostInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
@@ -99,6 +101,7 @@
             app:layout_constraintTop_toBottomOf="@id/jobPost">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/linkInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
@@ -117,11 +120,13 @@
             app:layout_constraintTop_toBottomOf="@id/link">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dateInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:padding="2dp"
-                android:text="@string/press_enter_date" />
+                android:text="@string/press_enter_date"
+                android:clickable="true"/>
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -149,6 +154,19 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/calendarDialogBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:foregroundGravity="center"
+            app:cardElevation="0dp"
+            app:layoutManager="com.google.android.material.card.MaterialCardView"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <!--    android:layout_gravity="center"-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

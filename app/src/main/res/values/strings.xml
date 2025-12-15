@@ -37,8 +37,8 @@
     <string name="image_error" translatable="false">imageError</string>
     <string name="saved" translatable="false">saved</string>
     <string name="recent_entries">Recent entries</string>
-    <string name="pick_photo" translatable="false">pick_photo</string>
-    <string name="take_photo" translatable="false">take_photo</string>
+    <string name="pick_photo">Pick photo</string>
+    <string name="take_photo">Take photo</string>
     <string name="description_photo" translatable="false">description_photo</string>
     <string name="photo" translatable="false">photo</string>
     <string name="back" translatable="false">back</string>
@@ -90,7 +90,7 @@
     <string name="okay" translatable="false">OK</string>
     <string name="cancel_date">Cancel</string>
     <string name="new_post">New post</string>
-    <string name="new_location">New location</string>
+    <string name="add_location">Add location</string>
     <string name="title_point">Title point</string>
     <string name="latitude_point">Latitude point</string>
     <string name="longitude_point">Longitude point</string>
@@ -106,4 +106,14 @@
     <string name="posts">Posts</string>
     <string name="events">Events</string>
     <string name="users">Users</string>
+    <string name="your_profile">Your profile</string>
+    <string name="place_work">Place work</string>
+    <string name="date_is_set">Date is set</string>
+    <string name="present_time">Present time</string>
+    <string name="teed_to_log">Тeed to log</string>
+    <string name="post_not_found">Post not found</string>
+    <string name="users_mentioned">Users mentioned</string>
+    <string name="speakers_added">Speakers added</string>
+    <string name="coordinates_added">Coordinates added</string>
+    <string name="incorrect_file_format">Incorrect file format</string>
 </resources>

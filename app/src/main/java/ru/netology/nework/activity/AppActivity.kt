@@ -27,15 +27,15 @@ import ru.netology.nework.R
 import ru.netology.nework.databinding.AppActivityBinding
 import ru.netology.nework.databinding.ConfirmationOfExitBinding
 import javax.inject.Inject
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.installations.FirebaseInstallations
+//import com.google.android.gms.common.ConnectionResult
+//import com.google.android.gms.common.GoogleApiAvailability
+//import com.google.firebase.messaging.FirebaseMessaging
+//import com.google.firebase.installations.FirebaseInstallations
 
 @AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
-    @Inject
-    lateinit var auth: AppAuth
+//    @Inject
+//    lateinit var auth: AppAuth
 //    @Inject
 //    lateinit var firebaseMessaging: FirebaseMessaging
 //    @Inject
@@ -43,15 +43,15 @@ class AppActivity : AppCompatActivity() {
 //    @Inject
 //    lateinit var googleApiAvailability: GoogleApiAvailability
 
-    private val viewModel: AuthViewModel by viewModels()
+//    private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         val binding = AppActivityBinding.inflate(layoutInflater)
-        val bindingConfirmationOfExit = ConfirmationOfExitBinding.inflate(layoutInflater)
-        val dialog = BottomSheetDialog(this)
+//        val bindingConfirmationOfExit = ConfirmationOfExitBinding.inflate(layoutInflater)
+//        val dialog = BottomSheetDialog(this)
 
         setContentView(binding.root)
         applyInset(binding.root)
@@ -83,9 +83,9 @@ class AppActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.data.observe(this) {
-            invalidateOptionsMenu()
-        }
+//        viewModel.data.observe(this) {
+//            invalidateOptionsMenu()
+//        }
 
 //        firebaseInstallations.id.addOnCompleteListener { task ->
 //            if (!task.isSuccessful) {
@@ -109,53 +109,53 @@ class AppActivity : AppCompatActivity() {
 //
 //        checkGoogleApiAvailability()
 
-        addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.auth_menu, menu)
+//        addMenuProvider(object : MenuProvider {
+//            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+//                menuInflater.inflate(R.menu.auth_menu, menu)
+//
+//                menu.let {
+//                    it.setGroupVisible(R.id.unauthenticated, !viewModel.authenticated)
+//                    it.setGroupVisible(R.id.authenticated, viewModel.authenticated)
+//                }
+//            }
+//
+//            override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
+//                when (menuItem.itemId) {
+//                    R.id.signIn -> {
+//                        findNavController(R.id.fragmentContainer).navigate(
+//                            R.id.action_feedFragment_to_signInFragment2
+//                        )
+//                        true
+//                    }
+//
+//                    R.id.signUp -> {
+//                        findNavController(R.id.fragmentContainer).navigate(
+//                            R.id.action_feedFragment_to_signUpFragment2
+//                        )
+//                        true
+//                    }
+//
+//                    R.id.signOut -> {
+//                        dialog.setCancelable(false)
+//                        dialog.setContentView(bindingConfirmationOfExit.root)
+//                        dialog.show()
+//                        true
+//                    }
+//
+//                    else -> false
+//                }
+//        })
 
-                menu.let {
-                    it.setGroupVisible(R.id.unauthenticated, !viewModel.authenticated)
-                    it.setGroupVisible(R.id.authenticated, viewModel.authenticated)
-                }
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
-                when (menuItem.itemId) {
-                    R.id.signIn -> {
-                        findNavController(R.id.fragmentContainer).navigate(
-                            R.id.action_feedFragment_to_signInFragment2
-                        )
-                        true
-                    }
-
-                    R.id.signUp -> {
-                        findNavController(R.id.fragmentContainer).navigate(
-                            R.id.action_feedFragment_to_signUpFragment2
-                        )
-                        true
-                    }
-
-                    R.id.signOut -> {
-                        dialog.setCancelable(false)
-                        dialog.setContentView(bindingConfirmationOfExit.root)
-                        dialog.show()
-                        true
-                    }
-
-                    else -> false
-                }
-        })
-
-        bindingConfirmationOfExit.close.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        bindingConfirmationOfExit.signOut.setOnClickListener {
-            auth.removeAuth()
-            findNavController(R.id.fragmentContainer)
-                .navigate(R.id.nav_main)
-            dialog.dismiss()
-        }
+//        bindingConfirmationOfExit.close.setOnClickListener {
+//            dialog.dismiss()
+//        }
+//
+//        bindingConfirmationOfExit.signOut.setOnClickListener {
+//            auth.removeAuth()
+//            findNavController(R.id.fragmentContainer)
+//                .navigate(R.id.nav_main)
+//            dialog.dismiss()
+//        }
     }
 
 //    private fun requestNotificationsPermission() {

@@ -23,7 +23,7 @@ import ru.netology.nework.dto.Post
 import ru.netology.nework.entity.toEntity
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.error.ApiError
-import ru.netology.nework.error.ErrorCode400And500
+import ru.netology.nework.error.ErrorCode403
 import ru.netology.nework.error.NetworkError
 import ru.netology.nework.error.UnknownError
 import java.io.IOException
@@ -134,12 +134,12 @@ class PostRepositoryImpl @Inject constructor(
             }
 
             if (response.code() in 400..599) {
-                throw ErrorCode400And500
+                throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode400And500) {
-            throw ErrorCode400And500
+        } catch (e: ErrorCode403) {
+            throw ErrorCode403
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -159,7 +159,7 @@ class PostRepositoryImpl @Inject constructor(
             }
 
             if (response.code() in 400..599) {
-                throw ErrorCode400And500
+                throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
@@ -178,7 +178,7 @@ class PostRepositoryImpl @Inject constructor(
                 }
 
                 if (response.code() in 400..599) {
-                    throw ErrorCode400And500
+                    throw ErrorCode403
                 }
 
                 throw ApiError(response.code(), response.message())
@@ -190,22 +190,18 @@ class PostRepositoryImpl @Inject constructor(
                 }
 
                 if (response.code() in 400..599) {
-                    throw ErrorCode400And500
+                    throw ErrorCode403
                 }
 
                 throw ApiError(response.code(), response.message())
             }
-        } catch (e: ErrorCode400And500) {
-            throw ErrorCode400And500
+        } catch (e: ErrorCode403) {
+            throw ErrorCode403
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
             throw UnknownError
         }
-    }
-
-    override fun toShareById(id: Long) {
-        // TODO:
     }
 
     override suspend fun save(post: Post): Post {
@@ -218,14 +214,14 @@ class PostRepositoryImpl @Inject constructor(
             }
 
             if (response.code() in 400..599) {
-                throw ErrorCode400And500
+                throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
         } catch (e: AppError) {
             throw e
-        } catch (e: ErrorCode400And500) {
-            throw ErrorCode400And500
+        } catch (e: ErrorCode403) {
+            throw ErrorCode403
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -242,12 +238,12 @@ class PostRepositoryImpl @Inject constructor(
             }
 
             if (response.code() in 400..599) {
-                throw ErrorCode400And500
+                throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode400And500) {
-            throw ErrorCode400And500
+        } catch (e: ErrorCode403) {
+            throw ErrorCode403
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -268,8 +264,8 @@ class PostRepositoryImpl @Inject constructor(
             return save(postWithAttachment)
         } catch (e: AppError) {
             throw e
-        } catch (e: ErrorCode400And500) {
-            throw ErrorCode400And500
+        } catch (e: ErrorCode403) {
+            throw ErrorCode403
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -289,12 +285,12 @@ class PostRepositoryImpl @Inject constructor(
             }
 
             if (response.code() in 400..599) {
-                throw ErrorCode400And500
+                throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode400And500) {
-            throw ErrorCode400And500
+        } catch (e: ErrorCode403) {
+            throw ErrorCode403
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -310,12 +306,12 @@ class PostRepositoryImpl @Inject constructor(
             }
 
             if (response.code() in 400..599) {
-                throw ErrorCode400And500
+                throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode400And500) {
-            throw ErrorCode400And500
+        } catch (e: ErrorCode403) {
+            throw ErrorCode403
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -331,12 +327,12 @@ class PostRepositoryImpl @Inject constructor(
             }
 
             if (response.code() in 400..599) {
-                throw ErrorCode400And500
+                throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode400And500) {
-            throw ErrorCode400And500
+        } catch (e: ErrorCode403) {
+            throw ErrorCode403
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -366,12 +362,12 @@ class PostRepositoryImpl @Inject constructor(
             }
 
             if (response.code() in 400..599) {
-                throw ErrorCode400And500
+                throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode400And500) {
-            throw ErrorCode400And500
+        } catch (e: ErrorCode403) {
+            throw ErrorCode403
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {

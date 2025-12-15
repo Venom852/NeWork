@@ -1,35 +1,26 @@
 package ru.netology.nework.dto
 
-sealed class FeedItem {
-    abstract val id: Long
-}
+import java.time.Instant
 
-data class Post(
-    override val id: Long,
+data class Post (
+    val id: Long,
     val author: String,
     val authorId: Long,
     val authorAvatar: String?,
-    val video: String?,
-    val content: String?,
-    val published: Long,
+    val authorJob: String?,
+    val content: String,
+    val published: Instant,
+    val link: String?,
     val likedByMe: Boolean,
     val toShare: Boolean,
     val likes: Long,
+    val numberViews: Long,
     val attachment: Attachment?,
     val shared: Long,
-    val numberViews: Long,
-    val savedOnTheServer: Boolean,
-    val viewed: Boolean,
-    val ownedByMe: Boolean
-) : FeedItem()
-
-data class Ad(
-    override val id: Long,
-    val url: String,
-    val image: String,
-) : FeedItem()
-
-data class DatePost(
-    override val id: Long,
-    val date: String
-) : FeedItem()
+    val ownedByMe: Boolean,
+    val mentionedMe: Boolean,
+    val coords: Coordinates?,
+    val mentionIds: Set<Long>,
+    val likeOwnerIds: Set<Long>,
+    val users: Map<Long, UserPreview>
+)

@@ -101,6 +101,7 @@
         android:id="@+id/errorCode400And500"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:foregroundGravity="bottom"
         app:cardElevation="0dp"
         app:layoutManager="com.google.android.material.card.MaterialCardView"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -108,16 +109,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/emptyText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/empty"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+<!--    <TextView-->
+<!--        android:id="@+id/emptyText"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="@string/empty"-->
+<!--        android:visibility="gone"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
 
     <ProgressBar
         android:id="@+id/progress"
@@ -133,6 +134,7 @@
         android:id="@+id/authorizationDialogBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:foregroundGravity="bottom"
         app:cardElevation="0dp"
         app:layoutManager="com.google.android.material.card.MaterialCardView"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -144,6 +146,7 @@
         android:id="@+id/exitConfirmationDialogBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:foregroundGravity="bottom"
         app:cardElevation="0dp"
         app:layoutManager="com.google.android.material.card.MaterialCardView"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -151,19 +154,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/browse"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:clickable="true"
-        android:contentDescription="@string/ok"
-        android:focusable="true"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_browse_24" />
+<!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+<!--        android:id="@+id/browse"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="100dp"-->
+<!--        android:clickable="true"-->
+<!--        android:contentDescription="@string/ok"-->
+<!--        android:focusable="true"-->
+<!--        android:visibility="gone"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:srcCompat="@drawable/ic_browse_24" />-->
 
     <LinearLayout
         android:id="@+id/bottomPanel"
@@ -174,60 +177,66 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/posts"
-            style="@style/App.Widget.LikeButton"
-            android:layout_width="wrap_content"
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="@dimen/_30dp"
-            android:checkable="true"
-            android:contentDescription="@string/posts"
-            android:textColor="#000000"
-            android:text="@string/posts"
-            android:padding="4dp"
-            app:iconGravity="top"
-            app:icon="@drawable/ic_rss_feed_48"
-            app:iconPadding="4dp"
-            app:iconTint="#000000"
-            app:iconSize="25dp"/>
+            app:menu="@menu/bottom_navigation_menu" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/events"
-            style="@style/App.Widget.LikeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="93dp"
-            android:checkable="true"
-            android:contentDescription="@string/events"
-            android:textColor="#000000"
-            android:text="@string/events"
-            android:padding="4dp"
-            app:iconGravity="top"
-            app:icon="@drawable/ic_event_48"
-            app:iconPadding="4dp"
-            app:iconTint="#000000"
-            app:iconSize="25dp"/>
+<!--        <com.google.android.material.button.MaterialButton-->
+<!--            android:id="@+id/posts"-->
+<!--            style="@style/App.Widget.LikeButton"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:layout_marginStart="@dimen/_30dp"-->
+<!--            android:checkable="true"-->
+<!--            android:contentDescription="@string/posts"-->
+<!--            android:textColor="#000000"-->
+<!--            android:text="@string/posts"-->
+<!--            android:padding="4dp"-->
+<!--            app:iconGravity="top"-->
+<!--            app:icon="@drawable/ic_rss_feed_48"-->
+<!--            app:iconPadding="4dp"-->
+<!--            app:iconTint="#000000"-->
+<!--            app:iconSize="25dp"/>-->
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/users"
-            style="@style/App.Widget.LikeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="94dp"
-            android:layout_marginEnd="@dimen/_30dp"
-            android:checkable="true"
-            android:contentDescription="@string/users"
-            android:textColor="#000000"
-            android:text="@string/users"
-            android:padding="4dp"
-            app:iconGravity="top"
-            app:icon="@drawable/ic_people_48"
-            app:iconPadding="4dp"
-            app:iconTint="#000000"
-            app:iconSize="25dp"/>
+<!--        <com.google.android.material.button.MaterialButton-->
+<!--            android:id="@+id/events"-->
+<!--            style="@style/App.Widget.LikeButton"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:layout_marginStart="93dp"-->
+<!--            android:checkable="true"-->
+<!--            android:contentDescription="@string/events"-->
+<!--            android:textColor="#000000"-->
+<!--            android:text="@string/events"-->
+<!--            android:padding="4dp"-->
+<!--            app:iconGravity="top"-->
+<!--            app:icon="@drawable/ic_event_48"-->
+<!--            app:iconPadding="4dp"-->
+<!--            app:iconTint="#000000"-->
+<!--            app:iconSize="25dp"/>-->
+
+<!--        <com.google.android.material.button.MaterialButton-->
+<!--            android:id="@+id/users"-->
+<!--            style="@style/App.Widget.LikeButton"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:layout_marginStart="94dp"-->
+<!--            android:layout_marginEnd="@dimen/_30dp"-->
+<!--            android:checkable="true"-->
+<!--            android:contentDescription="@string/users"-->
+<!--            android:textColor="#000000"-->
+<!--            android:text="@string/users"-->
+<!--            android:padding="4dp"-->
+<!--            app:iconGravity="top"-->
+<!--            app:icon="@drawable/ic_people_48"-->
+<!--            app:iconPadding="4dp"-->
+<!--            app:iconTint="#000000"-->
+<!--            app:iconSize="25dp"/>-->
 
     </LinearLayout>
 

@@ -10,10 +10,10 @@ import kotlinx.coroutines.launch
 import ru.netology.nework.repository.PostRepository
 import ru.netology.nework.auth.AuthState
 import ru.netology.nework.dto.MediaUpload
-import ru.netology.nework.error.ErrorCode400And500
+import ru.netology.nework.error.ErrorCode403
 import ru.netology.nework.error.UnknownError
 import ru.netology.nework.model.FeedModelState
-import ru.netology.nework.model.PhotoModel
+import ru.netology.nework.model.MediaModel
 import ru.netology.nework.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
@@ -22,12 +22,12 @@ import javax.inject.Inject
 class SignUpViewModel @Inject constructor(
     private val repository: PostRepository
 ): ViewModel() {
-    private val noPhoto = PhotoModel()
+    private val noPhoto = MediaModel()
     private val _authState = MutableLiveData(AuthState())
     val authState: LiveData<AuthState>
         get() =_authState
     private val _photo = MutableLiveData(noPhoto)
-    val photo: LiveData<PhotoModel>
+    val photo: LiveData<MediaModel>
         get() = _photo
     private val _dataState = MutableLiveData(FeedModelState())
     val dataState: LiveData<FeedModelState>
@@ -36,7 +36,7 @@ class SignUpViewModel @Inject constructor(
     val bottomSheet: LiveData<Unit>
         get() = _bottomSheet
 
-    fun signUp(userName: String, login: String, password: String) {
+    fun signUp(login: String, name: String, password: String) {
         viewModelScope.launch{
             try {
                 when (_photo.value) {
@@ -45,7 +45,7 @@ class SignUpViewModel @Inject constructor(
                         _authState.value = repository.signUpWithAPhoto(userName, login, password, MediaUpload(file))
                     }
                 }
-            } catch (e: ErrorCode400And500) {
+            } catch (e: ErrorCode403) {
                 _bottomSheet.value = Unit
             } catch (e: UnknownError) {
                 _dataState.value = FeedModelState(errorCode300 = true)
@@ -56,6 +56,6 @@ class SignUpViewModel @Inject constructor(
     }
 
     fun changePhoto(uri: Uri?, file: File?) {
-        _photo.value = PhotoModel(uri, file)
+        _photo.value = MediaModel(uri, file)
     }
 }

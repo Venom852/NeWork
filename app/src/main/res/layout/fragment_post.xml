@@ -61,14 +61,14 @@
                 android:layout_marginStart="@dimen/_16dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                app:layout_constraintBottom_toTopOf="@+id/jobStatus"
+                app:layout_constraintBottom_toTopOf="@+id/authorJob"
                 app:layout_constraintEnd_toStartOf="@id/menu"
                 app:layout_constraintStart_toEndOf="@+id/avatar"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="@sample/posts.json/data/author" />
 
             <TextView
-                android:id="@+id/jobStatus"
+                android:id="@+id/authorJob"
                 android:layout_width="@dimen/_0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/_16dp"
@@ -104,7 +104,7 @@
                 android:layout_height="wrap_content"
                 app:barrierDirection="bottom"
                 app:barrierMargin="@dimen/_16dp"
-                app:constraint_referenced_ids="avatar, jobStatus" />
+                app:constraint_referenced_ids="avatar, authorJob" />
 
             <TextView
                 android:id="@+id/content"
@@ -220,7 +220,7 @@
                 app:srcCompat="@drawable/ic_netology" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/listUsers"
+                android:id="@+id/listLikeUsers"
                 style="@style/App.Widget.ListUsers"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
@@ -236,7 +236,7 @@
                 app:layout_constraintTop_toBottomOf="@id/likers" />
 
             <TextView
-                android:id="@+id/participants"
+                android:id="@+id/mentionedText"
                 android:layout_width="@dimen/_0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_16dp"
@@ -248,7 +248,7 @@
                 app:layout_constraintTop_toBottomOf="@id/like" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/mentionedUsers"
+                android:id="@+id/mention"
                 style="@style/App.Widget.LikeButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -259,66 +259,66 @@
                 app:iconSize="@dimen/_22dp"
                 app:iconTint="#663399"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/participants"
+                app:layout_constraintTop_toBottomOf="@+id/mentionedText"
                 tools:text="34" />
 
             <ImageView
-                android:id="@+id/mentionedUserOne"
+                android:id="@+id/mentionedOne"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginStart="@dimen/_22dp"
                 android:layout_marginTop="@dimen/_16dp"
                 android:contentDescription="@string/avatar"
-                app:layout_constraintStart_toEndOf="@id/mentionedUsers"
-                app:layout_constraintTop_toBottomOf="@id/participants"
+                app:layout_constraintStart_toEndOf="@id/mention"
+                app:layout_constraintTop_toBottomOf="@id/mentionedText"
                 app:srcCompat="@drawable/ic_netology" />
 
             <ImageView
-                android:id="@+id/mentionedUserTwo"
+                android:id="@+id/mentionedTwo"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginStart="34dp"
                 android:layout_marginTop="@dimen/_16dp"
                 android:contentDescription="@string/avatar"
-                app:layout_constraintStart_toStartOf="@id/mentionedUserOne"
-                app:layout_constraintTop_toBottomOf="@id/participants"
+                app:layout_constraintStart_toStartOf="@id/mentionedOne"
+                app:layout_constraintTop_toBottomOf="@id/mentionedText"
                 app:srcCompat="@drawable/ic_netology" />
 
             <ImageView
-                android:id="@+id/mentionedUserThree"
+                android:id="@+id/mentionedThree"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginStart="34dp"
                 android:layout_marginTop="@dimen/_16dp"
                 android:contentDescription="@string/avatar"
-                app:layout_constraintStart_toStartOf="@id/mentionedUserTwo"
-                app:layout_constraintTop_toBottomOf="@id/participants"
+                app:layout_constraintStart_toStartOf="@id/mentionedTwo"
+                app:layout_constraintTop_toBottomOf="@id/mentionedText"
                 app:srcCompat="@drawable/ic_netology" />
 
             <ImageView
-                android:id="@+id/mentionedUserFour"
+                android:id="@+id/mentionedFour"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginStart="34dp"
                 android:layout_marginTop="@dimen/_16dp"
                 android:contentDescription="@string/avatar"
-                app:layout_constraintStart_toStartOf="@id/mentionedUserThree"
-                app:layout_constraintTop_toBottomOf="@id/participants"
+                app:layout_constraintStart_toStartOf="@id/mentionedThree"
+                app:layout_constraintTop_toBottomOf="@id/mentionedText"
                 app:srcCompat="@drawable/ic_netology" />
 
             <ImageView
-                android:id="@+id/mentionedUserFive"
+                android:id="@+id/mentionedFive"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginStart="34dp"
                 android:layout_marginTop="@dimen/_16dp"
                 android:contentDescription="@string/avatar"
-                app:layout_constraintStart_toStartOf="@id/mentionedUserFour"
-                app:layout_constraintTop_toBottomOf="@id/participants"
+                app:layout_constraintStart_toStartOf="@id/mentionedFour"
+                app:layout_constraintTop_toBottomOf="@id/mentionedText"
                 app:srcCompat="@drawable/ic_netology" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/mentionedListUsers"
+                android:id="@+id/listMentioned"
                 style="@style/App.Widget.ListUsers"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
@@ -330,8 +330,8 @@
                 app:icon="@drawable/ic_add_48"
                 app:iconSize="32dp"
                 app:iconTint="#ffff"
-                app:layout_constraintStart_toStartOf="@id/mentionedUserFive"
-                app:layout_constraintTop_toBottomOf="@id/participants" />
+                app:layout_constraintStart_toStartOf="@id/mentionedFive"
+                app:layout_constraintTop_toBottomOf="@id/mentionedText" />
 
             <com.yandex.mapkit.mapview.MapView
                 android:id="@+id/map"
@@ -339,7 +339,7 @@
                 android:layout_height="500dp"
                 android:layout_marginTop="@dimen/_16dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/mentionedUsers" />
+                app:layout_constraintTop_toBottomOf="@id/mention" />
 
             <VideoView
                 android:id="@+id/videoContent"
@@ -354,7 +354,7 @@
                 tools:text="@sample/posts.json/data/content" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/play"
+                android:id="@+id/playVideo"
                 style="@style/App.Widget.MenuButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -426,23 +426,51 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:visibility="visible"
-                app:constraint_referenced_ids="videoContent,play" />
+                app:constraint_referenced_ids="videoContent,playVideo" />
 
             <androidx.constraintlayout.widget.Group
-                android:id="@+id/groupPost"
+                android:id="@+id/groupSong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:clickable="true"
                 android:focusable="true"
                 android:visibility="visible"
                 app:constraint_referenced_ids="content,author,published,avatar,imageContent" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/groupLike"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:visibility="visible"
+                app:constraint_referenced_ids="likeUserOne,likeUserTwo,likeUserThree,likeUserFour,likeUserFive,listLikeUsers" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/groupMentioned"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:visibility="visible"
+                app:constraint_referenced_ids="mentionedOne,mentionedTwo,mentionedThree,mentionedFour,mentionedFive,listMentioned" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/errorCode400And500"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:foregroundGravity="bottom"
                 app:cardElevation="0dp"
-                app:layoutManager="androidx.cardview.widget.CardView"
+                app:layoutManager="com.google.android.material.card.MaterialCardView"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/authorizationDialogBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:foregroundGravity="bottom"
+                app:cardElevation="0dp"
+                app:layoutManager="com.google.android.material.card.MaterialCardView"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

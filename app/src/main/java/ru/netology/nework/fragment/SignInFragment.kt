@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -16,6 +18,7 @@ import ru.netology.nework.R
 import ru.netology.nework.auth.AppAuth
 import ru.netology.nework.databinding.ErrorCode400And500Binding
 import ru.netology.nework.databinding.FragmentSignInBinding
+import ru.netology.nework.fragment.NewPostFragment.Companion.statusPostAndContent
 import ru.netology.nework.util.SwipeDirection
 import ru.netology.nework.util.detectSwipe
 import ru.netology.nework.viewmodel.SignInViewModel
@@ -36,34 +39,54 @@ class SignInFragment : Fragment() {
         val bindingErrorCode400And500 =
             ErrorCode400And500Binding.inflate(layoutInflater, container, false)
 
+        applyInset(binding.root)
+
         val dialog = BottomSheetDialog(requireContext())
         val viewModel: SignInViewModel by viewModels()
 
         with(binding) {
             login.requestFocus()
 
+            back.setOnClickListener {
+                findNavController().navigateUp()
+            }
+
             signIn.setOnClickListener {
-                if (login.text.toString().isEmpty()) {
-                    Toast.makeText(requireContext(), R.string.empty_login, Toast.LENGTH_SHORT).show()
+                if (loginInput.text.toString().isEmpty()) {
+                    loginInput.error = getString(R.string.empty_login)
+                    loginInput.error = null
+//                    Toast.makeText(requireContext(), R.string.empty_login, Toast.LENGTH_SHORT)
+//                        .show()
                 }
 
-                if (password.text.toString().isEmpty()) {
-                    Toast.makeText(requireContext(), R.string.empty_password, Toast.LENGTH_SHORT).show()
+                if (passwordInput.text.toString().isEmpty()) {
+                    passwordInput.error = getString(R.string.empty_password)
+                    passwordInput.error = null
+//                    Toast.makeText(requireContext(), R.string.empty_password, Toast.LENGTH_SHORT)
+//                        .show()
                 }
 
-                if (!login.text.toString().isEmpty() && !password.text.toString().isEmpty()) {
-                    viewModel.signIn(login.text.toString(), password.text.toString())
+                if (!loginInput.text.toString().isEmpty() && !passwordInput.text.toString().isEmpty()) {
+                    viewModel.signIn(loginInput.text.toString(), passwordInput.text.toString())
                 }
             }
 
-            viewModel.authState.observe(viewLifecycleOwner) {
-                if (it.token != null) {
-                    auth.setAuth(it.id, it.token)
-                    findNavController().navigateUp()
-                }
+            noRegistration.setOnClickListener {
+                findNavController().navigate(
+                    R.id.action_signInFragment2_to_signUpFragment2,
+                )
             }
         }
 
+        //TODO(Нужно ли менять liveData)
+        viewModel.authState.observe(viewLifecycleOwner) {
+            if (it.token != null) {
+                auth.setAuth(it.id, it.token)
+                findNavController().navigateUp()
+            }
+        }
+
+        //TODO(Нужно ли менять liveData, и нужна ли обработка ошибки)
         viewModel.dataState.observe(viewLifecycleOwner) { state ->
             if (state.errorCode300) {
                 binding.signInFragment.isVisible = false
@@ -79,6 +102,7 @@ class SignInFragment : Fragment() {
             }
         }
 
+        //TODO(Нужно ли менять liveData, настроить ошибку, добавить Toast)
         viewModel.bottomSheet.observe(viewLifecycleOwner) {
             dialog.setCancelable(false)
             dialog.setContentView(bindingErrorCode400And500.root)
@@ -100,10 +124,24 @@ class SignInFragment : Fragment() {
 
             if (text == "onSwipeDown") {
                 dialog.dismiss()
-                Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
             }
         }
 
         return binding.root
+    }
+
+    private fun applyInset(main: View) {
+        ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+            val isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
+            v.setPadding(
+                v.paddingLeft,
+                systemBars.top,
+                v.paddingRight,
+                if (isImeVisible) imeInsets.bottom else systemBars.bottom
+            )
+            insets
+        }
     }
 }

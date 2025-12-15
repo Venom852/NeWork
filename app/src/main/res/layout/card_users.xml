@@ -27,7 +27,7 @@
             app:srcCompat="@drawable/ic_netology" />
 
         <TextView
-            android:id="@+id/user"
+            android:id="@+id/nameUser"
             android:layout_width="@dimen/_0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_16dp"
@@ -46,15 +46,23 @@
             android:layout_marginTop="9dp"
             app:layout_constraintEnd_toStartOf="@id/radioButton"
             app:layout_constraintStart_toEndOf="@id/avatarUser"
-            app:layout_constraintTop_toBottomOf="@+id/user"
+            app:layout_constraintTop_toBottomOf="@+id/nameUser"
             tools:text="@sample/posts.json/data/loginUser" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/radioButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:enabled="true"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/groupUser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:constraint_referenced_ids="avatarUser,nameUser,loginUser" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

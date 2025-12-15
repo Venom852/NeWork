@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -25,10 +24,12 @@ import ru.netology.nework.BuildConfig
 import ru.netology.nework.R
 import ru.netology.nework.dao.PostDao
 import ru.netology.nework.databinding.FragmentPhotoBinding
+import ru.netology.nework.dto.Event
 import ru.netology.nework.dto.Post
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.PostViewModel
+import java.time.Instant
 import javax.inject.Inject
 import kotlin.getValue
 
@@ -38,28 +39,64 @@ class PhotoFragment : Fragment() {
     @Inject
     lateinit var dao: PostDao
     companion object {
-        private var post = Post(
-            id = 0,
-            author = "Me",
-            authorId = 0,
-            authorAvatar = "netology",
-            video = null,
-            content = "",
-            published = 0,
-            likedByMe = false,
-            toShare = false,
-            likes = 0,
-            attachment = null,
-            shared = 0,
-            numberViews = 0,
-            savedOnTheServer = false,
-            viewed = true,
-            ownedByMe = false
-        )
-        private val gson = Gson()
-        private var postId: Long = 0
-        var Bundle.textPost by StringArg
+        const val POST = "post"
+        const val EVENT = "event"
+        var statusFragment = ""
+        var Bundle.statusPhotoFragment by StringArg
+        var Bundle.photoBundle by StringArg
     }
+
+    private var post = Post(
+        id = 0,
+        author = "Me",
+        authorId = 0,
+        authorAvatar = null,
+        authorJob = null,
+        content = "",
+        published = Instant.now(),
+        link = null,
+        likedByMe = false,
+        toShare = false,
+        likes = 0,
+        numberViews = 0,
+        attachment = null,
+        shared = 0,
+        ownedByMe = false,
+        mentionIds = emptySet(),
+        coords = null,
+        mentionedMe = false,
+        likeOwnerIds = emptySet(),
+        users = emptyMap()
+    )
+
+    private var event = Event(
+        id = 0,
+        author = "Me",
+        authorId = 0,
+        authorAvatar = null,
+        authorJob = null,
+        content = "",
+        published = Instant.now(),
+        datetime = Instant.now(),
+        type = null,
+        link = null,
+        likedByMe = false,
+        toShare = false,
+        likes = 0,
+        numberViews = 0,
+        attachment = null,
+        shared = 0,
+        ownedByMe = false,
+        speakerIds = emptySet(),
+        coords = null,
+        participatedByMe = false,
+        likeOwnerIds = emptySet(),
+        participantsIds = emptySet(),
+        users = emptyMap()
+    )
+    private val gson = Gson()
+    private var postId: Long = 0
+    private var eventId: Long = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,23 +105,47 @@ class PhotoFragment : Fragment() {
     ): View {
         val binding = FragmentPhotoBinding.inflate(layoutInflater, container, false)
         val viewModel: PostViewModel by activityViewModels()
+
         applyInset(binding.photoFragment)
 
-        arguments?.textPost?.let {
-            post = gson.fromJson(it, Post::class.java)
-            postId = post.id
-            arguments?.textPost = null
+        arguments?.statusPhotoFragment?.let {
+            statusFragment = it
+            arguments?.statusPhotoFragment = null
+        }
+
+        arguments?.photoBundle?.let {
+            if (statusFragment == POST) {
+                post = gson.fromJson(it, Post::class.java)
+                postId = post.id
+            } else {
+                event = gson.fromJson(it, Event::class.java)
+                eventId = event.id
+            }
+            arguments?.photoBundle = null
         }
 
         with(binding) {
-            setValues(binding, post)
+            if (statusFragment == POST) {
+                setValuesPost(binding, post)
+            } else {
+                setValuesEvent(binding, event)
+            }
 
             like.setOnClickListener {
-                viewModel.likeById(post.id)
+                if (statusFragment == POST) {
+                    viewModel.likeById(post.id)
+                } else {
+                    //TODO(Добавить viewModel)
+                }
             }
 
             toShare.setOnClickListener {
-                viewModel.toShareById(post.id)
+                if (statusFragment == POST) {
+                    viewModel.toShareById(post.id)
+                } else {
+                    //TODO(Добавить viewModel)
+                }
+
                 val intent = Intent().apply {
                     action = Intent.ACTION_SEND
                     type = "text/plain"
@@ -100,11 +161,16 @@ class PhotoFragment : Fragment() {
 
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    viewModel.data.collectLatest {
-                        CoroutineScope(Dispatchers.Default).launch {
-                            post = dao.getPost(postId).toDto()
+                    if (statusFragment == POST) {
+                        viewModel.dataPost.collectLatest {
+                            CoroutineScope(Dispatchers.Default).launch {
+                                //TODO(Проверить, нужно ли будет убирать запрос из базы данных)
+                                post = dao.getPost(postId).toDto()
+                            }
+                            setValuesPost(binding, post)
                         }
-                        setValues(binding, post)
+                    } else {
+                        //TODO(Добавить viewModel)
                     }
                 }
             }
@@ -113,7 +179,7 @@ class PhotoFragment : Fragment() {
         return binding.root
     }
 
-    private fun setValues(binding: FragmentPhotoBinding, post: Post) {
+    private fun setValuesPost(binding: FragmentPhotoBinding, post: Post) {
         with(binding) {
             like.isChecked = post.likedByMe
             toShare.isChecked = post.toShare
@@ -123,15 +189,49 @@ class PhotoFragment : Fragment() {
 
             val urlAttachment = "${BuildConfig.BASE_URL}/media/${post.attachment?.url}"
 
-            when {
-                post.attachment == null -> photo.visibility = View.GONE
-                post.attachment.uri == null -> Glide.with(binding.photo)
-                    .load(urlAttachment)
-                    .error(R.drawable.ic_error_24)
-                    .timeout(10_000)
-                    .into(binding.photo)
-                else -> photo.setImageURI(post.attachment.uri.toUri())
-            }
+            Glide.with(binding.photo)
+                .load(urlAttachment)
+                .error(R.drawable.ic_error_24)
+                .timeout(10_000)
+                .into(binding.photo)
+
+//            when {
+//                post.attachment == null -> photo.visibility = View.GONE
+//                post.attachment.uri == null -> Glide.with(binding.photo)
+//                    .load(urlAttachment)
+//                    .error(R.drawable.ic_error_24)
+//                    .timeout(10_000)
+//                    .into(binding.photo)
+//                else -> photo.setImageURI(post.attachment.uri.toUri())
+//            }
+        }
+    }
+
+    private fun setValuesEvent(binding: FragmentPhotoBinding, event: Event) {
+        with(binding) {
+            like.isChecked = event.likedByMe
+            toShare.isChecked = event.toShare
+            like.text = CountCalculator.calculator(event.likes)
+            toShare.text = CountCalculator.calculator(event.shared)
+            views.text = CountCalculator.calculator(event.numberViews)
+
+            val urlAttachment = "${BuildConfig.BASE_URL}/media/${event.attachment?.url}"
+
+            Glide.with(binding.photo)
+                .load(urlAttachment)
+                .error(R.drawable.ic_error_24)
+                .timeout(10_000)
+                .into(binding.photo)
+
+//            when {
+//                post.attachment == null -> photo.visibility = View.GONE
+//                post.attachment.uri == null -> Glide.with(binding.photo)
+//                    .load(urlAttachment)
+//                    .error(R.drawable.ic_error_24)
+//                    .timeout(10_000)
+//                    .into(binding.photo)
+//                else -> photo.setImageURI(post.attachment.uri.toUri())
+//            }
         }
     }
 

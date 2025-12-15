@@ -43,14 +43,14 @@
             tools:text="@sample/posts.json/data/job" />
 
         <TextView
-            android:id="@+id/experience"
+            android:id="@+id/jobTime"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_16dp"
             app:layout_constraintEnd_toStartOf="@id/delete"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/titleJob"
-            tools:text="@sample/posts.json/data/experience" />
+            tools:text="@sample/posts.json/data/jobTime" />
 
         <TextView
             android:id="@+id/jobPost"
@@ -60,7 +60,7 @@
             android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/experience"
+            app:layout_constraintTop_toBottomOf="@+id/jobTime"
             tools:text="@sample/posts.json/data/jobPost" />
 
         <TextView

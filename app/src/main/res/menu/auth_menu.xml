@@ -13,6 +13,10 @@
     </group>
     <group android:id="@+id/authenticated">
         <item
+            android:id="@+id/yourProfile"
+            android:title="@string/your_profile"
+            app:showAsAction="never" />
+        <item
             android:id="@+id/signOut"
             android:title="@string/sign_out"
             app:showAsAction="never" />

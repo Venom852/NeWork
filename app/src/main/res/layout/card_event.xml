@@ -18,7 +18,7 @@
         app:strokeColor="#D8BFD8">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/cardPost"
+            android:id="@+id/cardEventConstraint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="@dimen/_16dp"
@@ -34,7 +34,7 @@
                 app:layout_constraintBottom_toTopOf="@+id/published"
                 app:layout_constraintEnd_toStartOf="@id/menu"
                 app:layout_constraintStart_toEndOf="@+id/avatar"
-                app:layout_constraintTop_toTopOf="@id/cardPost"
+                app:layout_constraintTop_toTopOf="@id/cardEventConstraint"
                 tools:text="@sample/posts.json/data/author" />
 
             <TextView
@@ -152,7 +152,7 @@
                 tools:text="13" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/mentionedUsers"
+                android:id="@+id/participate"
                 style="@style/App.Widget.LikeButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -178,7 +178,7 @@
                 tools:text="@sample/posts.json/data/content" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/play"
+                android:id="@+id/playVideo"
                 style="@style/App.Widget.MenuButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -250,14 +250,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:visibility="visible"
-                app:constraint_referenced_ids="videoContent,play" />
+                app:constraint_referenced_ids="videoContent,playVideo" />
 
             <androidx.constraintlayout.widget.Group
-                android:id="@+id/groupPost"
+                android:id="@+id/groupSong"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:visibility="visible"
                 app:constraint_referenced_ids="content,author,published,avatar" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/groupEvent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                app:constraint_referenced_ids="author,published,content,eventStatus,eventDate,cardEventConstraint" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

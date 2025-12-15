@@ -11,7 +11,7 @@ object AndroidUtils {
         imm.hideSoftInputFromWindow(view.windowToken,  0)
     }
 
-    private fun Group.setAllOnClickListener(listener: (View) -> Unit) {
+    fun Group.setAllOnClickListener(listener: (View) -> Unit) {
         referencedIds.forEach { _ ->
             rootView.setOnClickListener(listener)
         }

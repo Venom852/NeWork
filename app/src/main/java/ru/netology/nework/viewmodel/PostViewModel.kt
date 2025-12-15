@@ -20,23 +20,24 @@ import ru.netology.nework.dto.MediaUpload
 import ru.netology.nework.dto.Post
 import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.entity.toEntity
-import ru.netology.nework.error.ErrorCode400And500
-import ru.netology.nework.error.UnknownError
-import ru.netology.nework.model.FeedModelState
-import ru.netology.nework.model.PhotoModel
+import ru.netology.nework.error.ErrorCode403
+import ru.netology.nework.model.MediaModel
 import ru.netology.nework.repository.PostRepository
 import ru.netology.nework.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
-import kotlin.concurrent.thread
 import androidx.paging.map
+import com.yandex.mapkit.geometry.Point
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
-import ru.netology.nework.dto.Attachment
-import ru.netology.nework.dto.FeedItem
+import ru.netology.nework.dto.Coordinates
+import ru.netology.nework.entity.AttachmentEmbeddable
 import ru.netology.nework.entity.toDto
 import ru.netology.nework.enumeration.AttachmentType
+import ru.netology.nework.error.ErrorCode404
+import ru.netology.nework.error.ErrorCode415
+import java.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -46,155 +47,180 @@ class PostViewModel @Inject constructor(
     auth: AppAuth,
     application: Application
 ) : AndroidViewModel(application) {
-    val empty = Post(
+    var empty = Post(
         id = 0,
         author = "Me",
         authorId = 0,
-        authorAvatar = "netology",
-        video = null,
+        authorAvatar = null,
+        authorJob = null,
         content = "",
-        published = 0,
+        published = Instant.now(),
+        link = null,
         likedByMe = false,
         toShare = false,
         likes = 0,
+        numberViews = 0,
         attachment = null,
         shared = 0,
-        numberViews = 0,
-        savedOnTheServer = false,
-        viewed = true,
-        ownedByMe = false
+        ownedByMe = false,
+        mentionIds = emptySet(),
+        coords = null,
+        mentionedMe = false,
+        likeOwnerIds = emptySet(),
+        users = emptyMap()
     )
 
-    private val noPhoto = PhotoModel()
+    private val noMedia = MediaModel()
+//    private val noPhoto = MediaModel()
+//    private val noAudio = AudioModel()
+//    private val noVideo = VideoModel()
 
-    private val cached: Flow<PagingData<FeedItem>> = repository
+    private val cachedPost: Flow<PagingData<Post>> = repository
         .data
         .cachedIn(viewModelScope)
 
-    val data: Flow<PagingData<FeedItem>> = auth.authStateFlow
+    val dataPost: Flow<PagingData<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            cached.map { pagingData ->
+            cachedPost.map { pagingData ->
                 pagingData.map { post ->
-                    if (post is Post) {
-                        post.copy(ownedByMe = post.authorId == myId)
-                    } else {
-                        post
-                    }
+                    post.copy(ownedByMe = post.authorId == myId)
                 }
             }
         }
-    private val _dataState = MutableLiveData(FeedModelState())
-    val dataState: LiveData<FeedModelState>
-        get() = _dataState
+
+    //    private val _dataState = MutableLiveData(FeedModelState())
+//    val dataState: LiveData<FeedModelState>
+//        get() = _dataState
     var newerCount: Flow<Int> = emptyFlow()
     val edited = MutableLiveData(empty)
+
+    //TODO(Попробовать заменить на Flow)
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
-    private val _bottomSheet = SingleLiveEvent<Unit>()
-    val bottomSheet: LiveData<Unit>
-        get() = _bottomSheet
-    private val _photo = MutableLiveData(noPhoto)
-    val photo: LiveData<PhotoModel>
-        get() = _photo
+
+    //TODO(Попробовать заменить на Flow)
+    private val _errorPost403 = SingleLiveEvent<Unit>()
+    val errorPost403: LiveData<Unit>
+        get() = _errorPost403
+
+    //TODO(Попробовать заменить на Flow)
+    private val _errorPost404 = SingleLiveEvent<Unit>()
+    val errorPost404: LiveData<Unit>
+        get() = _errorPost404
+
+    //TODO(Попробовать заменить на Flow)
+    private val _errorPost415 = SingleLiveEvent<Unit>()
+    val errorPost415: LiveData<Unit>
+        get() = _errorPost415
+
+    //TODO(Попробовать заменить на Flow)
+    private val _media = MutableLiveData(noMedia)
+    val media: LiveData<MediaModel>
+        get() = _media
+
+    //    //TODO(Попробовать заменить на Flow)
+//    private val _audio = MutableLiveData(noAudio)
+//    val audio: LiveData<AudioModel>
+//        get() = _audio
+//    //TODO(Попробовать заменить на Flow)
+//    private val _video = MutableLiveData(noVideo)
+//    val video: LiveData<VideoModel>
+//        get() = _video
     private var oldPost = empty
     private var oldPosts = emptyList<Post>()
+    private var listUsers = emptySet<Long>()
+    private var coordinates = Coordinates(lat = 0.0, long = 0.0)
 
-    init {
-        loadPosts()
-    }
+//    init {
+//        loadPosts()
+//    }
 
-    fun browse() {
-        viewModelScope.launch {
-            CoroutineScope(Dispatchers.Default).launch {
-                oldPosts = dao.getAll().toDto()
-            }
-            newerCount = repository.getNewerCount(oldPosts.first().id)
+//    fun browse() {
+//        viewModelScope.launch {
+//            CoroutineScope(Dispatchers.IO).launch {
+//                oldPosts = dao.getAll().toDto()
+//            }
+//            newerCount = repository.getNewerCount(oldPosts.first().id)
+//
+//            dao.browse()
+//        }
+//    }
 
-            dao.browse()
-        }
-    }
+//    fun loadPosts() {
+//        viewModelScope.launch {
+//            try {
+//                _dataState.value = FeedModelState(loading = true)
+////                repository.getAll()
+//                _dataState.value = FeedModelState()
+//            } catch (e: ErrorCode403) {
+//                dao.insertPosts(oldPosts.toEntity())
+//                _bottomSheet.value = Unit
+//            } catch (e: Exception) {
+//                dao.insertPosts(oldPosts.toEntity())
+//                _dataState.value = FeedModelState(error = true)
+//            }
+//        }
+//    }
 
-    fun loadPosts() {
-        viewModelScope.launch {
-            try {
-                _dataState.value = FeedModelState(loading = true)
-//                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: ErrorCode400And500) {
-                dao.insertPosts(oldPosts.toEntity())
-                _bottomSheet.value = Unit
-            } catch (e: UnknownError) {
-                _dataState.value = FeedModelState(errorCode300 = true)
-            } catch (e: Exception) {
-                print(e)
-                dao.insertPosts(oldPosts.toEntity())
-                _dataState.value = FeedModelState(error = true)
-            }
-        }
-    }
+//    fun refreshPosts() {
+//        viewModelScope.launch {
+//            try {
+//                _dataState.value = FeedModelState(refreshing = true)
+////                repository.getAll()
+//                _dataState.value = FeedModelState()
+//            } catch (e: ErrorCode400And500) {
+//                dao.insertPosts(oldPosts.toEntity())
+//                _bottomSheet.value = Unit
+//            } catch (e: UnknownError) {
+//                _dataState.value = FeedModelState(errorCode300 = true)
+//            } catch (e: Exception) {
+//                dao.insertPosts(oldPosts.toEntity())
+//                _dataState.value = FeedModelState(error = true)
+//            }
+//        }
+//    }
 
-    fun refreshPosts() {
-        viewModelScope.launch {
-            try {
-                _dataState.value = FeedModelState(refreshing = true)
-//                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: ErrorCode400And500) {
-                dao.insertPosts(oldPosts.toEntity())
-                _bottomSheet.value = Unit
-            } catch (e: UnknownError) {
-                _dataState.value = FeedModelState(errorCode300 = true)
-            } catch (e: Exception) {
-                dao.insertPosts(oldPosts.toEntity())
-                _dataState.value = FeedModelState(error = true)
-            }
-        }
-    }
-
-    fun loadPostsWithoutServer() {
-        _dataState.value = _dataState.value?.copy(errorCode300 = false)
-    }
+//    fun loadPostsWithoutServer() {
+//        _dataState.value = _dataState.value?.copy(errorCode300 = false)
+//    }
 
     fun likeById(id: Long) {
         viewModelScope.launch {
-            CoroutineScope(Dispatchers.Default).launch {
+            CoroutineScope(Dispatchers.IO).launch {
                 oldPosts = dao.getAll().toDto()
             }
             val postLikedByMe = oldPosts.find { it.id == id }?.likedByMe
             dao.likeById(id)
             try {
                 repository.likeById(id, postLikedByMe)
-            } catch (e: ErrorCode400And500) {
+            } catch (_: ErrorCode403) {
                 dao.insertPosts(oldPosts.toEntity())
-                _bottomSheet.value = Unit
-            } catch (e: UnknownError) {
-                _dataState.value = FeedModelState(errorCode300 = true)
+                _errorPost403.value = Unit
+            } catch (_: ErrorCode404) {
+                dao.insertPosts(oldPosts.toEntity())
+                _errorPost404.value = Unit
             } catch (e: Exception) {
                 dao.insertPosts(oldPosts.toEntity())
-                _dataState.value = FeedModelState(error = true)
+                e.printStackTrace()
             }
         }
     }
 
-    fun toShareById(id: Long) = thread { repository.toShareById(id) }
-
     fun removeById(id: Long) {
         viewModelScope.launch {
-            CoroutineScope(Dispatchers.Default).launch {
+            CoroutineScope(Dispatchers.IO).launch {
                 oldPosts = dao.getAll().toDto()
             }
             dao.removeById(id)
             try {
                 repository.removeById(id)
-            } catch (e: ErrorCode400And500) {
+            } catch (_: ErrorCode403) {
                 dao.insertPosts(oldPosts.toEntity())
-                _bottomSheet.value = Unit
-            } catch (e: UnknownError) {
-                _dataState.value = FeedModelState(errorCode300 = true)
+                _errorPost403.value = Unit
             } catch (e: Exception) {
                 dao.insertPosts(oldPosts.toEntity())
-                _dataState.value = FeedModelState(error = true)
+                e.printStackTrace()
             }
         }
     }
@@ -202,56 +228,53 @@ class PostViewModel @Inject constructor(
     fun saveContent(content: String) {
         edited.value?.let {
             viewModelScope.launch {
-                CoroutineScope(Dispatchers.Default).launch {
+                CoroutineScope(Dispatchers.IO).launch {
                     oldPosts = dao.getAll().toDto()
                 }
 
-                var post = it.copy(content = content)
+                var post = it.copy(
+                    content = content,
+                    mentionIds = listUsers
+                )
                 var postServer = empty
 
-                if (_photo.value?.uri != null) {
-                    _photo.value?.uri?.let { uri ->
-                        post = post.copy(
-                            attachment = Attachment(
-                                url = "null",
-                                type = AttachmentType.IMAGE,
-                                uri = uri.toString()
-                            )
-                        )
-                    }
-                    dao.save(PostEntity.fromDto(post))
-                } else {
-                    dao.save(PostEntity.fromDto(post))
+                if (coordinates.lat != 0.0 || coordinates.long != 0.0) {
+                    post = post.copy(coords = coordinates)
                 }
+
+                dao.save(PostEntity.fromDto(post))
                 _postCreated.value = Unit
+
                 try {
-                    when(_photo.value) {
-                        noPhoto -> postServer = repository.save(post)
-                        else -> _photo.value?.file?.let { file ->
+                    when (_media.value) {
+                        noMedia -> postServer = repository.save(post)
+                        else -> _media.value?.file?.let { file ->
                             postServer = repository.saveWithAttachment(post, MediaUpload(file))
                         }
                     }
 
                     if (post.id == 0L) {
                         oldPost = oldPosts.first()
-                        dao.changeIdPostById(oldPost.id, postServer.id, savedOnTheServer = true)
-                        _photo.value = noPhoto
+                        dao.changeIdPostById(oldPost.id, postServer.id, post.attachment?.url, post.attachment?.type)
+                        _media.value = noMedia
+                        listUsers = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
                     }
-                } catch (e: ErrorCode400And500) {
-                    _bottomSheet.value = Unit
-                    if (post.id == 0L && _photo.value == noPhoto) {
+                } catch (_: ErrorCode403) {
+                    _errorPost403.value = Unit
+                    if (post.id == 0L && _media.value == noMedia) {
                         dao.removeById(oldPost.id)
                         return@launch
                     } else dao.insertPosts(oldPosts.toEntity())
-                } catch (e: UnknownError) {
-                    _dataState.value = FeedModelState(errorCode300 = true)
-                    if (post.id == 0L && _photo.value == noPhoto) {
+                } catch (_: ErrorCode415) {
+                    _errorPost415.value = Unit
+                    if (post.id == 0L && _media.value == noMedia) {
                         dao.removeById(oldPost.id)
                         return@launch
                     } else dao.insertPosts(oldPosts.toEntity())
                 } catch (e: Exception) {
-                    _dataState.value = FeedModelState(error = true)
-                    if (post.id == 0L && _photo.value == noPhoto) {
+                    e.printStackTrace()
+                    if (post.id == 0L && _media.value == noMedia) {
                         dao.removeById(oldPost.id)
                         return@launch
                     } else dao.insertPosts(oldPosts.toEntity())
@@ -262,10 +285,45 @@ class PostViewModel @Inject constructor(
     }
 
     fun editById(post: Post) {
-        edited.value = post
+        viewModelScope.launch {
+            edited.value = post
+        }
     }
 
-    fun changePhoto(uri: Uri?, file: File?) {
-        _photo.value = PhotoModel(uri, file)
+    fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
+        viewModelScope.launch {
+            _media.value = MediaModel(null, null, attachmentType)
+            _media.value = MediaModel(uri, file, attachmentType)
+        }
     }
+
+    fun mentionUsers(list: List<Long>) {
+        viewModelScope.launch {
+            listUsers = list.toSet()
+        }
+    }
+
+    fun addLocation(coord: Coordinates) {
+        viewModelScope.launch {
+            coordinates = coord
+        }
+    }
+
+//    fun changePhoto(uri: Uri?, file: File?) {
+//        _audio.value = noAudio
+//        _video.value = noVideo
+//        _photo.value = MediaModel(uri, file)
+//    }
+
+//    fun changeAudio(uri: Uri?, file: File?) {
+//        _photo.value = noPhoto
+//        _video.value = noVideo
+//        _audio.value = AudioModel(uri, file)
+//    }
+//
+//    fun changeVideo(uri: Uri?, file: File?) {
+//        _photo.value = noPhoto
+//        _audio.value = noAudio
+//        _video.value = VideoModel(uri, file)
+//    }
 }

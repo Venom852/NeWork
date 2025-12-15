@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/yourProfile"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent"
+    tools:context=".fragment.ProfileFragment">
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/back"
@@ -22,7 +23,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/logout"
+        android:id="@+id/logOut"
         style="@style/App.Widget.MenuButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -39,13 +40,39 @@
         android:id="@+id/toolbar"
         android:layout_width="@dimen/_0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toStartOf="@id/logout"
+        app:layout_constraintEnd_toStartOf="@id/logOut"
         app:layout_constraintStart_toEndOf="@id/back"
         app:layout_constraintTop_toTopOf="parent"
         app:title="@string/you" />
 
+<!--    <ScrollView-->
+<!--        android:id="@+id/photoScr"-->
+<!--        android:layout_width="@dimen/_0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/toolbar">-->
+
+<!--        <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--            android:layout_width="@dimen/_0dp"-->
+<!--            android:layout_height="wrap_content">-->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/photo"-->
+<!--                android:layout_width="@dimen/_0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:adjustViewBounds="true"-->
+<!--                android:contentDescription="@string/you_photo"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent"-->
+<!--                tools:srcCompat="@drawable/ic_nature_24" />-->
+
+<!--        </androidx.constraintlayout.widget.ConstraintLayout>-->
+<!--    </ScrollView>-->
+
     <ImageView
-        android:id="@+id/youPhoto"
+        android:id="@+id/photo"
         android:layout_width="@dimen/_0dp"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
@@ -62,14 +89,16 @@
         app:tabMode="fixed"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/youPhoto">
+        app:layout_constraintTop_toBottomOf="@id/photo">
 
         <com.google.android.material.tabs.TabItem
+            android:id="@+id/wallButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/wall" />
 
         <com.google.android.material.tabs.TabItem
+            android:id="@+id/jobsButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/jobs" />
@@ -79,11 +108,12 @@
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/srlPosts"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:background="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tabs">
+        app:layout_constraintTop_toBottomOf="@id/tabs"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/main"
@@ -97,18 +127,19 @@
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/srlJobs"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tabs">
+        app:layout_constraintTop_toBottomOf="@id/tabs"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/jobs"
+            android:id="@+id/job"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/card_jobs" />
+            tools:listitem="@layout/card_job" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -123,5 +154,29 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_add_24" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/exitConfirmationDialogBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foregroundGravity="bottom"
+        app:cardElevation="0dp"
+        app:layoutManager="com.google.android.material.card.MaterialCardView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/errorCode400And500"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foregroundGravity="bottom"
+        app:cardElevation="0dp"
+        app:layoutManager="com.google.android.material.card.MaterialCardView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,8 +4,11 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.netology.nework.dto.Attachment
+import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.dto.Post
+import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.enumeration.AttachmentType
+import java.time.Instant
 
 @Entity
 data class PostEntity(
@@ -14,37 +17,45 @@ data class PostEntity(
     val author: String,
     val authorId: Long,
     val authorAvatar: String?,
-    val video: String?,
-    val content: String?,
-    val published: Long,
+    val authorJob: String?,
+    val content: String,
+    val published: Instant,
+    val link: String?,
     val likedByMe: Boolean,
     val toShare: Boolean,
-    val numberLikes: Long,
-    @Embedded
-    var attachment: AttachmentEmbeddable?,
-    val shared: Long,
+    val likes: Long,
     val numberViews: Long,
-    val savedOnTheServer: Boolean,
-    val viewed: Boolean,
-    val ownedByMe: Boolean
+    @Embedded
+    val attachment: AttachmentEmbeddable?,
+    val shared: Long,
+    val ownedByMe: Boolean,
+    val mentionedMe: Boolean,
+    val coords: Coordinates?,
+    val mentionIds: Set<Long>,
+    val likeOwnerIds: Set<Long>,
+    val users: Map<Long, UserPreview>
 ) {
     fun toDto() = Post(
         id,
         author,
         authorId,
         authorAvatar,
-        video,
+        authorJob,
         content,
         published,
+        link,
         likedByMe,
         toShare,
-        numberLikes,
+        likes,
+        numberViews,
         attachment?.toDto(),
         shared,
-        numberViews,
-        savedOnTheServer,
-        viewed,
-        ownedByMe
+        ownedByMe,
+        mentionedMe,
+        coords,
+        mentionIds,
+        likeOwnerIds,
+        users,
     )
 
     companion object {
@@ -53,18 +64,22 @@ data class PostEntity(
             post.author,
             post.authorId,
             post.authorAvatar,
-            post.video,
+            post.authorJob,
             post.content,
             post.published,
+            post.link,
             post.likedByMe,
             post.toShare,
             post.likes,
+            post.numberViews,
             AttachmentEmbeddable.fromDto(post.attachment),
             post.shared,
-            post.numberViews,
-            post.savedOnTheServer,
-            post.viewed,
-            post.ownedByMe
+            post.ownedByMe,
+            post.mentionedMe,
+            post.coords,
+            post.mentionIds,
+            post.likeOwnerIds,
+            post.users,
         )
     }
 }
@@ -72,13 +87,12 @@ data class PostEntity(
 data class AttachmentEmbeddable(
     var url: String,
     var type: AttachmentType,
-    var uri: String?
 ) {
-    fun toDto() = Attachment(url, type, uri)
+    fun toDto() = Attachment(url, type)
 
     companion object {
         fun fromDto(dto: Attachment?) = dto?.let {
-            AttachmentEmbeddable(it.url,it.type, it.uri)
+            AttachmentEmbeddable(it.url,it.type)
         }
     }
 }

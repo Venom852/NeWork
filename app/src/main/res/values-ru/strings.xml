@@ -66,7 +66,7 @@
     <string name="end_date">Конец даты</string>
     <string name="cancel_date">Отменить</string>
     <string name="new_post">Новый пост</string>
-    <string name="new_location">Новая локация</string>
+    <string name="add_location">Добавить локацию</string>
     <string name="title_point">Название точки</string>
     <string name="latitude_point">Широта точки</string>
     <string name="longitude_point">Долгота точки</string>
@@ -81,4 +81,16 @@
     <string name="posts">Посты</string>
     <string name="events">События</string>
     <string name="users">Пользователи</string>
+    <string name="your_profile">Ваш профиль</string>
+    <string name="place_work">Место работы</string>
+    <string name="pick_photo">Выберите фото</string>
+    <string name="take_photo">Сделайте снимок</string>
+    <string name="date_is_set">Дата установлена</string>
+    <string name="present_time">Настоящее время</string>
+    <string name="teed_to_log">Нужно авторизоваться</string>
+    <string name="post_not_found">Пост не найден</string>
+    <string name="users_mentioned">Пользователи упомянуты</string>
+    <string name="speakers_added">Спикеры добавлены</string>
+    <string name="coordinates_added">Координаты добавлены</string>
+    <string name="incorrect_file_format">Неправильный формат файла</string>
 </resources>

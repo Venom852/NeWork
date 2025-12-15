@@ -5,7 +5,7 @@
     android:id="@+id/newPost"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.NewPostFragment">
+    tools:context=".fragment.NewEventFragment">
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/back"
@@ -21,22 +21,36 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/save"
+        style="@style/App.Widget.MenuButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:contentDescription="@string/back"
+        android:textSize="20sp"
+        app:icon="@drawable/ic_menu_save_24"
+        app:iconSize="32dp"
+        app:iconTint="#000000"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="@dimen/_0dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toEndOf="@id/back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:menu="@menu/menu_new_post"
+        app:layout_constraintEnd_toStartOf="@id/save"
         app:title="@string/new_event"/>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/exitConfirmationDialogBox"
+        android:id="@+id/errorCode400And500"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:foregroundGravity="bottom"
         app:cardElevation="0dp"
-        app:layoutManager="androidx.cardview.widget.CardView"
+        app:layoutManager="com.google.android.material.card.MaterialCardView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -46,12 +60,26 @@
         android:id="@+id/dateDialogBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:foregroundGravity="bottom"
         app:cardElevation="0dp"
-        app:layoutManager="androidx.cardview.widget.CardView"
+        app:layoutManager="com.google.android.material.card.MaterialCardView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/calendarDialogBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foregroundGravity="center"
+        app:cardElevation="0dp"
+        app:layoutManager="com.google.android.material.card.MaterialCardView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+<!--    android:layout_gravity="center"-->
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -78,7 +106,7 @@
                 android:contentDescription="@string/description_photo"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/content"
+                app:layout_constraintTop_toBottomOf="@id/textInputContent"
                 tools:src="@tools:sample/avatars[12]" />
 
             <com.google.android.material.button.MaterialButton
@@ -91,7 +119,7 @@
                 app:layout_constraintStart_toStartOf="@id/photo" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/content"
+                android:id="@+id/textInputContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent"
@@ -99,6 +127,7 @@
                 app:layout_constraintStart_toStartOf="parent">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/content"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/event_text"
@@ -131,7 +160,7 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/takePhoto"
+            android:id="@+id/choosePhoto"
             style="@style/Widget.AppTheme.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -142,7 +171,7 @@
             app:iconSize="25dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/attachFile"
+            android:id="@+id/attachMedia"
             style="@style/Widget.AppTheme.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -153,7 +182,7 @@
             app:iconSize="25dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/users"
+            android:id="@+id/chooseUsers"
             style="@style/Widget.AppTheme.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -164,7 +193,7 @@
             app:iconSize="25dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/location"
+            android:id="@+id/addLocation"
             style="@style/Widget.AppTheme.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -175,7 +204,7 @@
             app:iconSize="25dp" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/add"
+            android:id="@+id/addDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_16dp"

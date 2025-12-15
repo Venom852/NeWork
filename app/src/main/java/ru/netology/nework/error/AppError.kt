@@ -6,7 +6,9 @@ import java.sql.SQLException
 sealed class AppError(var code: String) : RuntimeException() {
     companion object {
         fun from(e: Throwable): AppError = when (e) {
-            is ErrorCode400And500 -> ErrorCode400And500
+            is ErrorCode404 -> ErrorCode404
+            is ErrorCode403 -> ErrorCode403
+            is ErrorCode415 -> ErrorCode415
             is AppError -> e
             is SQLException -> DbError
             is IOException -> NetworkError
@@ -29,7 +31,17 @@ object UnknownError: AppError("error_unknown") {
     private fun readResolve(): Any = UnknownError
 }
 
-object ErrorCode400And500: AppError("error_code_400_and_500") {
-    private fun readResolve(): Any = ErrorCode400And500
+object ErrorCode403: AppError("error_code_403") {
+    private fun readResolve(): Any = ErrorCode403
+
+}
+
+object ErrorCode404: AppError("error_code_404") {
+    private fun readResolve(): Any = ErrorCode404
+
+}
+
+object ErrorCode415: AppError("error_code_415") {
+    private fun readResolve(): Any = ErrorCode415
 
 }
