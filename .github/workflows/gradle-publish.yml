@@ -19,6 +19,16 @@ jobs:
         with:
           java-version: 17
 
+      - name: Decode apiKey.properties
+        env:
+         SERVER_API_KEY: ${{ secrets.SERVER_API_KEY }}
+        run: echo $SERVER_API_KEY > ./app/apiKey.properties
+
+      - name: Decode maps.properties
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+        run: echo $MAPS_API_KEY > ./app/maps.properties
+
       - name: Build
         run: |
           chmod +x ./gradlew
