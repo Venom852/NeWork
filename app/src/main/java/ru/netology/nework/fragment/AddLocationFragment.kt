@@ -30,13 +30,20 @@ import ru.netology.nework.databinding.FragmentAddLocationBinding
 import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.extensions.DrawableImageProvider
 import ru.netology.nework.extensions.ImageInfo
+import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_POST
+import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_WALL
+import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_SPEAKERS_USER
+import ru.netology.nework.fragment.UserFragment.Companion.status
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.PostViewModel
+import ru.netology.nework.viewmodel.EventViewModel
+import ru.netology.nework.viewmodel.MyWallViewModel
 import kotlin.getValue
 
 class AddLocationFragment : Fragment() {
     companion object {
         const val POST = "post"
+        const val WALL = "wall"
         const val EVENT = "event"
         var statusFragment = ""
         var Bundle.statusAddLocationFragment by StringArg
@@ -65,18 +72,16 @@ class AddLocationFragment : Fragment() {
         override fun onMapLongTap(map: Map, point: Point) = Unit
     }
 
-
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentAddLocationBinding.inflate(layoutInflater, container, false)
 
         val viewModelPost: PostViewModel by activityViewModels()
-
-        applyInset(binding.root)
+        val viewModelMyWall: MyWallViewModel by activityViewModels()
+        val viewModelEvent: EventViewModel by activityViewModels()
 
         arguments?.statusAddLocationFragment?.let {
             statusFragment = it
@@ -89,13 +94,23 @@ class AddLocationFragment : Fragment() {
             }
 
             save.setOnClickListener {
-                //TODO(Добавить viewModel)
-                if (statusFragment == POST) {
-                    Toast.makeText(requireContext(), R.string.coordinates_added, Toast.LENGTH_SHORT).show()
-                    viewModelPost.addLocation(listPoint.first())
-                } else {
+                when (status) {
+                    POST -> {
+                        Toast.makeText(requireContext(), R.string.coordinates_added, Toast.LENGTH_SHORT).show()
+                        viewModelPost.addLocation(listPoint.first())
+                    }
 
+                    WALL -> {
+                        Toast.makeText(requireContext(), R.string.coordinates_added, Toast.LENGTH_SHORT).show()
+                        viewModelMyWall.addLocation(listPoint.first())
+                    }
+
+                    EVENT -> {
+                        Toast.makeText(requireContext(), R.string.coordinates_added, Toast.LENGTH_SHORT).show()
+                        viewModelEvent.addLocation(listPoint.first())
+                    }
                 }
+
                 findNavController().navigateUp()
             }
         }
@@ -103,7 +118,6 @@ class AddLocationFragment : Fragment() {
         return binding.root
     }
 
-    //TODO(Проверить, можно ли использовать для работы с картой метод onCreate или оставить всё тут)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val mapView = binding.map
         val mapWindow = mapView.mapWindow
@@ -174,20 +188,5 @@ class AddLocationFragment : Fragment() {
                 }
             }
         )
-    }
-
-    private fun applyInset(main: View) {
-        ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            v.setPadding(
-                v.paddingLeft,
-                systemBars.top,
-                v.paddingRight,
-                if (isImeVisible) imeInsets.bottom else systemBars.bottom
-            )
-            insets
-        }
     }
 }

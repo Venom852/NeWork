@@ -12,7 +12,7 @@ data class Event (
     val content: String,
     val published: Instant,
     val datetime: Instant,
-    val type: EventType?,
+    val eventType: EventType?,
     val link: String?,
     val likedByMe: Boolean,
     val toShare: Boolean,
@@ -26,5 +26,7 @@ data class Event (
     val likeOwnerIds: Set<Long>,
     val participantsIds: Set<Long>,
     val participatedByMe: Boolean,
-    val users: Map<Long, UserPreview>
+    val users: Map<Long, UserPreview>,
+    val playSong: Boolean,
+    val playVideo: Boolean
 )

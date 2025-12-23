@@ -110,10 +110,19 @@
     <string name="place_work">Place work</string>
     <string name="date_is_set">Date is set</string>
     <string name="present_time">Present time</string>
-    <string name="teed_to_log">Тeed to log</string>
+    <string name="need_to_log">Need to log</string>
     <string name="post_not_found">Post not found</string>
     <string name="users_mentioned">Users mentioned</string>
     <string name="speakers_added">Speakers added</string>
     <string name="coordinates_added">Coordinates added</string>
     <string name="incorrect_file_format">Incorrect file format</string>
+    <string name="event_not_found">Event not found</string>
+    <string name="incorrect_date_and_time">You entered the date or time incorrectly, please correct it according to the example</string>
+    <string name="wrong_login_or_password">Wrong login or password</string>
+    <string name="user_is_not_registered">User is not registered</string>
+    <string name="login_busy">User with this username has already been registered</string>
+    <string name="incorrect_photo_format">Incorrect photo format</string>
+    <string name="no_registration">Don\'t have an account? Register</string>
+    <string name="pick_audio">Pick audio</string>
+    <string name="pick_video">Pick video</string>
 </resources>

@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -22,12 +20,14 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netology.nework.BuildConfig
 import ru.netology.nework.R
+import ru.netology.nework.dao.EventDao
 import ru.netology.nework.dao.PostDao
 import ru.netology.nework.databinding.FragmentPhotoBinding
 import ru.netology.nework.dto.Event
 import ru.netology.nework.dto.Post
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
+import ru.netology.nework.viewmodel.EventViewModel
 import ru.netology.nework.viewmodel.PostViewModel
 import java.time.Instant
 import javax.inject.Inject
@@ -35,9 +35,11 @@ import kotlin.getValue
 
 @AndroidEntryPoint
 class PhotoFragment : Fragment() {
-
     @Inject
-    lateinit var dao: PostDao
+    lateinit var daoPost: PostDao
+    @Inject
+    lateinit var daoEvent: EventDao
+
     companion object {
         const val POST = "post"
         const val EVENT = "event"
@@ -66,7 +68,9 @@ class PhotoFragment : Fragment() {
         coords = null,
         mentionedMe = false,
         likeOwnerIds = emptySet(),
-        users = emptyMap()
+        users = emptyMap(),
+        playSong = false,
+        playVideo = false
     )
 
     private var event = Event(
@@ -78,7 +82,7 @@ class PhotoFragment : Fragment() {
         content = "",
         published = Instant.now(),
         datetime = Instant.now(),
-        type = null,
+        eventType = null,
         link = null,
         likedByMe = false,
         toShare = false,
@@ -92,7 +96,9 @@ class PhotoFragment : Fragment() {
         participatedByMe = false,
         likeOwnerIds = emptySet(),
         participantsIds = emptySet(),
-        users = emptyMap()
+        users = emptyMap(),
+        playSong = false,
+        playVideo = false
     )
     private val gson = Gson()
     private var postId: Long = 0
@@ -104,9 +110,9 @@ class PhotoFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentPhotoBinding.inflate(layoutInflater, container, false)
-        val viewModel: PostViewModel by activityViewModels()
 
-        applyInset(binding.photoFragment)
+        val viewModelPost: PostViewModel by activityViewModels()
+        val viewModelEvent: EventViewModel by activityViewModels()
 
         arguments?.statusPhotoFragment?.let {
             statusFragment = it
@@ -133,19 +139,13 @@ class PhotoFragment : Fragment() {
 
             like.setOnClickListener {
                 if (statusFragment == POST) {
-                    viewModel.likeById(post.id)
+                    viewModelPost.likeById(post.id)
                 } else {
-                    //TODO(Добавить viewModel)
+                    viewModelEvent.likeById(post.id)
                 }
             }
 
             toShare.setOnClickListener {
-                if (statusFragment == POST) {
-                    viewModel.toShareById(post.id)
-                } else {
-                    //TODO(Добавить viewModel)
-                }
-
                 val intent = Intent().apply {
                     action = Intent.ACTION_SEND
                     type = "text/plain"
@@ -162,15 +162,19 @@ class PhotoFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     if (statusFragment == POST) {
-                        viewModel.dataPost.collectLatest {
+                        viewModelPost.dataPost.collectLatest {
                             CoroutineScope(Dispatchers.Default).launch {
-                                //TODO(Проверить, нужно ли будет убирать запрос из базы данных)
-                                post = dao.getPost(postId).toDto()
+                                post = daoPost.getPost(postId).toPostDto()
                             }
                             setValuesPost(binding, post)
                         }
                     } else {
-                        //TODO(Добавить viewModel)
+                        viewModelEvent.dataEvent.collectLatest {
+                            CoroutineScope(Dispatchers.Default).launch {
+                                event = daoEvent.getEvent(eventId).toEventDto()
+                            }
+                            setValuesEvent(binding, event)
+                        }
                     }
                 }
             }
@@ -194,16 +198,6 @@ class PhotoFragment : Fragment() {
                 .error(R.drawable.ic_error_24)
                 .timeout(10_000)
                 .into(binding.photo)
-
-//            when {
-//                post.attachment == null -> photo.visibility = View.GONE
-//                post.attachment.uri == null -> Glide.with(binding.photo)
-//                    .load(urlAttachment)
-//                    .error(R.drawable.ic_error_24)
-//                    .timeout(10_000)
-//                    .into(binding.photo)
-//                else -> photo.setImageURI(post.attachment.uri.toUri())
-//            }
         }
     }
 
@@ -222,31 +216,6 @@ class PhotoFragment : Fragment() {
                 .error(R.drawable.ic_error_24)
                 .timeout(10_000)
                 .into(binding.photo)
-
-//            when {
-//                post.attachment == null -> photo.visibility = View.GONE
-//                post.attachment.uri == null -> Glide.with(binding.photo)
-//                    .load(urlAttachment)
-//                    .error(R.drawable.ic_error_24)
-//                    .timeout(10_000)
-//                    .into(binding.photo)
-//                else -> photo.setImageURI(post.attachment.uri.toUri())
-//            }
-        }
-    }
-
-    private fun applyInset(main: View) {
-        ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            v.setPadding(
-                v.paddingLeft,
-                systemBars.top,
-                v.paddingRight,
-                if (isImeVisible) imeInsets.bottom else systemBars.bottom
-            )
-            insets
         }
     }
 }

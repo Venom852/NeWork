@@ -13,7 +13,7 @@ object ApiServiceModule {
     @Provides
     @Singleton
     fun provideApiService(auth: AppAuth): ApiService {
-        return retrofit(okhttp(loggingInterceptor(), authInterceptor(auth)))
+        return retrofit(okhttp(loggingInterceptor(), authInterceptor(auth), apiKeyInterceptor()))
             .create(ApiService::class.java)
     }
 }

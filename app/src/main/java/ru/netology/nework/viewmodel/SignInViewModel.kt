@@ -6,38 +6,39 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import ru.netology.nework.repository.PostRepository
 import ru.netology.nework.auth.AuthState
-import ru.netology.nework.error.ErrorCode403
-import ru.netology.nework.error.UnknownError
-import ru.netology.nework.model.FeedModelState
+import ru.netology.nework.error.ErrorCode400
+import ru.netology.nework.error.ErrorCode404
+import ru.netology.nework.repository.UserRepository
 import ru.netology.nework.util.SingleLiveEvent
 import javax.inject.Inject
 
 @HiltViewModel
 class SignInViewModel @Inject constructor(
-    private val repository: PostRepository
+    private val repository: UserRepository
 ): ViewModel() {
     private val _authState = MutableLiveData(AuthState())
     val authState: LiveData<AuthState>
         get() =_authState
-    private val _dataState = MutableLiveData(FeedModelState())
-    val dataState: LiveData<FeedModelState>
-        get() = _dataState
-    private val _bottomSheet = SingleLiveEvent<Unit>()
-    val bottomSheet: LiveData<Unit>
-        get() = _bottomSheet
+
+    private val _errorPost400 = SingleLiveEvent<Unit>()
+    val errorPost400: LiveData<Unit>
+        get() = _errorPost400
+
+    private val _errorPost404 = SingleLiveEvent<Unit>()
+    val errorPost404: LiveData<Unit>
+        get() = _errorPost404
 
     fun signIn(login: String, password: String) {
         viewModelScope.launch{
             try {
                 _authState.value = repository.signIn(login, password)
-            } catch (e: ErrorCode403) {
-                _bottomSheet.value = Unit
-            } catch (e: UnknownError) {
-                _dataState.value = FeedModelState(errorCode300 = true)
+            } catch (_: ErrorCode400) {
+                _errorPost400.value = Unit
+            } catch (_: ErrorCode404) {
+                _errorPost404.value = Unit
             } catch (e: Exception) {
-                _dataState.value = FeedModelState(error = true)
+                e.printStackTrace()
             }
         }
     }

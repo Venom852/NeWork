@@ -22,5 +22,7 @@ data class Post (
     val coords: Coordinates?,
     val mentionIds: Set<Long>,
     val likeOwnerIds: Set<Long>,
-    val users: Map<Long, UserPreview>
+    val users: Map<Long, UserPreview>,
+    val playSong: Boolean,
+    val playVideo: Boolean
 )

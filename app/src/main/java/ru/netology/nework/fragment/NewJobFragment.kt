@@ -4,18 +4,25 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nework.R
 import ru.netology.nework.databinding.CardCalendarBinding
 import ru.netology.nework.databinding.FragmentNewJobBinding
 import ru.netology.nework.databinding.SelectDateJobBinding
+import ru.netology.nework.viewmodel.JobMyViewModel
 import java.util.Calendar
+import kotlin.getValue
 
+@AndroidEntryPoint
 class NewJobFragment : Fragment() {
+    companion object {
+        const val NEW_JOB = "newJob"
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -27,12 +34,14 @@ class NewJobFragment : Fragment() {
         val bindingCardCalendar =
             CardCalendarBinding.inflate(layoutInflater, container, false)
 
+        val viewModelJobMy: JobMyViewModel by activityViewModels()
+
         val dialog = BottomSheetDialog(requireContext())
         val dialogCalendar = BottomSheetDialog(requireContext())
         var conditionCalendar = 0
-        //TODO(Добавить viewModel)
-
-        applyInset(binding.root)
+        var date = ""
+        var dateStart = ""
+        var dateEnd = ""
 
         with(binding) {
             back.setOnClickListener {
@@ -65,7 +74,7 @@ class NewJobFragment : Fragment() {
                     !jobPostInput.text.toString().isEmpty() &&
                     !dateInput.text.toString().isEmpty()
                 ) {
-                    viewModel.signIn(titleJobInput.text.toString(), jobPostInput.text.toString())
+                    viewModelJobMy.saveJob(titleJobInput.text.toString(), jobPostInput.text.toString())
                 }
             }
         }
@@ -82,15 +91,31 @@ class NewJobFragment : Fragment() {
             }
 
             ok.setOnClickListener {
-                //TODO(Подумать как правильно конвертировать дату)
-                if (!startDateInput.text.toString().isEmpty() && !endDateInput.text.toString().isEmpty()) {
-                    val text = "$startDateInput - $endDateInput"
-                    binding.dateInput.setText(text)
-                    //TODO(Добавить viewModel)
-                } else {
-                    val text = "$startDateInput - ${context?.getString(R.string.present_time)}"
-                    binding.dateInput.setText(text)
-                    //TODO(Добавить viewModel)
+                when {
+                    !startDateInput.text.toString().isEmpty() && !endDateInput.text.toString().isEmpty() -> {
+                        val text = "$startDateInput - $endDateInput"
+                        binding.dateInput.setText(text)
+
+                        dateStart = "${dateStart}T00:00:00.000Z"
+                        dateEnd = "${dateEnd}T00:00:00.000Z"
+
+                        viewModelJobMy.saveDate(dateStart, dateEnd)
+                        dialog.dismiss()
+                    }
+
+                    !startDateInput.text.toString().isEmpty() -> {
+                        val text = "$startDateInput - ${context?.getString(R.string.present_time)}"
+                        binding.dateInput.setText(text)
+
+                        dateStart = "${dateStart}T00:00:00.000Z"
+
+                        viewModelJobMy.saveDate(dateStart)
+                        dialog.dismiss()
+                    }
+
+                    else -> {
+                        dialog.dismiss()
+                    }
                 }
             }
         }
@@ -101,31 +126,24 @@ class NewJobFragment : Fragment() {
 
             if (conditionCalendar == 0) {
                 conditionCalendar = 1
-                val date = "$month/$day/$year"
+                date = "$day.$month.$year"
+                dateStart = "$year-$month-$day"
+
                 bindingSelectDateJob.startDateInput.setText(date)
             } else {
-                conditionCalendar = 1
-                val date = "$month/$day/$year"
+                conditionCalendar = 0
+                date = "$day.$month.$year"
+                dateEnd = "$year-$month-$day"
+
                 bindingSelectDateJob.endDateInput.setText(date)
                 dialogCalendar.dismiss()
             }
         }
 
-        return binding.root
-    }
-
-    private fun applyInset(main: View) {
-        ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            v.setPadding(
-                v.paddingLeft,
-                systemBars.top,
-                v.paddingRight,
-                if (isImeVisible) imeInsets.bottom else systemBars.bottom
-            )
-            insets
+        viewModelJobMy.jobCreated.observe(viewLifecycleOwner) {
+            findNavController().navigateUp()
         }
+
+        return binding.root
     }
 }

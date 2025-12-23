@@ -3,12 +3,17 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.hilt)
-
-//    alias(libs.plugins.google.gms.google.services)
 }
 
 ext {
+    serverApiKey = getServerApiKey()
     mapkitApiKey = getMapkitApiKey()
+}
+
+private String getServerApiKey() {
+    def properties = new Properties()
+    project.file("apiKey.properties").withInputStream { properties.load(it) }
+    return properties.getProperty("SERVER_API_KEY", "")
 }
 
 private String getMapkitApiKey() {
@@ -30,6 +35,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
+        buildConfigField "String", "SERVER_API_KEY", "\"${serverApiKey}\""
         buildConfigField "String", "MAPS_API_KEY", "\"${mapkitApiKey}\""
     }
 
@@ -44,11 +50,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders.usesCleartextTraffic = false
             buildConfigField "String", "BASE_URL", '"https://netomedia.ru"'
+            buildConfigField "String", "URL", '"https://ik.imagekit.io"'
         }
 
         debug {
             manifestPlaceholders.usesCleartextTraffic = true
-            buildConfigField "String", "BASE_URL", '"http://10.0.2.2:9999"'
+//            buildConfigField "String", "BASE_URL", '"http://10.0.2.2:9999"'
+            buildConfigField "String", "BASE_URL", '"http://94.228.125.136:8080"'
+            buildConfigField "String", "URL", '"https://ik.imagekit.io"'
         }
     }
     compileOptions {
@@ -59,6 +68,10 @@ android {
     kotlinOptions {
         jvmTarget = '11'
         freeCompilerArgs = ['-XXLanguage:+PropertyParamAnnotationDefaultTargetMode']
+    }
+
+    packagingOptions {
+        exclude 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
     }
 }
 
@@ -88,7 +101,7 @@ dependencies {
 
 //    implementation libs.firebase.messaging
 //    implementation platform(libs.firebase.bom)
-//    implementation libs.play.services.base
+//    implementation libs.play.services.bas
 
     coreLibraryDesugaring libs.desugar.jdk.libs
     ksp libs.androidx.room.compiler

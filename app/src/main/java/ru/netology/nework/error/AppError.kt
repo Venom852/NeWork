@@ -31,17 +31,18 @@ object UnknownError: AppError("error_unknown") {
     private fun readResolve(): Any = UnknownError
 }
 
+object ErrorCode400: AppError("error_code_400") {
+    private fun readResolve(): Any = ErrorCode400
+}
+
 object ErrorCode403: AppError("error_code_403") {
     private fun readResolve(): Any = ErrorCode403
-
 }
 
 object ErrorCode404: AppError("error_code_404") {
     private fun readResolve(): Any = ErrorCode404
-
 }
 
 object ErrorCode415: AppError("error_code_415") {
     private fun readResolve(): Any = ErrorCode415
-
 }

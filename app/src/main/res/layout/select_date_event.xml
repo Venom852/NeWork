@@ -54,6 +54,7 @@
             app:expandedHintEnabled="false"
             app:helperTextEnabled="true"
             app:helperText="@string/helper_date"
+            app:errorEnabled="true"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 

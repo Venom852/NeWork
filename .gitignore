@@ -25,6 +25,7 @@ captures/
 .externalNativeBuild
 .cxx
 app/maps.properties
+app/apiKey.properties
 
 ### NetBeans ###
 /nbproject/private/

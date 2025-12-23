@@ -3,12 +3,11 @@ package ru.netology.nework.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import ru.netology.nework.dto.Attachment
 import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.dto.Post
 import ru.netology.nework.dto.UserPreview
-import ru.netology.nework.enumeration.AttachmentType
 import java.time.Instant
+import kotlin.Boolean
 
 @Entity
 data class PostEntity(
@@ -33,9 +32,11 @@ data class PostEntity(
     val coords: Coordinates?,
     val mentionIds: Set<Long>,
     val likeOwnerIds: Set<Long>,
-    val users: Map<Long, UserPreview>
+    val users: Map<Long, UserPreview>,
+    val playSong: Boolean,
+    val playVideo: Boolean
 ) {
-    fun toDto() = Post(
+    fun toPostDto() = Post(
         id,
         author,
         authorId,
@@ -48,7 +49,7 @@ data class PostEntity(
         toShare,
         likes,
         numberViews,
-        attachment?.toDto(),
+        attachment?.toAttachmentPostDto(),
         shared,
         ownedByMe,
         mentionedMe,
@@ -56,10 +57,12 @@ data class PostEntity(
         mentionIds,
         likeOwnerIds,
         users,
+        playSong,
+        playVideo
     )
 
     companion object {
-        fun fromDto(post: Post) = PostEntity(
+        fun fromPostDto(post: Post) = PostEntity(
             post.id,
             post.author,
             post.authorId,
@@ -72,7 +75,7 @@ data class PostEntity(
             post.toShare,
             post.likes,
             post.numberViews,
-            AttachmentEmbeddable.fromDto(post.attachment),
+            AttachmentEmbeddable.fromAttachmentPostDto(post.attachment),
             post.shared,
             post.ownedByMe,
             post.mentionedMe,
@@ -80,22 +83,11 @@ data class PostEntity(
             post.mentionIds,
             post.likeOwnerIds,
             post.users,
+            post.playSong,
+            post.playVideo
         )
     }
 }
 
-data class AttachmentEmbeddable(
-    var url: String,
-    var type: AttachmentType,
-) {
-    fun toDto() = Attachment(url, type)
-
-    companion object {
-        fun fromDto(dto: Attachment?) = dto?.let {
-            AttachmentEmbeddable(it.url,it.type)
-        }
-    }
-}
-
-fun List<PostEntity>.toDto(): List<Post> = map(PostEntity::toDto)
-fun List<Post>.toEntity(): List<PostEntity> = map(PostEntity::fromDto)
+fun List<PostEntity>.toPostDto(): List<Post> = map(PostEntity::toPostDto)
+fun List<Post>.toPostEntity(): List<PostEntity> = map(PostEntity::fromPostDto)

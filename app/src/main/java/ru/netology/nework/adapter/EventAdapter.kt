@@ -4,9 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import ru.netology.nework.databinding.CardEventBinding
-import ru.netology.nework.databinding.CardPostBinding
 import ru.netology.nework.dto.Event
-import ru.netology.nework.dto.Post
 
 class EventAdapter(
     private val onInteractionEventListener: OnInteractionEventListener

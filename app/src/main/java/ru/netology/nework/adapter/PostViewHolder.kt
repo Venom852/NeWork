@@ -1,9 +1,11 @@
 package ru.netology.nework.adapter
 
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.navigation.Navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -19,6 +21,10 @@ import ru.netology.nework.fragment.PhotoFragment.Companion.POST
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
 import ru.netology.nework.fragment.PostFragment.Companion.postBundle
+import ru.netology.nework.fragment.ProfileFragment.Companion.USER
+import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
+import ru.netology.nework.fragment.ProfileFragment.Companion.postFragmentBundle
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 
@@ -32,13 +38,13 @@ class PostViewHolder(
             author.text = post.author
             content.text = post.content
             published.text = post.published.toString()
+            playSong.isChecked = post.playSong
+            playVideo.isChecked = post.playVideo
             like.isChecked = post.likedByMe
             toShare.isChecked = post.toShare
             like.text = CountCalculator.calculator(post.likes)
             toShare.text = CountCalculator.calculator(post.shared)
 
-//            content.visibility = View.VISIBLE
-//            link.visibility = View.GONE
             imageContent.visibility = View.GONE
             groupVideo.visibility = View.GONE
             groupSong.visibility = View.GONE
@@ -57,16 +63,6 @@ class PostViewHolder(
                 .apply(options.circleCrop())
                 .into(binding.avatar)
 
-//            when {
-//                post.attachment == null -> imageContent.visibility = View.GONE
-//                post.attachment.uri == null -> Glide.with(binding.imageContent)
-//                    .load(urlAttachment)
-//                    .error(R.drawable.ic_error_24)
-//                    .timeout(10_000)
-//                    .into(binding.imageContent)
-//                else -> imageContent.setImageURI(post.attachment.uri.toUri())
-//            }
-
             if (post.attachment?.type == AttachmentType.IMAGE) {
                 imageContent.visibility = View.VISIBLE
 
@@ -79,27 +75,30 @@ class PostViewHolder(
 
             if (post.attachment?.type == AttachmentType.VIDEO) {
                 groupVideo.visibility = View.VISIBLE
-                //TODO
+
+                videoContent.setVideoURI(post.attachment.url.toUri())
             }
 
             if (post.attachment?.type == AttachmentType.AUDIO) {
                 groupSong.visibility = View.VISIBLE
-                //TODO
+
+                val songFile = post.attachment.url.toUri().toFile()
+
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(songFile.absolutePath)
+                val durationStr =
+                    retriever.extractMetadata(
+                        MediaMetadataRetriever.METADATA_KEY_DURATION
+                    )
+                val duration = durationStr?.toIntOrNull() ?: 0
+                val title = retriever.extractMetadata(
+                    MediaMetadataRetriever.METADATA_KEY_TITLE
+                ) ?: "noName"
+                retriever.release()
+
+                titleSong.text = title
+                timeSong.text = duration.toString()
             }
-
-//            if (post.link != null) {
-//                link.visibility = View.VISIBLE
-//                link.text = post.link
-//            }
-
-//            if (post.video == null) {
-//                groupVideo.visibility = View.GONE
-//            }
-
-//            if (post.content == null) {
-//                content.visibility = View.GONE
-//            }
-
 
             like.setOnClickListener {
                 onInteractionPostListener.onLike(post)
@@ -119,7 +118,15 @@ class PostViewHolder(
 
             avatar.setOnClickListener {
                 findNavController(it).navigate(
-                    R.id.action_feedFragment_to_yourProfileFragment
+                    R.id.action_feedFragment_to_yourProfileFragment,
+                    Bundle().apply {
+                        if (post.ownedByMe) {
+                            statusProfileFragment = YOUR
+                        } else {
+                            statusProfileFragment = USER
+                            postFragmentBundle = gson.toJson(post.authorId)
+                        }
+                    }
                 )
             }
 

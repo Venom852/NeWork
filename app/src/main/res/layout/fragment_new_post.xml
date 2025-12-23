@@ -66,7 +66,6 @@
         app:layout_constraintBottom_toTopOf="@id/buttonPanel">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/photoContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="@dimen/_16dp">

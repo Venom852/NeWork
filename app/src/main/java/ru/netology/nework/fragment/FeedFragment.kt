@@ -6,9 +6,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -24,10 +26,8 @@ import ru.netology.nework.databinding.ErrorCode400And500Binding
 import ru.netology.nework.databinding.FragmentFeedBinding
 import ru.netology.nework.dto.Post
 import ru.netology.nework.fragment.NewPostFragment.Companion.NEW_POST
-import ru.netology.nework.fragment.NewPostFragment.Companion.statusPostAndContent
+import ru.netology.nework.fragment.NewPostFragment.Companion.newPostFragmentBundle
 import ru.netology.nework.fragment.NewEventFragment.Companion.NEW_EVENT_KEY
-import ru.netology.nework.util.SwipeDirection
-import ru.netology.nework.util.detectSwipe
 import ru.netology.nework.viewmodel.AuthViewModel
 import ru.netology.nework.viewmodel.SignInViewModel
 import ru.netology.nework.viewmodel.SignUpViewModel
@@ -37,7 +37,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.LoadState
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -49,11 +48,14 @@ import ru.netology.nework.databinding.ConfirmationOfExitBinding
 import ru.netology.nework.dto.Event
 import ru.netology.nework.dto.User
 import ru.netology.nework.fragment.NewEventFragment.Companion.statusEventAndContent
+import ru.netology.nework.fragment.NewPostFragment.Companion.EDITING_NEW_POST
+import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
+import ru.netology.nework.viewmodel.EventViewModel
+import ru.netology.nework.viewmodel.UserViewModel
 import javax.inject.Inject
 
-//TODO(Проставить во всех классах аннотации hilt)
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
     @Inject
@@ -66,30 +68,28 @@ class FeedFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentFeedBinding.inflate(layoutInflater, container, false)
-        val bindingErrorCode400And500 =
-            ErrorCode400And500Binding.inflate(layoutInflater, container, false)
         val bindingAuthorizationDialogBox =
             AuthorizationDialogBoxBinding.inflate(layoutInflater, container, false)
         val bindingConfirmationOfExit =
             ConfirmationOfExitBinding.inflate(layoutInflater, container, false)
 
-        applyInset(binding.root)
+        applyInset(binding.main)
 
-        val viewModel: PostViewModel by activityViewModels()
-        val viewModelSignIn: SignInViewModel by activityViewModels()
-        val viewModelSignUp: SignUpViewModel by activityViewModels()
+        val viewModelPost: PostViewModel by activityViewModels()
+        val viewModelEvent: EventViewModel by activityViewModels()
+        val viewModelUser: UserViewModel by activityViewModels()
+//        val viewModelSignIn: SignInViewModel by activityViewModels()
+//        val viewModelSignUp: SignUpViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
 
         val dialog = BottomSheetDialog(requireContext())
-        //TODO(Проверить, нужна ли переменная authorization или работать на прямую с viewModelAuth.authenticated)
         val authorization = viewModelAuth.authenticated
         var conditionAdd = NEW_POST
 
         val postAdapter = PostAdapter(object : OnInteractionPostListener {
             override fun onLike(post: Post) {
-//                if (event.ownedByMe) {
                 if (authorization) {
-                    viewModel.likeById(post.id)
+                    viewModelPost.likeById(post.id)
                 } else {
                     dialog.setCancelable(false)
                     dialog.setContentView(bindingAuthorizationDialogBox.root)
@@ -108,34 +108,45 @@ class FeedFragment : Fragment() {
             }
 
             override fun onRemove(post: Post) {
-                viewModel.removeById(post.id)
+                viewModelPost.removeById(post.id)
             }
 
             override fun onEdit(post: Post) {
-                viewModel.editById(post)
+                viewModelPost.editById(post)
                 findNavController().navigate(
                     R.id.action_feedFragment_to_newPostFragment,
                     Bundle().apply {
-                        statusPostAndContent = post.content
+                        newPostFragmentBundle = post.content
+                        statusFragment = EDITING_NEW_POST
                     }
                 )
             }
 
             override fun onPlayVideo(post: Post) {
-                //TODO(Добавить viewModel)
+                if (!post.playSong) {
+                    viewModelPost.playVideo(post)
+                } else {
+                    viewModelPost.pauseVideo()
+                }
+
+                viewModelPost.playButtonVideo(post.id)
             }
 
             override fun onPlaySong(post: Post) {
-                //TODO(Добавить viewModel)
+                if (!post.playSong) {
+                    viewModelPost.playSong(post)
+                } else {
+                    viewModelPost.pauseSong()
+                }
+
+                viewModelPost.playButtonSong(post.id)
             }
         })
 
-        //TODO(Добавить и поменять viewModel)
         val eventAdapter = EventAdapter(object : OnInteractionEventListener {
             override fun onLike(event: Event) {
-//                if (event.ownedByMe) {
                 if (authorization) {
-                    viewModel.likeById(event.id)
+                    viewModelEvent.likeById(event.id)
                 } else {
                     dialog.setCancelable(false)
                     dialog.setContentView(bindingAuthorizationDialogBox.root)
@@ -154,31 +165,42 @@ class FeedFragment : Fragment() {
             }
 
             override fun onRemove(event: Event) {
-                viewModel.removeById(event.id)
+                viewModelEvent.removeById(event.id)
             }
 
             override fun onEdit(event: Event) {
-                viewModel.editById(event)
+                viewModelEvent.editById(event)
                 findNavController().navigate(
-                    R.id.action_feedFragment_to_newPostFragment,
+                    R.id.action_feedFragment_to_newEventFragment3,
                     Bundle().apply {
-                        statusPostAndContent = event.content
+                        statusEventAndContent = event.content
                     }
                 )
             }
 
             override fun onPlayVideo(event: Event) {
-                //TODO(Добавить viewModel)
+                if (!event.playSong) {
+                    viewModelEvent.playVideo(event)
+                } else {
+                    viewModelEvent.pauseVideo()
+                }
+
+                viewModelEvent.playButtonVideo(event.id)
             }
 
             override fun onPlaySong(event: Event) {
-                //TODO(Добавить viewModel)
+                if (!event.playSong) {
+                    viewModelEvent.playSong(event)
+                } else {
+                    viewModelEvent.pauseSong()
+                }
+
+                viewModelEvent.playButtonSong(event.id)
             }
 
             override fun onParticipate(event: Event) {
-//                if (event.ownedByMe) {
                 if (authorization) {
-                    //TODO(Добавить viewModel)
+                    viewModelEvent.participateById(event.id)
                 } else {
                     dialog.setCancelable(false)
                     dialog.setContentView(bindingAuthorizationDialogBox.root)
@@ -191,54 +213,191 @@ class FeedFragment : Fragment() {
             override fun onRadioButton(user: User) = Unit
         })
 
-        binding.main.adapter = postAdapter.withLoadStateHeaderAndFooter(
-            header = PostLoadingStateAdapter(object :
-                PostLoadingStateAdapter.OnInteractionListener {
-                override fun onRetry() {
-                    postAdapter.retry()
-                }
-            }),
-            footer = PostLoadingStateAdapter(object :
-                PostLoadingStateAdapter.OnInteractionListener {
-                override fun onRetry() {
-                    postAdapter.retry()
-                }
-            })
-        )
+        with(binding) {
+            srlMainPosts.visibility = View.VISIBLE
+            srlMainEvent.visibility = View.GONE
+            srlMainUsers.visibility = View.GONE
+            progress.visibility = View.GONE
 
-        binding.cardEvent.adapter = eventAdapter.withLoadStateHeaderAndFooter(
-            header = PostLoadingStateAdapter(object :
-                PostLoadingStateAdapter.OnInteractionListener {
-                override fun onRetry() {
-                    eventAdapter.retry()
-                }
-            }),
-            footer = PostLoadingStateAdapter(object :
-                PostLoadingStateAdapter.OnInteractionListener {
-                override fun onRetry() {
-                    eventAdapter.retry()
-                }
-            })
-        )
+            main.adapter = postAdapter.withLoadStateHeaderAndFooter(
+                header = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        postAdapter.retry()
+                    }
+                }),
+                footer = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        postAdapter.retry()
+                    }
+                })
+            )
 
-        binding.cardUsers.adapter = userAdapter.withLoadStateHeaderAndFooter(
-            header = PostLoadingStateAdapter(object :
-                PostLoadingStateAdapter.OnInteractionListener {
-                override fun onRetry() {
-                    userAdapter.retry()
+            cardEvent.adapter = eventAdapter.withLoadStateHeaderAndFooter(
+                header = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        eventAdapter.retry()
+                    }
+                }),
+                footer = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        eventAdapter.retry()
+                    }
+                })
+            )
+
+            cardUsers.adapter = userAdapter
+
+            srlMainPosts.setOnRefreshListener(postAdapter::refresh)
+            srlMainEvent.setOnRefreshListener(eventAdapter::refresh)
+
+            add.setOnClickListener {
+                if (authorization) {
+                    when (conditionAdd) {
+                        NEW_POST -> {
+                            findNavController().navigate(
+                                R.id.action_feedFragment_to_newPostFragment,
+                                Bundle().apply {
+                                    newPostFragmentBundle = NEW_POST
+                                }
+                            )
+                        }
+
+                        NEW_EVENT_KEY -> {
+                            findNavController().navigate(
+                                R.id.action_feedFragment_to_newEventFragment,
+                                Bundle().apply {
+                                    statusEventAndContent = NEW_EVENT_KEY
+                                }
+                            )
+                        }
+                    }
+                } else {
+                    dialog.setCancelable(false)
+                    dialog.setContentView(bindingAuthorizationDialogBox.root)
+                    dialog.show()
                 }
-            }),
-            footer = PostLoadingStateAdapter(object :
-                PostLoadingStateAdapter.OnInteractionListener {
-                override fun onRetry() {
-                    userAdapter.retry()
+            }
+
+            menuAuth.setOnClickListener {
+                PopupMenu(it.context, it).apply {
+                    inflate(R.menu.auth_menu)
+                    setOnMenuItemClickListener { menuItem ->
+                        when (menuItem.itemId) {
+                            R.id.signIn -> {
+                                findNavController().navigate(
+                                    R.id.action_feedFragment_to_signInFragment2
+                                )
+                                true
+                            }
+
+                            R.id.signUp -> {
+                                findNavController().navigate(
+                                    R.id.action_feedFragment_to_signUpFragment2
+                                )
+                                true
+                            }
+
+                            R.id.yourProfile -> {
+                                if (authorization) {
+                                    findNavController().navigate(
+                                        R.id.action_feedFragment_to_yourProfileFragment,
+                                        Bundle().apply {
+                                            statusProfileFragment = YOUR
+                                        }
+                                    )
+                                } else {
+                                    dialog.setCancelable(false)
+                                    dialog.setContentView(bindingAuthorizationDialogBox.root)
+                                    dialog.show()
+                                }
+                                true
+                            }
+
+                            R.id.signOut -> {
+                                dialog.setCancelable(false)
+                                dialog.setContentView(bindingConfirmationOfExit.root)
+                                dialog.show()
+                                true
+                            }
+
+                            else -> false
+                        }
+                    }
+                }.show()
+            }
+
+            bottomNavigation.setOnItemSelectedListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.posts -> {
+                        conditionAdd = NEW_POST
+                        applyInset(binding.main)
+
+                        srlMainPosts.visibility = View.VISIBLE
+                        srlMainEvent.visibility = View.GONE
+                        srlMainUsers.visibility = View.GONE
+                        progress.visibility = View.GONE
+
+                        true
+                    }
+                    R.id.events -> {
+                        conditionAdd = NEW_EVENT_KEY
+                        applyInset(binding.cardEvent)
+
+                        srlMainPosts.visibility = View.GONE
+                        srlMainEvent.visibility = View.VISIBLE
+                        srlMainUsers.visibility = View.GONE
+                        progress.visibility = View.GONE
+
+                        true
+                    }
+                    R.id.users -> {
+                        applyInset(binding.cardUsers)
+
+                        srlMainPosts.visibility = View.GONE
+                        srlMainEvent.visibility = View.GONE
+                        srlMainUsers.visibility = View.VISIBLE
+                        progress.visibility = View.VISIBLE
+
+                        true
+                    }
+
+                    else -> false
                 }
-            })
-        )
+            }
+        }
+
+        with(bindingAuthorizationDialogBox) {
+            logIn.setOnClickListener {
+                findNavController().navigate(
+                    R.id.action_feedFragment_to_signInFragment2
+                )
+                dialog.dismiss()
+            }
+
+            close.setOnClickListener {
+                dialog.dismiss()
+            }
+        }
+
+        with(bindingConfirmationOfExit) {
+            close.setOnClickListener {
+                dialog.dismiss()
+            }
+
+            signOut.setOnClickListener {
+                auth.removeAuth()
+                findNavController().navigate(R.id.nav_main)
+                dialog.dismiss()
+            }
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.dataPost.collectLatest(postAdapter::submitData)
+                viewModelPost.dataPost.collectLatest(postAdapter::submitData)
             }
         }
 
@@ -251,12 +410,9 @@ class FeedFragment : Fragment() {
             }
         }
 
-        binding.srlMainPosts.setOnRefreshListener(postAdapter::refresh)
-
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                //TODO(Добавить viewModel)
-//                viewModel.data.collectLatest(postAdapter::submitData)
+                viewModelEvent.dataEvent.collectLatest(eventAdapter::submitData)
             }
         }
 
@@ -269,82 +425,18 @@ class FeedFragment : Fragment() {
             }
         }
 
-        binding.srlMainEvent.setOnRefreshListener(eventAdapter::refresh)
-
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                //TODO(Добавить liveData)
-//                viewModel.data.collectLatest(postAdapter::submitData)
+                viewModelUser.dataUser.collectLatest(userAdapter::submitList)
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                userAdapter.loadStateFlow.collectLatest { state ->
-                    binding.srlMainUsers.isRefreshing =
-                        state.refresh is LoadState.Loading
+                viewModelUser.dataState.collectLatest { state ->
+                    binding.progress.isVisible = state.loading
+                    binding.srlMainUsers.isRefreshing = state.refreshing
                 }
-            }
-        }
-
-        binding.srlMainUsers.setOnRefreshListener(userAdapter::refresh)
-
-        //TODO(Нужно ли менять liveData, и нужна ли обработка ошибки 300)
-//        viewModel.dataState.observe(viewLifecycleOwner) { state ->
-//            binding.progress.isVisible = state.loading
-//            if (state.errorCode300) {
-//                binding.main.isVisible = false
-//                binding.errorCode300.error300Group.isVisible = true
-//            } else {
-//                binding.main.isVisible = true
-//                binding.errorCode300.error300Group.isVisible = false
-//            }
-//            binding.srlMainPosts.isRefreshing = state.refreshing
-//            if (state.error) {
-//                Snackbar.make(binding.root, R.string.something_went_wrong, Snackbar.LENGTH_LONG)
-//                    .setAction(R.string.retry) { viewModel.loadPosts() }
-//                    .show()
-//            }
-//        }
-
-//        viewModel.newerCount.observe(viewLifecycleOwner) { state ->
-//            print(state)
-//            binding.browse.isVisible = true
-//        }
-
-        viewModel.errorPost403.observe(viewLifecycleOwner) {
-            dialog.setCancelable(false)
-            dialog.setContentView(bindingErrorCode400And500.root)
-            dialog.show()
-        }
-
-        //TODO(Проверить, нужна ли эта подписка)
-        viewModelSignIn.authState.observe(viewLifecycleOwner) {
-            if (authorization) {
-                postAdapter.refresh()
-            }
-
-            if (authorization) {
-                eventAdapter.refresh()
-            }
-
-            if (authorization) {
-                userAdapter.refresh()
-            }
-        }
-
-        //TODO(Проверить, нужна ли эта подписка)
-        viewModelSignUp.authState.observe(viewLifecycleOwner) {
-            if (authorization) {
-                postAdapter.refresh()
-            }
-
-            if (authorization) {
-                eventAdapter.refresh()
-            }
-
-            if (authorization) {
-                userAdapter.refresh()
             }
         }
 
@@ -354,184 +446,92 @@ class FeedFragment : Fragment() {
                     binding.menuAuth.apply {
                         PopupMenu(context, this).apply {
                             inflate(R.menu.auth_menu)
-                            menu.let {
-                                it.setGroupVisible(R.id.unauthenticated, !viewModelAuth.authenticated)
-                                it.setGroupVisible(R.id.authenticated, viewModelAuth.authenticated)
+
+                            if (menu.findItem(R.id.unauthenticated) != null && menu.findItem(R.id.authenticated) != null) {
+                                menu.findItem(R.id.unauthenticated).isVisible = !authorization
+                                menu.findItem(R.id.authenticated).isVisible = authorization
                             }
+//                            menu.let {
+//                                it.setGroupVisible(R.id.unauthenticated, !viewModelAuth.authenticated)
+//                                it.setGroupVisible(R.id.authenticated, viewModelAuth.authenticated)
+//                            }
                         }
                     }
 
-                    //TODO(Проверить, нужно ли менять здесь код при удалении подписок authState)
-                    if (!authorization) {
-                        postAdapter.refresh()
-                    }
+                    postAdapter.refresh()
+                    eventAdapter.refresh()
 
-                    //TODO(Проверить, нужно ли менять здесь код при удалении подписок authState)
-                    if (!authorization) {
-                        eventAdapter.refresh()
-                    }
-
-                    //TODO(Проверить, нужно ли менять здесь код при удалении подписок authState)
-                    if (!authorization) {
-                        userAdapter.refresh()
-                    }
-                }
-            }
-        }
-
-        binding.add.setOnClickListener {
-            if (authorization) {
-                when (conditionAdd) {
-                    NEW_POST -> {
-                        findNavController().navigate(
-                            R.id.action_feedFragment_to_newPostFragment,
-                            Bundle().apply {
-                                statusPostAndContent = NEW_POST
-                            }
-                        )
-                    }
-
-                    NEW_EVENT_KEY -> {
-                        findNavController().navigate(
-                            R.id.action_feedFragment_to_newEventFragment,
-                            Bundle().apply {
-                                statusEventAndContent = NEW_EVENT_KEY
-                            }
-                        )
-                    }
-                }
-            } else {
-                dialog.setCancelable(false)
-                dialog.setContentView(bindingAuthorizationDialogBox.root)
-                dialog.show()
-            }
-        }
-
-//        binding.browse.setOnClickListener {
-//            viewModel.browse()
-//            binding.browse.isVisible = false
-//        }
-
-        //TODO(Нужно ли менять liveData, и нужна ли обработка ошибки)
-//        binding.errorCode300.buttonError.setOnClickListener {
-//            viewModel.loadPostsWithoutServer()
-//        }
-
-        bindingErrorCode400And500.errorCode400And500.detectSwipe { event ->
-            val text = when (event) {
-                SwipeDirection.Down -> "onSwipeDown"
-                SwipeDirection.Left -> "onSwipeLeft"
-                SwipeDirection.Right -> "onSwipeRight"
-                SwipeDirection.Up -> "onSwipeUp"
-            }
-
-            if (text == "onSwipeDown") {
-                dialog.dismiss()
-            }
-        }
-
-        bindingAuthorizationDialogBox.logIn.setOnClickListener {
-            findNavController().navigate(
-                R.id.action_feedFragment_to_signInFragment2
-            )
-            dialog.dismiss()
-        }
-
-        bindingAuthorizationDialogBox.close.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        binding.menuAuth.setOnClickListener {
-            PopupMenu(it.context, it).apply {
-                inflate(R.menu.auth_menu)
-                setOnMenuItemClickListener { menuItem ->
-                    when (menuItem.itemId) {
-                        R.id.signIn -> {
-                            findNavController().navigate(
-                                R.id.action_feedFragment_to_signInFragment2
-                            )
-                            true
-                        }
-
-                        R.id.signUp -> {
-                            findNavController().navigate(
-                                R.id.action_feedFragment_to_signUpFragment2
-                            )
-                            true
-                        }
-
-                        R.id.yourProfile -> {
-                            findNavController().navigate(
-                                R.id.action_feedFragment_to_yourProfileFragment,
-                                Bundle().apply {
-                                    statusProfileFragment = YOUR
-                                }
-                            )
-                            true
-                        }
-
-                        R.id.signOut -> {
-                            dialog.setCancelable(false)
-                            dialog.setContentView(bindingConfirmationOfExit.root)
-                            dialog.show()
-                            true
-                        }
-
-                        else -> false
-                    }
-                }
-            }.show()
-        }
-
-        bindingConfirmationOfExit.close.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        bindingConfirmationOfExit.signOut.setOnClickListener {
-            auth.removeAuth()
-            //TODO(Проверить работу фукции, а именно navigate)
-            findNavController().navigate(R.id.nav_main)
-            dialog.dismiss()
-        }
-
-//        binding.posts.setOnClickListener {
-//            binding.posts.isChecked = !binding.posts.isChecked
-//            binding.srlMainPosts.isVisible = binding.posts.isChecked
+//                    //TODO(Проверить, нужно ли менять здесь код при удалении подписок authState)
+//                    if (!authorization) {
+//                        postAdapter.refresh()
+//                    }
 //
-//            binding.events.isChecked =
-//        }
-
-        binding.bottomNavigation.setOnClickListener {
-            BottomNavigationView(it.context).apply {
-                setOnItemSelectedListener {menuItem ->
-                    when (menuItem.itemId) {
-                        R.id.posts -> {
-                            conditionAdd = NEW_POST
-                            binding.srlMainPosts.visibility = View.VISIBLE
-                            binding.srlMainEvent.visibility = View.GONE
-                            binding.srlMainUsers.visibility = View.GONE
-                            true
-                        }
-                        R.id.events -> {
-                            conditionAdd = NEW_EVENT_KEY
-                            binding.srlMainPosts.visibility = View.GONE
-                            binding.srlMainEvent.visibility = View.VISIBLE
-                            binding.srlMainUsers.visibility = View.GONE
-                            true
-                        }
-                        R.id.users -> {
-                            binding.srlMainPosts.visibility = View.GONE
-                            binding.srlMainEvent.visibility = View.GONE
-                            binding.srlMainUsers.visibility = View.VISIBLE
-                            true
-                        }
-
-                        else -> false
-                    }
+//                    //TODO(Проверить, нужно ли менять здесь код при удалении подписок authState)
+//                    if (!authorization) {
+//                        eventAdapter.refresh()
+//                    }
+//
+//                    //TODO(Проверить, нужно ли менять здесь код при удалении подписок authState)
+//                    if (!authorization) {
+//                        userAdapter.refresh()
+//                    }
                 }
             }
         }
 
+        viewModelPost.errorPost403.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), R.string.need_to_log, Toast.LENGTH_SHORT).show()
+        }
+
+        viewModelPost.errorPost404.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), R.string.post_not_found, Toast.LENGTH_SHORT).show()
+        }
+
+        viewModelPost.errorPost415.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), R.string.incorrect_file_format, Toast.LENGTH_SHORT).show()
+        }
+
+        viewModelEvent.errorEvent403.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), R.string.need_to_log, Toast.LENGTH_SHORT).show()
+        }
+
+        viewModelEvent.errorEvent404.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), R.string.post_not_found, Toast.LENGTH_SHORT).show()
+        }
+
+        viewModelEvent.errorEvent415.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), R.string.incorrect_file_format, Toast.LENGTH_SHORT).show()
+        }
+
+//        TODO(Проверить, нужна ли эта подписка)
+//        viewModelSignIn.authState.observe(viewLifecycleOwner) {
+//            if (authorization) {
+//                postAdapter.refresh()
+//            }
+//
+//            if (authorization) {
+//                eventAdapter.refresh()
+//            }
+//
+////            if (authorization) {
+////                userAdapter.refresh()
+////            }
+//        }
+//
+//        //TODO(Проверить, нужна ли эта подписка)
+//        viewModelSignUp.authState.observe(viewLifecycleOwner) {
+//            if (authorization) {
+//                postAdapter.refresh()
+//            }
+//
+//            if (authorization) {
+//                eventAdapter.refresh()
+//            }
+//
+////            if (authorization) {
+////                userAdapter.refresh()
+////            }
+//        }
         return binding.root
     }
 

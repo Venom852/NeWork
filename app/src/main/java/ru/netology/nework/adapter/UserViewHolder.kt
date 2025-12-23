@@ -7,11 +7,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.gson.Gson
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nework.BuildConfig
 import ru.netology.nework.R
 import ru.netology.nework.databinding.CardUsersBinding
 import ru.netology.nework.dto.User
-import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER
+import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_POST
 import ru.netology.nework.fragment.UserFragment.Companion.status
 import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
@@ -29,10 +30,10 @@ class UserViewHolder(
             nameUser.text = user.name
             loginUser.text = user.login
 
-            radioButton.visibility = if (status == CHOOSING_MENTIONED_USER
+            radioButton.visibility = if (status == CHOOSING_MENTIONED_USER_POST
                 || status == CHOOSING_SPEAKERS_USER) View.VISIBLE else View.GONE
 
-            //TODO
+            //TODO(Проверить запрос)
             val url = "${BuildConfig.BASE_URL}/avatars/${user.avatar}"
             val options = RequestOptions()
 
@@ -52,7 +53,6 @@ class UserViewHolder(
                     R.id.action_userFragment_to_yourProfileFragment,
                     Bundle().apply {
                         userFragmentBundle = gson.toJson(user)
-                        statusProfileFragment = USER
                     })
             }
         }

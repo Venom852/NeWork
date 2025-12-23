@@ -1,7 +1,6 @@
 package ru.netology.nework.adapter
 
 import ru.netology.nework.dto.Event
-import ru.netology.nework.dto.Post
 
 interface OnInteractionEventListener {
     fun onLike(event: Event)

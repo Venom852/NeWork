@@ -7,50 +7,56 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import ru.netology.nework.repository.PostRepository
 import ru.netology.nework.auth.AuthState
 import ru.netology.nework.dto.MediaUpload
 import ru.netology.nework.error.ErrorCode403
-import ru.netology.nework.error.UnknownError
-import ru.netology.nework.model.FeedModelState
+import ru.netology.nework.error.ErrorCode415
 import ru.netology.nework.model.MediaModel
+import ru.netology.nework.repository.UserRepository
 import ru.netology.nework.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val repository: PostRepository
-): ViewModel() {
+    private val repository: UserRepository
+) : ViewModel() {
     private val noPhoto = MediaModel()
     private val _authState = MutableLiveData(AuthState())
     val authState: LiveData<AuthState>
-        get() =_authState
+        get() = _authState
     private val _photo = MutableLiveData(noPhoto)
     val photo: LiveData<MediaModel>
         get() = _photo
-    private val _dataState = MutableLiveData(FeedModelState())
-    val dataState: LiveData<FeedModelState>
-        get() = _dataState
-    private val _bottomSheet = SingleLiveEvent<Unit>()
-    val bottomSheet: LiveData<Unit>
-        get() = _bottomSheet
 
-    fun signUp(login: String, name: String, password: String) {
-        viewModelScope.launch{
+    private val _errorPost403 = SingleLiveEvent<Unit>()
+    val errorPost403: LiveData<Unit>
+        get() = _errorPost403
+
+    private val _errorPost415 = SingleLiveEvent<Unit>()
+    val errorPost415: LiveData<Unit>
+        get() = _errorPost415
+
+    fun signUp(login: String, userName: String, password: String) {
+        viewModelScope.launch {
             try {
                 when (_photo.value) {
                     noPhoto -> _authState.value = repository.signUp(userName, login, password)
                     else -> _photo.value?.file?.let { file ->
-                        _authState.value = repository.signUpWithAPhoto(userName, login, password, MediaUpload(file))
+                        _authState.value = repository.signUpWithAPhoto(
+                            userName,
+                            login,
+                            password,
+                            MediaUpload(file)
+                        )
                     }
                 }
-            } catch (e: ErrorCode403) {
-                _bottomSheet.value = Unit
-            } catch (e: UnknownError) {
-                _dataState.value = FeedModelState(errorCode300 = true)
+            } catch (_: ErrorCode403) {
+                _errorPost403.value = Unit
+            } catch (_: ErrorCode415) {
+                _errorPost415.value = Unit
             } catch (e: Exception) {
-                _dataState.value = FeedModelState(error = true)
+                e.printStackTrace()
             }
         }
     }

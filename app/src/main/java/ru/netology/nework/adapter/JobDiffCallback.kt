@@ -2,7 +2,6 @@ package ru.netology.nework.adapter
 
 import androidx.recyclerview.widget.DiffUtil
 import ru.netology.nework.dto.Job
-import ru.netology.nework.dto.User
 
 class JobDiffCallback : DiffUtil.ItemCallback<Job>() {
     override fun areItemsTheSame(oldItem: Job, newItem: Job): Boolean = oldItem.id == newItem.id

@@ -348,6 +348,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_16dp"
                 android:contentDescription="@string/participants"
+                android:checkable="true"
                 app:icon="@drawable/ic_mentioned_selector"
                 app:iconPadding="4dp"
                 app:iconSize="@dimen/_22dp"

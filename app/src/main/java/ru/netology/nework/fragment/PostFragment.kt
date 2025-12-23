@@ -2,12 +2,14 @@ package ru.netology.nework.fragment
 
 import android.content.Intent
 import android.graphics.Color.RED
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -44,23 +46,27 @@ import kotlinx.coroutines.launch
 import ru.netology.nework.BuildConfig
 import ru.netology.nework.dao.PostDao
 import ru.netology.nework.databinding.AuthorizationDialogBoxBinding
-import ru.netology.nework.databinding.ErrorCode400And500Binding
 import ru.netology.nework.dto.Post
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.extensions.DrawableImageProvider
 import ru.netology.nework.extensions.ImageInfo
-import ru.netology.nework.fragment.NewPostFragment.Companion.statusPostAndContent
+import ru.netology.nework.fragment.NewPostFragment.Companion.EDITING_NEW_POST
+import ru.netology.nework.fragment.NewPostFragment.Companion.newPostFragmentBundle
+import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
 import ru.netology.nework.fragment.PhotoFragment.Companion.POST
+import ru.netology.nework.fragment.ProfileFragment.Companion.USER
+import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
+import ru.netology.nework.fragment.ProfileFragment.Companion.postFragmentBundle
 import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.MENTIONED
 import ru.netology.nework.fragment.UserFragment.Companion.statusUserFragment
+import ru.netology.nework.fragment.UserFragment.Companion.userBundleFragment
 import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
-import ru.netology.nework.util.SwipeDirection
-import ru.netology.nework.util.detectSwipe
 import ru.netology.nework.viewmodel.AuthViewModel
 import java.time.Instant
 import javax.inject.Inject
@@ -96,7 +102,9 @@ class PostFragment : Fragment() {
         coords = null,
         mentionedMe = false,
         likeOwnerIds = emptySet(),
-        users = emptyMap()
+        users = emptyMap(),
+        playSong = false,
+        playVideo = false
     )
     private val gson = Gson()
     private var postId = 0L
@@ -114,12 +122,8 @@ class PostFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentPostBinding.inflate(layoutInflater, container, false)
-        val bindingErrorCode400And500 =
-            ErrorCode400And500Binding.inflate(layoutInflater, container, false)
         val bindingAuthorizationDialogBox =
             AuthorizationDialogBoxBinding.inflate(layoutInflater, container, false)
-
-        applyInset(binding.root)
 
         val viewModel: PostViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
@@ -148,7 +152,6 @@ class PostFragment : Fragment() {
             }
 
             toShare.setOnClickListener {
-                viewModel.toShareById(post.id)
                 val intent = Intent().apply {
                     action = Intent.ACTION_SEND
                     type = "text/plain"
@@ -158,30 +161,39 @@ class PostFragment : Fragment() {
                 startActivity(chooser)
             }
 
-            //TODO(Проверить)
-            mention.setOnClickListener {
-                //TODO(Добавить viewModel)
-                if (authorization) {
-
-                } else {
-                    dialog.setCancelable(false)
-                    dialog.setContentView(bindingAuthorizationDialogBox.root)
-                    dialog.show()
-                }
-            }
-
             avatar.setOnClickListener {
                 findNavController().navigate(
-                    R.id.action_postFragment2_to_yourProfileFragment
+                    R.id.action_postFragment2_to_yourProfileFragment,
+                    Bundle().apply {
+                        if (post.ownedByMe) {
+                            statusProfileFragment = YOUR
+                        } else {
+                            statusProfileFragment = USER
+                            postFragmentBundle = gson.toJson(post.authorId)
+                        }
+                    }
+
                 )
             }
 
             groupVideo.setAllOnClickListener {
-                //TODO(Добавить управление видео)
+                if (!post.playSong) {
+                    viewModel.playVideo(post)
+                } else {
+                    viewModel.pauseVideo()
+                }
+
+                viewModel.playButtonVideo(post.id)
             }
 
             playSong.setOnClickListener {
-                //TODO(Добавить управление звуком)
+                if (!post.playSong) {
+                    viewModel.playSong(post)
+                } else {
+                    viewModel.pauseSong()
+                }
+
+                viewModel.playButtonSong(post.id)
             }
 
             link.setOnClickListener {
@@ -198,6 +210,7 @@ class PostFragment : Fragment() {
                     R.id.action_postFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = LIKE
+                        userBundleFragment = gson.toJson(post.likeOwnerIds)
                     }
                 )
             }
@@ -207,6 +220,7 @@ class PostFragment : Fragment() {
                     R.id.action_postFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = MENTIONED
+                        userBundleFragment = gson.toJson(post.mentionIds)
                     }
                 )
             }
@@ -227,7 +241,8 @@ class PostFragment : Fragment() {
                                 findNavController().navigate(
                                     R.id.action_postFragment2_to_newPostFragment,
                                     Bundle().apply {
-                                        statusPostAndContent = post.content
+                                        newPostFragmentBundle = post.content
+                                        statusFragment = EDITING_NEW_POST
                                     }
                                 )
                                 true
@@ -242,9 +257,8 @@ class PostFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     viewModel.dataPost.collectLatest {
-                        CoroutineScope(Dispatchers.Default).launch {
-                            //TODO(Проверить, нужно ли будет убирать запрос из базы данных)
-                            post = dao.getPost(postId).toDto()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            post = dao.getPost(postId).toPostDto()
                         }
                         setValues(binding, post)
                     }
@@ -261,31 +275,16 @@ class PostFragment : Fragment() {
                 )
             }
 
-            //TODO(Нужно ли менять liveData, и нужна ли обработка ошибки)
-            viewModel.dataState.observe(viewLifecycleOwner) {
-                if (it.errorCode300) {
-                    findNavController().navigateUp()
-                }
-            }
-
             viewModel.errorPost403.observe(viewLifecycleOwner) {
-                dialog.setCancelable(false)
-                dialog.setContentView(bindingErrorCode400And500.root)
-                dialog.show()
+                Toast.makeText(requireContext(), R.string.need_to_log, Toast.LENGTH_SHORT).show()
             }
 
-            bindingErrorCode400And500.errorCode400And500.detectSwipe { event ->
-                val text = when (event) {
-                    SwipeDirection.Down -> "onSwipeDown"
-                    SwipeDirection.Left -> "onSwipeLeft"
-                    SwipeDirection.Right -> "onSwipeRight"
-                    SwipeDirection.Up -> "onSwipeUp"
-                }
+            viewModel.errorPost404.observe(viewLifecycleOwner) {
+                Toast.makeText(requireContext(), R.string.post_not_found, Toast.LENGTH_SHORT).show()
+            }
 
-                if (text == "onSwipeDown") {
-                    dialog.dismiss()
-                    Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
-                }
+            viewModel.errorPost415.observe(viewLifecycleOwner) {
+                Toast.makeText(requireContext(), R.string.incorrect_file_format, Toast.LENGTH_SHORT).show()
             }
 
             bindingAuthorizationDialogBox.logIn.setOnClickListener {
@@ -302,7 +301,6 @@ class PostFragment : Fragment() {
         return binding.root
     }
 
-    //TODO(Проверить, можно ли использовать для работы с картой метод onCreate или оставить всё тут)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val mapView = binding.map
         val mapWindow = mapView.mapWindow
@@ -326,9 +324,12 @@ class PostFragment : Fragment() {
             authorJob.text = post.authorJob
             content.text = post.content
             published.text = post.published.toString()
+            playSong.isChecked = post.playSong
+            playVideo.isChecked = post.playVideo
             like.isChecked = post.likedByMe
             toShare.isChecked = post.toShare
             like.text = CountCalculator.calculator(post.likes)
+            mention.text = CountCalculator.calculator(post.mentionIds.count().toLong())
             toShare.text = CountCalculator.calculator(post.shared)
 
             map.visibility = View.GONE
@@ -384,96 +385,178 @@ class PostFragment : Fragment() {
 
             if (post.attachment?.type == AttachmentType.VIDEO) {
                 groupVideo.visibility = View.VISIBLE
-                //TODO(Добавить отображение видео)
+
+                videoContent.setVideoURI(post.attachment.url.toUri())
             }
 
             if (post.attachment?.type == AttachmentType.AUDIO) {
                 groupSong.visibility = View.VISIBLE
-                //TODO(Добавить отображение звука)
+
+                val songFile = post.attachment.url.toUri().toFile()
+
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(songFile.absolutePath)
+                val durationStr =
+                    retriever.extractMetadata(
+                        MediaMetadataRetriever.METADATA_KEY_DURATION
+                    )
+                val duration = durationStr?.toIntOrNull() ?: 0
+                val title = retriever.extractMetadata(
+                    MediaMetadataRetriever.METADATA_KEY_TITLE
+                ) ?: "noName"
+                retriever.release()
+
+                titleSong.text = title
+                timeSong.text = duration.toString()
             }
 
+            //TODO(Проверить адрес url и работу кода)
             if (!post.likeOwnerIds.isEmpty()) {
                 numberUsers = 0
 
-                //TODO(Доделать код, добавить загрузку аватарок)
                 post.likeOwnerIds.forEach {
+                    val urlUser = "${BuildConfig.BASE_URL}/avatars/${post.users[it]?.avatar}"
+
                     when (numberUsers) {
                         0 -> {
                             likeUserOne.visibility = View.VISIBLE
                             Glide.with(binding.likeUserOne)
-                                .load(url)
+                                .load(urlUser)
                                 .error(R.drawable.ic_error_24)
                                 .timeout(10_000)
                                 .apply(options.circleCrop())
                                 .into(binding.likeUserOne)
-                            post.users[it]?.avatar
+
+                            ++numberUsers
                         }
 
                         1 -> {
                             likeUserTwo.visibility = View.VISIBLE
+                            Glide.with(binding.likeUserTwo)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.likeUserTwo)
 
+                            ++numberUsers
                         }
 
                         2 -> {
                             likeUserThree.visibility = View.VISIBLE
+                            Glide.with(binding.likeUserThree)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.likeUserThree)
 
+                            ++numberUsers
                         }
 
                         3 -> {
                             likeUserFour.visibility = View.VISIBLE
+                            Glide.with(binding.likeUserFour)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.likeUserFour)
 
+                            ++numberUsers
                         }
 
                         4 -> {
                             likeUserFive.visibility = View.VISIBLE
                             listLikeUsers.visibility = View.VISIBLE
+                            Glide.with(binding.likeUserFive)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.likeUserFive)
 
+                            ++numberUsers
                         }
+
+                        else -> return@forEach
                     }
-                    numberUsers++
                 }
             }
 
+            //TODO(Проверить адрес url и работу кода)
             if (!post.mentionIds.isEmpty()) {
+                numberUsers = 0
 
+                post.mentionIds.forEach {
+                    val urlUser = "${BuildConfig.BASE_URL}/avatars/${post.users[it]?.avatar}"
+
+                    when (numberUsers) {
+                        0 -> {
+                            mentionedOne.visibility = View.VISIBLE
+                            Glide.with(binding.mentionedOne)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.mentionedOne)
+
+                            ++numberUsers
+                        }
+
+                        1 -> {
+                            mentionedTwo.visibility = View.VISIBLE
+                            Glide.with(binding.mentionedOne)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.mentionedOne)
+
+                            ++numberUsers
+                        }
+
+                        2 -> {
+                            mentionedThree.visibility = View.VISIBLE
+                            Glide.with(binding.mentionedOne)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.mentionedOne)
+
+                            ++numberUsers
+                        }
+
+                        3 -> {
+                            mentionedFour.visibility = View.VISIBLE
+                            Glide.with(binding.mentionedOne)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.mentionedOne)
+
+                            ++numberUsers
+                        }
+
+                        4 -> {
+                            mentionedFive.visibility = View.VISIBLE
+                            listMentioned.visibility = View.VISIBLE
+                            Glide.with(binding.mentionedOne)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.mentionedOne)
+
+                            ++numberUsers
+                        }
+
+                        else -> return@forEach
+                    }
+                }
             }
-
-//            if (post.attachment == null) {
-//                imageContent.visibility = View.GONE
-//            }
-//
-//            when {
-//                post.attachment == null -> imageContent.visibility = View.GONE
-//                post.attachment.uri == null -> Glide.with(binding.imageContent)
-//                    .load(urlAttachment)
-//                    .error(R.drawable.ic_error_24)
-//                    .timeout(10_000)
-//                    .into(binding.imageContent)
-//                else -> imageContent.setImageURI(post.attachment.uri.toUri())
-//            }
-
-//            if (post.video == null) {
-//                groupVideo.visibility = View.GONE
-//            }
-//
-//            if (post.content == null) {
-//                content.visibility = View.GONE
-//            }
-
-//            if (post.authorAvatar != "netology") {
-//                Glide.with(binding.avatar)
-//                    .load(url)
-//                    .error(R.drawable.ic_error_24)
-//                    .timeout(10_000)
-//                    .apply(options.circleCrop())
-//                    .into(binding.avatar)
-//            } else {
-//                avatar.setImageResource(R.drawable.ic_netology)
-//            }
-
-//            if (post.savedOnTheServer) {
-//                saved.setImageResource(R.drawable.ic_checked_24)
-//            }
         }
     }
 
@@ -529,20 +612,5 @@ class PostFragment : Fragment() {
                 }
             }
         )
-    }
-
-    private fun applyInset(main: View) {
-        ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            v.setPadding(
-                v.paddingLeft,
-                systemBars.top,
-                v.paddingRight,
-                if (isImeVisible) imeInsets.bottom else systemBars.bottom
-            )
-            insets
-        }
     }
 }

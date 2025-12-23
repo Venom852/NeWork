@@ -1,26 +1,16 @@
 package ru.netology.nework.repository
 
-import android.app.Application
 import androidx.paging.ExperimentalPagingApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import ru.netology.nework.api.ApiService
-import ru.netology.nework.auth.AuthState
 import ru.netology.nework.dao.PostDao
 import ru.netology.nework.dto.Attachment
 import ru.netology.nework.dto.Media
 import ru.netology.nework.dto.MediaUpload
 import ru.netology.nework.dto.Post
-import ru.netology.nework.entity.toEntity
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.error.ApiError
 import ru.netology.nework.error.ErrorCode403
@@ -33,22 +23,13 @@ import javax.inject.Singleton
 import androidx.paging.PagingData
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import androidx.paging.TerminalSeparatorType
-import androidx.paging.insertSeparators
 import androidx.paging.map
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import ru.netology.nework.R
 import ru.netology.nework.db.AppDb
 import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.dao.PostRemoteKeyDao
-import ru.netology.nework.dto.Ad
-import ru.netology.nework.dto.FeedItem
-import ru.netology.nework.dto.DatePost
-import ru.netology.nework.entity.toDto
-import kotlin.random.Random
+import ru.netology.nework.error.ErrorCode404
+import ru.netology.nework.error.ErrorCode415
 import kotlin.time.ExperimentalTime
-import java.time.*
 
 @Singleton
 @OptIn(ExperimentalPagingApi::class, ExperimentalTime::class)
@@ -57,218 +38,127 @@ class PostRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
     appDb: AppDb,
     postRemoteKeyDao: PostRemoteKeyDao,
-    private val application: Application
 ) : PostRepository {
-    override val data: Flow<PagingData<FeedItem>> = Pager(
+    override val data: Flow<PagingData<Post>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true),
         pagingSourceFactory = { dao.getPagingSource() },
         remoteMediator = PostRemoteMediator(apiService, appDb, dao, postRemoteKeyDao)
     ).flow.map {
-        it.map(PostEntity::toDto)
-            .insertSeparators(TerminalSeparatorType.SOURCE_COMPLETE) { previousOne, previousTwo ->
-                val publishedOne = LocalDateTime.parse(
-                    Instant.ofEpochSecond(
-                        previousOne?.published ?: 0
-                    ).toString().dropLast(1))
-                val publishedTwo = LocalDateTime.parse(
-                    Instant.ofEpochSecond(
-                        previousTwo?.published ?: 0
-                    ).toString().dropLast(1))
-                val timeNow = LocalDateTime.now()
-                val twentyFourHours = timeNow.minus(Duration.ofHours(24))
-                val fortEightHours = timeNow.minus(Duration.ofHours(48))
-
-                when {
-                    previousOne == null && publishedTwo.compareTo(twentyFourHours) == 1 ||
-                            previousOne == null && publishedTwo.compareTo(twentyFourHours) == 0
-                        -> DatePost(
-                        Random.nextLong(),
-                        application.getString(R.string.today)
-                    )
-
-                    publishedOne.compareTo(twentyFourHours) == 1 &&
-                            publishedTwo.compareTo(twentyFourHours) == -1 ||
-                            publishedOne.compareTo(fortEightHours) == 0 -> DatePost(
-                        Random.nextLong(),
-                        application.getString(R.string.yesterday)
-                    )
-
-                    publishedOne.compareTo(fortEightHours) == 1 &&
-                            publishedTwo.compareTo(fortEightHours) == -1 -> DatePost(
-                        Random.nextLong(),
-                        application.getString(R.string.on_last_week)
-                    )
-
-                    else -> null
-                }
-            }
-            .insertSeparators { previous, _ ->
-                if (previous is Post) {
-                    if (previous.id.rem(5) == 0L) {
-                        Ad(Random.nextLong(), "https://netology.ru", "figma.jpg")
-                    } else null
-                } else null
-            }
+        it.map(PostEntity::toPostDto)
     }
-
-    override suspend fun getAll() {
-        try {
-            val response = apiService.getAll()
-
-            if (response.isSuccessful) {
-                val body = response.body() ?: throw ApiError(response.code(), response.message())
-                var newBody = emptyList<Post>()
-                var posts = emptyList<Post>()
-                CoroutineScope(Dispatchers.Default).launch {
-                    posts = dao.getAll().toDto()
-                }
-
-                posts.map {
-                    newBody = body.map { postServer ->
-                        if (postServer.id == it.id) postServer.copy(viewed = true) else postServer
-                    }
-                }
-
-                dao.insertPosts(body.map { it.copy(savedOnTheServer = true) }.toEntity())
-                return
-            }
-
-            if (response.code() in 400..599) {
-                throw ErrorCode403
-            }
-
-            throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode403) {
-            throw ErrorCode403
-        } catch (e: IOException) {
-            throw NetworkError
-        } catch (e: Exception) {
-            throw UnknownError
-        }
-    }
-
-    override fun getNewerCount(id: Long): Flow<Int> = flow {
-        while (true) {
-            delay(10_000L)
-            val response = apiService.getNewer(id)
-            if (response.isSuccessful) {
-                val body = response.body() ?: throw ApiError(response.code(), response.message())
-                dao.insertPosts(body.map { it.copy(savedOnTheServer = true) }.toEntity())
-                emit(body.size)
-                return@flow
-            }
-
-            if (response.code() in 400..599) {
-                throw ErrorCode403
-            }
-
-            throw ApiError(response.code(), response.message())
-        }
-    }
-        .catch { e -> throw AppError.from(e) }
-        .flowOn(Dispatchers.Default)
 
     override suspend fun likeById(id: Long, postLikedByMe: Boolean?) {
         try {
             if (postLikedByMe != null && !postLikedByMe) {
-                val response = apiService.likeById(id)
+                val response = apiService.likeByIdPost(id)
 
                 if (response.isSuccessful) {
                     return
                 }
 
-                if (response.code() in 400..599) {
+                if (response.code() == 403) {
                     throw ErrorCode403
+                }
+
+                if (response.code() == 404) {
+                    throw ErrorCode404
                 }
 
                 throw ApiError(response.code(), response.message())
             } else {
-                val response = apiService.dislikeById(id)
+                val response = apiService.dislikeByIdPost(id)
 
                 if (response.isSuccessful) {
                     return
                 }
 
-                if (response.code() in 400..599) {
+                if (response.code() == 403) {
                     throw ErrorCode403
+                }
+
+                if (response.code() == 404) {
+                    throw ErrorCode404
                 }
 
                 throw ApiError(response.code(), response.message())
             }
-        } catch (e: ErrorCode403) {
+        } catch (_: ErrorCode403) {
             throw ErrorCode403
-        } catch (e: IOException) {
+        } catch (_: ErrorCode404) {
+            throw ErrorCode404
+        } catch (_: IOException) {
             throw NetworkError
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             throw UnknownError
         }
     }
 
     override suspend fun save(post: Post): Post {
         try {
-            val response = apiService.save(post)
+            val response = apiService.savePost(post)
 
             if (response.isSuccessful) {
                 val body = response.body() ?: throw ApiError(response.code(), response.message())
                 return body
             }
 
-            if (response.code() in 400..599) {
+            if (response.code() == 403) {
                 throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
         } catch (e: AppError) {
             throw e
-        } catch (e: ErrorCode403) {
+        } catch (_: ErrorCode403) {
             throw ErrorCode403
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             throw NetworkError
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             throw UnknownError
         }
     }
 
     override suspend fun removeById(id: Long) {
         try {
-            val response = apiService.removeById(id)
+            val response = apiService.removeByIdPost(id)
 
             if (response.isSuccessful) {
                 return
             }
 
-            if (response.code() in 400..599) {
+            if (response.code() == 403) {
                 throw ErrorCode403
             }
 
             throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode403) {
+        } catch (_: ErrorCode403) {
             throw ErrorCode403
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             throw NetworkError
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             throw UnknownError
         }
     }
 
-    override suspend fun saveWithAttachment(post: Post, upload: MediaUpload): Post {
+    override suspend fun saveWithAttachment(post: Post, upload: MediaUpload, attachmentType: AttachmentType): Post {
         try {
             val media = upload(upload)
             val postWithAttachment = post.copy(
                 attachment = Attachment(
                     media.id,
-                    AttachmentType.IMAGE,
-                    post.attachment?.uri
+                    attachmentType,
                 )
             )
             return save(postWithAttachment)
         } catch (e: AppError) {
             throw e
-        } catch (e: ErrorCode403) {
+        } catch (_: ErrorCode403) {
             throw ErrorCode403
-        } catch (e: IOException) {
+        } catch (_: ErrorCode415) {
+            throw ErrorCode415
+        }catch (_: IOException) {
             throw NetworkError
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             throw UnknownError
         }
     }
@@ -284,93 +174,22 @@ class PostRepositoryImpl @Inject constructor(
                 return response.body() ?: throw ApiError(response.code(), response.message())
             }
 
-            if (response.code() in 400..599) {
+            if (response.code() == 403) {
                 throw ErrorCode403
             }
 
-            throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode403) {
-            throw ErrorCode403
-        } catch (e: IOException) {
-            throw NetworkError
-        } catch (e: Exception) {
-            throw UnknownError
-        }
-    }
-
-    override suspend fun signIn(login: String, password: String): AuthState {
-        try {
-            val response = apiService.updateUser(login, password)
-            if (response.isSuccessful) {
-                return response.body() ?: throw ApiError(response.code(), response.message())
-            }
-
-            if (response.code() in 400..599) {
-                throw ErrorCode403
+            if (response.code() == 415) {
+                throw ErrorCode415
             }
 
             throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode403) {
+        } catch (_: ErrorCode403) {
             throw ErrorCode403
-        } catch (e: IOException) {
+        } catch (_: ErrorCode415) {
+            throw ErrorCode415
+        } catch (_: IOException) {
             throw NetworkError
-        } catch (e: Exception) {
-            throw UnknownError
-        }
-    }
-
-    override suspend fun signUp(userName: String, login: String, password: String): AuthState {
-        try {
-            val response = apiService.registerUser(login, password, userName)
-            if (response.isSuccessful) {
-                return response.body() ?: throw ApiError(response.code(), response.message())
-            }
-
-            if (response.code() in 400..599) {
-                throw ErrorCode403
-            }
-
-            throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode403) {
-            throw ErrorCode403
-        } catch (e: IOException) {
-            throw NetworkError
-        } catch (e: Exception) {
-            throw UnknownError
-        }
-    }
-
-    override suspend fun signUpWithAPhoto(
-        userName: String,
-        login: String,
-        password: String,
-        media: MediaUpload
-    ): AuthState {
-        try {
-
-            val media = MultipartBody.Part.createFormData(
-                "file", media.file.name, media.file.asRequestBody()
-            )
-            val response = apiService.registerWithPhoto(
-                login.toRequestBody("text/plain".toMediaType()),
-                password.toRequestBody("text/plain".toMediaType()),
-                userName.toRequestBody("text/plain".toMediaType()),
-                media
-            )
-            if (response.isSuccessful) {
-                return response.body() ?: throw ApiError(response.code(), response.message())
-            }
-
-            if (response.code() in 400..599) {
-                throw ErrorCode403
-            }
-
-            throw ApiError(response.code(), response.message())
-        } catch (e: ErrorCode403) {
-            throw ErrorCode403
-        } catch (e: IOException) {
-            throw NetworkError
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             throw UnknownError
         }
     }

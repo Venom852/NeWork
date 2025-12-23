@@ -5,9 +5,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import ru.netology.nework.dto.Attachment
-import ru.netology.nework.entity.AttachmentEmbeddable
-import ru.netology.nework.entity.ContentDraftEntity
 import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.enumeration.AttachmentType
 
@@ -28,8 +25,6 @@ interface PostDao {
     @Query("SELECT COUNT(*) == 0 FROM PostEntity")
     suspend fun isEmpty(): Boolean
 
-    @Query("SELECT COUNT(*) FROM PostEntity")
-    suspend fun count(): Int
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(post: PostEntity)
 
@@ -39,24 +34,23 @@ interface PostDao {
     @Query("UPDATE PostEntity Set content = :text WHERE id = :id")
     suspend fun changeContentById(id: Long, text: String)
 
-    @Query("UPDATE PostEntity Set id = :newId, url = :url, type = :type WHERE id = :id")
-    suspend fun changeIdPostById(id: Long, newId: Long, url: String?, type: AttachmentType?)
+    @Query("UPDATE PostEntity Set id = :newId, author = :newAuthor, authorId = :newAuthorId, authorAvatar = :newAuthorAvatar, authorJob = :newAuthorJob, url = :newUrl, type = :newType WHERE id = :id")
+    suspend fun changeIdPostById(
+        id: Long,
+        newId: Long,
+        newAuthor: String,
+        newAuthorId: Long,
+        newAuthorAvatar: String?,
+        newAuthorJob: String?,
+        newUrl: String?,
+        newType: AttachmentType?
+    )
 
 //    @Query("UPDATE PostEntity Set viewed = 1 WHERE viewed = 0")
 //    suspend fun browse()
 
     suspend fun save(post: PostEntity) =
-        if (post.id == 0L) insert(post) else changeContentById(post.id, post.content.toString())
-
-    @Query(
-        """
-            UPDATE PostEntity SET
-                shared = shared + 1,
-                toShare = 1
-            WHERE id = :id;
-        """
-    )
-    suspend fun toShareById(id: Long)
+        if (post.id == 0L) insert(post) else changeContentById(post.id, post.content)
 
     @Query(
         """
@@ -68,20 +62,24 @@ interface PostDao {
     )
     suspend fun likeById(id: Long)
 
+    @Query(
+        """
+            UPDATE PostEntity SET
+                playSong = CASE WHEN playSong THEN 0 ELSE 1 END
+            WHERE id = :id;
+        """
+    )
+    suspend fun playButtonSong(id: Long)
+
+    @Query(
+        """
+            UPDATE PostEntity SET
+                playVideo = CASE WHEN playVideo THEN 0 ELSE 1 END
+            WHERE id = :id;
+        """
+    )
+    suspend fun playButtonVideo(id: Long)
+
     @Query("DELETE FROM PostEntity WHERE id = :id")
     suspend fun removeById(id: Long)
-
-    @Query("DELETE FROM PostEntity")
-    suspend fun removeAll()
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDraft(contentDraftEntity: ContentDraftEntity)
-
-    suspend fun saveDraft(draft: String) = insertDraft(ContentDraftEntity(contentDraft = draft))
-
-    @Query("DELETE FROM ContentDraftEntity")
-    suspend fun removeDraft()
-
-    @Query("SELECT * FROM ContentDraftEntity")
-    suspend fun getDraft(): String?
 }

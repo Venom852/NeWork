@@ -23,3 +23,10 @@ fun authInterceptor(auth: AppAuth) = fun(chain: Interceptor.Chain): Response {
 
     return chain.proceed(chain.request())
 }
+
+fun apiKeyInterceptor() = fun(chain: Interceptor.Chain): Response {
+    val newRequest = chain.request().newBuilder()
+        .addHeader("Api-Key", BuildConfig.SERVER_API_KEY)
+        .build()
+    return chain.proceed(newRequest)
+}

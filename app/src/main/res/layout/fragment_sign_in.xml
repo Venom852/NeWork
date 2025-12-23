@@ -58,6 +58,8 @@
             android:layout_marginTop="200dp"
             android:layout_marginEnd="@dimen/_30dp"
             android:hint="@string/login"
+            app:hintEnabled="true"
+            app:hintAnimationEnabled="false"
             app:errorEnabled="true"
             app:expandedHintEnabled="false"
             app:layout_constraintEnd_toEndOf="parent"
@@ -83,6 +85,8 @@
             android:layout_marginTop="@dimen/_8dp"
             android:layout_marginEnd="@dimen/_30dp"
             android:hint="@string/password"
+            app:hintEnabled="true"
+            app:hintAnimationEnabled="false"
             app:endIconMode="password_toggle"
             app:errorEnabled="true"
             app:expandedHintEnabled="false"
@@ -123,10 +127,10 @@
             android:textColor="#663399"
             android:textStyle="bold"
             android:clickable="true"
+            android:text="@string/no_registration"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/signIn"
-            tools:text="@sample/posts.json/data/noRegistration" />
+            app:layout_constraintTop_toBottomOf="@id/signIn" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -87,10 +87,19 @@
     <string name="take_photo">Сделайте снимок</string>
     <string name="date_is_set">Дата установлена</string>
     <string name="present_time">Настоящее время</string>
-    <string name="teed_to_log">Нужно авторизоваться</string>
+    <string name="need_to_log">Нужно авторизоваться</string>
     <string name="post_not_found">Пост не найден</string>
     <string name="users_mentioned">Пользователи упомянуты</string>
     <string name="speakers_added">Спикеры добавлены</string>
     <string name="coordinates_added">Координаты добавлены</string>
     <string name="incorrect_file_format">Неправильный формат файла</string>
+    <string name="event_not_found">Событие не найдено</string>
+    <string name="incorrect_date_and_time">Вы неправильно ввели дату или время, пожалуйста, исправьте их в соответствии с примером</string>
+    <string name="wrong_login_or_password">Неправильный логин или пароль</string>
+    <string name="user_is_not_registered">Пользователь не зарегистрирован</string>
+    <string name="login_busy">Пользователь с таким логином уже зарегистрирован</string>
+    <string name="incorrect_photo_format">Неправильный формат фото</string>
+    <string name="no_registration">У вас нет учетной записи? Зарегистрировать</string>
+    <string name="pick_audio">Выберите аудио</string>
+    <string name="pick_video">Выберите видео</string>
 </resources>

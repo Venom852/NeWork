@@ -5,7 +5,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nework.R
 import ru.netology.nework.databinding.CardJobBinding
 import ru.netology.nework.dto.Job
-import ru.netology.nework.fragment.UserFragment.Companion.status
+import ru.netology.nework.fragment.ProfileFragment.Companion.status
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 
 class JobViewHolder(

@@ -12,7 +12,7 @@ import ru.netology.nework.dao.PostRemoteKeyDao
 import ru.netology.nework.db.AppDb
 import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.entity.PostRemoteKeyEntity
-import ru.netology.nework.entity.toEntity
+import ru.netology.nework.entity.toPostEntity
 import ru.netology.nework.error.ApiError
 
 @OptIn(ExperimentalPagingApi::class)
@@ -30,10 +30,10 @@ class PostRemoteMediator(
             val response = when (loadType) {
                 LoadType.REFRESH -> {
                     if (postRemoteKeyDao.max() == null) {
-                        apiService.getLatest(state.config.initialLoadSize)
+                        apiService.getLatestPosts(state.config.initialLoadSize)
                     } else {
                         val id = postRemoteKeyDao.max()!!
-                        apiService.getAfter(id, state.config.pageSize)
+                        apiService.getAfterPosts(id, state.config.pageSize)
                     }
                 }
 
@@ -45,7 +45,7 @@ class PostRemoteMediator(
                     val id = postRemoteKeyDao.min() ?: return MediatorResult.Success(
                         endOfPaginationReached = false
                     )
-                    apiService.getBefore(id, state.config.pageSize)
+                    apiService.getBeforePosts(id, state.config.pageSize)
                 }
             }
 
@@ -92,7 +92,7 @@ class PostRemoteMediator(
                         )
                     )
                 }
-                dao.insertPosts(body.toEntity())
+                dao.insertPosts(body.toPostEntity())
             }
             return MediatorResult.Success(endOfPaginationReached = false)
         } catch (e: Exception) {

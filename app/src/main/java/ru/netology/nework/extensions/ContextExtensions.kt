@@ -3,10 +3,8 @@ package ru.netology.nework.extensions
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.view.View
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
-import androidx.constraintlayout.widget.Group
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 

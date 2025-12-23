@@ -53,10 +53,10 @@
             android:id="@+id/avatarImage"
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:layout_marginStart="130dp"
             android:layout_marginTop="80dp"
             android:contentDescription="@string/avatar_image"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.button.MaterialButton
@@ -64,7 +64,6 @@
             style="@style/Widget.AppTheme.IconButton"
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:layout_marginStart="130dp"
             android:layout_marginTop="80dp"
             android:contentDescription="@string/take_photo"
             android:paddingStart="32dp"
@@ -73,6 +72,7 @@
             app:iconSize="80dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             tools:ignore="RtlSymmetry" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -84,6 +84,8 @@
             android:layout_marginTop="@dimen/_16dp"
             android:layout_marginEnd="@dimen/_30dp"
             android:hint="@string/login"
+            app:hintEnabled="true"
+            app:hintAnimationEnabled="false"
             app:counterEnabled="true"
             app:counterMaxLength="20"
             app:errorEnabled="true"
@@ -111,6 +113,8 @@
             android:layout_marginTop="@dimen/_8dp"
             android:layout_marginEnd="@dimen/_30dp"
             android:hint="@string/name"
+            app:hintEnabled="true"
+            app:hintAnimationEnabled="false"
             app:counterEnabled="true"
             app:counterMaxLength="20"
             app:errorEnabled="true"
@@ -138,6 +142,8 @@
             android:layout_marginTop="@dimen/_8dp"
             android:layout_marginEnd="@dimen/_30dp"
             android:hint="@string/password"
+            app:hintEnabled="true"
+            app:hintAnimationEnabled="false"
             app:counterEnabled="true"
             app:counterMaxLength="20"
             app:endIconMode="password_toggle"
@@ -167,6 +173,8 @@
             android:layout_marginTop="@dimen/_8dp"
             android:layout_marginEnd="@dimen/_30dp"
             android:hint="@string/password"
+            app:hintEnabled="true"
+            app:hintAnimationEnabled="false"
             app:counterEnabled="true"
             app:counterMaxLength="20"
             app:endIconMode="password_toggle"

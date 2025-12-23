@@ -1,9 +1,11 @@
 package ru.netology.nework.adapter
 
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.navigation.Navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +22,10 @@ import ru.netology.nework.fragment.EventFragment.Companion.eventBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.EVENT
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
+import ru.netology.nework.fragment.ProfileFragment.Companion.USER
+import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
+import ru.netology.nework.fragment.ProfileFragment.Companion.eventFragmentBundle
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 
@@ -34,13 +40,13 @@ class EventViewHolder(
             content.text = event.content
             published.text = event.published.toString()
             eventDate.text = event.datetime.toString()
+            playSong.isChecked = event.playSong
+            playVideo.isChecked = event.playVideo
             like.isChecked = event.likedByMe
             toShare.isChecked = event.toShare
             like.text = CountCalculator.calculator(event.likes)
             toShare.text = CountCalculator.calculator(event.shared)
 
-//            content.visibility = View.VISIBLE
-//            link.visibility = View.GONE
             imageContent.visibility = View.GONE
             groupVideo.visibility = View.GONE
             groupSong.visibility = View.GONE
@@ -59,17 +65,7 @@ class EventViewHolder(
                 .apply(options.circleCrop())
                 .into(binding.avatar)
 
-//            when {
-//                post.attachment == null -> imageContent.visibility = View.GONE
-//                post.attachment.uri == null -> Glide.with(binding.imageContent)
-//                    .load(urlAttachment)
-//                    .error(R.drawable.ic_error_24)
-//                    .timeout(10_000)
-//                    .into(binding.imageContent)
-//                else -> imageContent.setImageURI(post.attachment.uri.toUri())
-//            }
-
-            if (event.type == EventType.ONLINE) {
+            if (event.eventType == EventType.ONLINE) {
                 eventStatus.text = itemView.context.getString(R.string.online)
             } else {
                 eventStatus.text = itemView.context.getString(R.string.offline)
@@ -87,27 +83,30 @@ class EventViewHolder(
 
             if (event.attachment?.type == AttachmentType.VIDEO) {
                 groupVideo.visibility = View.VISIBLE
-                //TODO
+
+                videoContent.setVideoURI(event.attachment.url.toUri())
             }
 
             if (event.attachment?.type == AttachmentType.AUDIO) {
                 groupSong.visibility = View.VISIBLE
-                //TODO
+
+                val songFile = event.attachment.url.toUri().toFile()
+
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(songFile.absolutePath)
+                val durationStr =
+                    retriever.extractMetadata(
+                        MediaMetadataRetriever.METADATA_KEY_DURATION
+                    )
+                val duration = durationStr?.toIntOrNull() ?: 0
+                val title = retriever.extractMetadata(
+                    MediaMetadataRetriever.METADATA_KEY_TITLE
+                ) ?: "noName"
+                retriever.release()
+
+                titleSong.text = title
+                timeSong.text = duration.toString()
             }
-
-//            if (post.link != null) {
-//                link.visibility = View.VISIBLE
-//                link.text = post.link
-//            }
-
-//            if (post.video == null) {
-//                groupVideo.visibility = View.GONE
-//            }
-
-//            if (post.content == null) {
-//                content.visibility = View.GONE
-//            }
-
 
             like.setOnClickListener {
                 onInteractionEventListener.onLike(event)
@@ -131,7 +130,15 @@ class EventViewHolder(
 
             avatar.setOnClickListener {
                 findNavController(it).navigate(
-                    R.id.action_feedFragment_to_yourProfileFragment
+                    R.id.action_feedFragment_to_yourProfileFragment,
+                    Bundle().apply {
+                        if (event.ownedByMe) {
+                            statusProfileFragment = YOUR
+                        } else {
+                            statusProfileFragment = USER
+                            eventFragmentBundle = gson.toJson(event)
+                        }
+                    }
                 )
             }
 

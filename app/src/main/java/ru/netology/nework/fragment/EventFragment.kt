@@ -2,12 +2,14 @@ package ru.netology.nework.fragment
 
 import android.content.Intent
 import android.graphics.Color.RED
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -25,7 +27,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import ru.netology.nework.R
-import ru.netology.nework.viewmodel.PostViewModel
 import com.google.gson.Gson
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKit
@@ -41,9 +42,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netology.nework.BuildConfig
-import ru.netology.nework.dao.PostDao
+import ru.netology.nework.dao.EventDao
 import ru.netology.nework.databinding.AuthorizationDialogBoxBinding
-import ru.netology.nework.databinding.ErrorCode400And500Binding
 import ru.netology.nework.databinding.FragmentEventBinding
 import ru.netology.nework.dto.Event
 import ru.netology.nework.enumeration.AttachmentType
@@ -54,27 +54,29 @@ import ru.netology.nework.fragment.NewEventFragment.Companion.statusEventAndCont
 import ru.netology.nework.fragment.PhotoFragment.Companion.EVENT
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
+import ru.netology.nework.fragment.ProfileFragment.Companion.USER
+import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
+import ru.netology.nework.fragment.ProfileFragment.Companion.eventFragmentBundle
 import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.PARTICIPANTS
 import ru.netology.nework.fragment.UserFragment.Companion.SPEAKERS
 import ru.netology.nework.fragment.UserFragment.Companion.statusUserFragment
+import ru.netology.nework.fragment.UserFragment.Companion.userBundleFragment
 import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
-import ru.netology.nework.util.SwipeDirection
-import ru.netology.nework.util.detectSwipe
+import ru.netology.nework.viewmodel.EventViewModel
 import ru.netology.nework.viewmodel.AuthViewModel
 import java.time.Instant
 import javax.inject.Inject
 import kotlin.collections.emptyMap
 import kotlin.getValue
 
-//TODO(Заменить везде viewModel)
 @AndroidEntryPoint
 class EventFragment : Fragment() {
-    //TODO(Заменить на event)
     @Inject
-    lateinit var dao: PostDao
+    lateinit var eventDao: EventDao
 
     companion object {
         var Bundle.eventBundle by StringArg
@@ -89,7 +91,7 @@ class EventFragment : Fragment() {
         content = "",
         published = Instant.now(),
         datetime = Instant.now(),
-        type = null,
+        eventType = null,
         link = null,
         likedByMe = false,
         toShare = false,
@@ -103,7 +105,9 @@ class EventFragment : Fragment() {
         participatedByMe = false,
         likeOwnerIds = emptySet(),
         participantsIds = emptySet(),
-        users = emptyMap()
+        users = emptyMap(),
+        playSong = false,
+        playVideo = false
     )
     private val gson = Gson()
     private var eventId = 0L
@@ -121,15 +125,10 @@ class EventFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentEventBinding.inflate(layoutInflater, container, false)
-        val bindingErrorCode400And500 =
-            ErrorCode400And500Binding.inflate(layoutInflater, container, false)
         val bindingAuthorizationDialogBox =
             AuthorizationDialogBoxBinding.inflate(layoutInflater, container, false)
 
-        applyInset(binding.root)
-
-        //TODO(Заменить viewModel)
-        val viewModel: PostViewModel by activityViewModels()
+        val viewModel: EventViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
 
         val dialog = BottomSheetDialog(requireContext())
@@ -156,7 +155,6 @@ class EventFragment : Fragment() {
             }
 
             toShare.setOnClickListener {
-                viewModel.toShareById(event.id)
                 val intent = Intent().apply {
                     action = Intent.ACTION_SEND
                     type = "text/plain"
@@ -168,9 +166,8 @@ class EventFragment : Fragment() {
 
             //TODO(Проверить)
             participate.setOnClickListener {
-                //TODO(Добавить viewModel)
                 if (authorization) {
-
+                    viewModel.participateById(event.id)
                 } else {
                     dialog.setCancelable(false)
                     dialog.setContentView(bindingAuthorizationDialogBox.root)
@@ -180,16 +177,36 @@ class EventFragment : Fragment() {
 
             avatar.setOnClickListener {
                 findNavController().navigate(
-                    R.id.action_eventFragment2_to_yourProfileFragment
+                    R.id.action_eventFragment2_to_yourProfileFragment,
+                    Bundle().apply {
+                        if (event.ownedByMe) {
+                            statusProfileFragment = YOUR
+                        } else {
+                            statusProfileFragment = USER
+                            eventFragmentBundle = gson.toJson(event)
+                        }
+                    }
                 )
             }
 
             groupVideo.setAllOnClickListener {
-                //TODO(Добавить управление видео)
+                if (!event.playSong) {
+                    viewModel.playVideo(event)
+                } else {
+                    viewModel.pauseVideo()
+                }
+
+                viewModel.playButtonVideo(event.id)
             }
 
             playSong.setOnClickListener {
-                //TODO(Добавить управление звуком)
+                if (!event.playSong) {
+                    viewModel.playSong(event)
+                } else {
+                    viewModel.pauseSong()
+                }
+
+                viewModel.playButtonSong(event.id)
             }
 
             link.setOnClickListener {
@@ -206,6 +223,7 @@ class EventFragment : Fragment() {
                     R.id.action_eventFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = SPEAKERS
+                        userBundleFragment = gson.toJson(event.speakerIds)
                     }
                 )
             }
@@ -215,6 +233,7 @@ class EventFragment : Fragment() {
                     R.id.action_eventFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = LIKE
+                        userBundleFragment = gson.toJson(event.likeOwnerIds)
                     }
                 )
             }
@@ -224,6 +243,7 @@ class EventFragment : Fragment() {
                     R.id.action_eventFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = PARTICIPANTS
+                        userBundleFragment = gson.toJson(event.participantsIds)
                     }
                 )
             }
@@ -258,11 +278,9 @@ class EventFragment : Fragment() {
 
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    //TODO(Заменить viewModel)
-                    viewModel.dataPost.collectLatest {
-                        CoroutineScope(Dispatchers.Default).launch {
-                            //TODO(Проверить, нужно ли будет убирать запрос из базы данных)
-                            event = dao.getPost(eventId).toDto()
+                    viewModel.dataEvent.collectLatest {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            event = eventDao.getEvent(eventId).toEventDto()
                         }
                         setValues(binding, event)
                     }
@@ -279,32 +297,16 @@ class EventFragment : Fragment() {
                 )
             }
 
-            //TODO(Нужно ли менять liveData, и нужна ли обработка ошибки)
-            viewModel.dataState.observe(viewLifecycleOwner) {
-                if (it.errorCode300) {
-                    findNavController().navigateUp()
-                }
+            viewModel.errorEvent403.observe(viewLifecycleOwner) {
+                Toast.makeText(requireContext(), R.string.need_to_log, Toast.LENGTH_SHORT).show()
             }
 
-            //TODO(Нужно ли менять liveData)
-            viewModel.errorPost403.observe(viewLifecycleOwner) {
-                dialog.setCancelable(false)
-                dialog.setContentView(bindingErrorCode400And500.root)
-                dialog.show()
+            viewModel.errorEvent404.observe(viewLifecycleOwner) {
+                Toast.makeText(requireContext(), R.string.event_not_found, Toast.LENGTH_SHORT).show()
             }
 
-            bindingErrorCode400And500.errorCode400And500.detectSwipe { event ->
-                val text = when (event) {
-                    SwipeDirection.Down -> "onSwipeDown"
-                    SwipeDirection.Left -> "onSwipeLeft"
-                    SwipeDirection.Right -> "onSwipeRight"
-                    SwipeDirection.Up -> "onSwipeUp"
-                }
-
-                if (text == "onSwipeDown") {
-                    dialog.dismiss()
-                    Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
-                }
+            viewModel.errorEvent415.observe(viewLifecycleOwner) {
+                Toast.makeText(requireContext(), R.string.incorrect_file_format, Toast.LENGTH_SHORT).show()
             }
 
             bindingAuthorizationDialogBox.logIn.setOnClickListener {
@@ -321,7 +323,6 @@ class EventFragment : Fragment() {
         return binding.root
     }
 
-    //TODO(Проверить, можно ли использовать для работы с картой метод onCreate или оставить всё тут)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val mapView = binding.map
         val mapWindow = mapView.mapWindow
@@ -345,9 +346,12 @@ class EventFragment : Fragment() {
             authorJob.text = event.authorJob
             content.text = event.content
             eventDate.text = event.published.toString()
+            playSong.isChecked = event.playSong
+            playVideo.isChecked = event.playVideo
             like.isChecked = event.likedByMe
             toShare.isChecked = event.toShare
             like.text = CountCalculator.calculator(event.likes)
+            participate.text = CountCalculator.calculator(event.participantsIds.count().toLong())
             toShare.text = CountCalculator.calculator(event.shared)
 
             map.visibility = View.GONE
@@ -372,6 +376,7 @@ class EventFragment : Fragment() {
             likeUserFive.visibility = View.GONE
             listLikeUsers.visibility = View.GONE
 //            groupLike.visibility = View.GONE
+
             //TODO(Проверить, можно ли заменить весь код одной строчкой)
             participantsOne.visibility = View.GONE
             participantsTwo.visibility = View.GONE
@@ -396,7 +401,7 @@ class EventFragment : Fragment() {
                 .apply(options.circleCrop())
                 .into(binding.avatar)
 
-            if (event.type == EventType.ONLINE) {
+            if (event.eventType == EventType.ONLINE) {
                 eventStatus.text = context?.getString(R.string.online)
             } else {
                 eventStatus.text = context?.getString(R.string.offline)
@@ -418,96 +423,250 @@ class EventFragment : Fragment() {
 
             if (event.attachment?.type == AttachmentType.VIDEO) {
                 groupVideo.visibility = View.VISIBLE
-                //TODO(Добавить отображение видео)
+
+                videoContent.setVideoURI(event.attachment.url.toUri())
             }
 
             if (event.attachment?.type == AttachmentType.AUDIO) {
                 groupSong.visibility = View.VISIBLE
-                //TODO(Добавить отображение звука)
+
+                val songFile = event.attachment.url.toUri().toFile()
+
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(songFile.absolutePath)
+                val durationStr =
+                    retriever.extractMetadata(
+                        MediaMetadataRetriever.METADATA_KEY_DURATION
+                    )
+                val duration = durationStr?.toIntOrNull() ?: 0
+                val title = retriever.extractMetadata(
+                    MediaMetadataRetriever.METADATA_KEY_TITLE
+                ) ?: "noName"
+                retriever.release()
+
+                titleSong.text = title
+                timeSong.text = duration.toString()
+            }
+
+            //TODO(Проверить адрес url и работу кода)
+            if (!event.speakerIds.isEmpty()) {
+                numberUsers = 0
+
+                event.speakerIds.forEach {
+                    val urlUser = "${BuildConfig.BASE_URL}/avatars/${event.users[it]?.avatar}"
+
+                    when (numberUsers) {
+                        0 -> {
+                            speakersOne.visibility = View.VISIBLE
+                            Glide.with(binding.speakersOne)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.speakersOne)
+
+                            ++numberUsers
+                        }
+
+                        1 -> {
+                            speakersTwo.visibility = View.VISIBLE
+                            Glide.with(binding.speakersTwo)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.speakersTwo)
+
+                            ++numberUsers
+                        }
+
+                        2 -> {
+                            speakersThree.visibility = View.VISIBLE
+                            Glide.with(binding.speakersThree)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.speakersThree)
+
+                            ++numberUsers
+                        }
+
+                        3 -> {
+                            speakersFour.visibility = View.VISIBLE
+                            Glide.with(binding.speakersFour)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.speakersFour)
+
+                            ++numberUsers
+                        }
+
+                        4 -> {
+                            speakersFive.visibility = View.VISIBLE
+                            listSpeakers.visibility = View.VISIBLE
+                            Glide.with(binding.speakersFive)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.speakersFive)
+
+                            ++numberUsers
+                        }
+
+                        else -> return@forEach
+                    }
+                }
             }
 
             if (!event.likeOwnerIds.isEmpty()) {
                 numberUsers = 0
 
-                //TODO(Доделать код, добавить загрузку аватарок)
                 event.likeOwnerIds.forEach {
+                    val urlUser = "${BuildConfig.BASE_URL}/avatars/${event.users[it]?.avatar}"
+
                     when (numberUsers) {
                         0 -> {
                             likeUserOne.visibility = View.VISIBLE
                             Glide.with(binding.likeUserOne)
-                                .load(url)
+                                .load(urlUser)
                                 .error(R.drawable.ic_error_24)
                                 .timeout(10_000)
                                 .apply(options.circleCrop())
                                 .into(binding.likeUserOne)
-                            event.users[it]?.avatar
+
+                            ++numberUsers
                         }
 
                         1 -> {
                             likeUserTwo.visibility = View.VISIBLE
+                            Glide.with(binding.likeUserTwo)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.likeUserTwo)
 
+                            ++numberUsers
                         }
 
                         2 -> {
                             likeUserThree.visibility = View.VISIBLE
+                            Glide.with(binding.likeUserThree)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.likeUserThree)
 
+                            ++numberUsers
                         }
 
                         3 -> {
                             likeUserFour.visibility = View.VISIBLE
+                            Glide.with(binding.likeUserFour)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.likeUserFour)
 
+                            ++numberUsers
                         }
 
                         4 -> {
                             likeUserFive.visibility = View.VISIBLE
                             listLikeUsers.visibility = View.VISIBLE
+                            Glide.with(binding.likeUserFive)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.likeUserFive)
 
+                            ++numberUsers
                         }
+
+                        else -> return@forEach
                     }
-                    numberUsers++
                 }
             }
 
             if (!event.participantsIds.isEmpty()) {
+                numberUsers = 0
 
+                event.participantsIds.forEach {
+                    val urlUser = "${BuildConfig.BASE_URL}/avatars/${event.users[it]?.avatar}"
+
+                    when (numberUsers) {
+                        0 -> {
+                            participantsOne.visibility = View.VISIBLE
+                            Glide.with(binding.participantsOne)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.participantsOne)
+
+                            ++numberUsers
+                        }
+
+                        1 -> {
+                            participantsTwo.visibility = View.VISIBLE
+                            Glide.with(binding.participantsTwo)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.participantsTwo)
+
+                            ++numberUsers
+                        }
+
+                        2 -> {
+                            participantsThree.visibility = View.VISIBLE
+                            Glide.with(binding.participantsThree)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.participantsThree)
+
+                            ++numberUsers
+                        }
+
+                        3 -> {
+                            participantsFour.visibility = View.VISIBLE
+                            Glide.with(binding.participantsFour)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.participantsFour)
+
+                            ++numberUsers
+                        }
+
+                        4 -> {
+                            participantsFive.visibility = View.VISIBLE
+                            listParticipants.visibility = View.VISIBLE
+                            Glide.with(binding.participantsFive)
+                                .load(urlUser)
+                                .error(R.drawable.ic_error_24)
+                                .timeout(10_000)
+                                .apply(options.circleCrop())
+                                .into(binding.participantsFive)
+
+                            ++numberUsers
+                        }
+
+                        else -> return@forEach
+                    }
+                }
             }
-
-//            if (post.attachment == null) {
-//                imageContent.visibility = View.GONE
-//            }
-//
-//            when {
-//                post.attachment == null -> imageContent.visibility = View.GONE
-//                post.attachment.uri == null -> Glide.with(binding.imageContent)
-//                    .load(urlAttachment)
-//                    .error(R.drawable.ic_error_24)
-//                    .timeout(10_000)
-//                    .into(binding.imageContent)
-//                else -> imageContent.setImageURI(post.attachment.uri.toUri())
-//            }
-
-//            if (post.video == null) {
-//                groupVideo.visibility = View.GONE
-//            }
-//
-//            if (post.content == null) {
-//                content.visibility = View.GONE
-//            }
-
-//            if (post.authorAvatar != "netology") {
-//                Glide.with(binding.avatar)
-//                    .load(url)
-//                    .error(R.drawable.ic_error_24)
-//                    .timeout(10_000)
-//                    .apply(options.circleCrop())
-//                    .into(binding.avatar)
-//            } else {
-//                avatar.setImageResource(R.drawable.ic_netology)
-//            }
-
-//            if (post.savedOnTheServer) {
-//                saved.setImageResource(R.drawable.ic_checked_24)
-//            }
         }
     }
 
@@ -563,20 +722,5 @@ class EventFragment : Fragment() {
                 }
             }
         )
-    }
-
-    private fun applyInset(main: View) {
-        ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            v.setPadding(
-                v.paddingLeft,
-                systemBars.top,
-                v.paddingRight,
-                if (isImeVisible) imeInsets.bottom else systemBars.bottom
-            )
-            insets
-        }
     }
 }
