@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/photoFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".fragment.PhotoFragment">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/back"
+        style="@style/App.Widget.MenuButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/_16dp"
+        android:contentDescription="@string/back"
+        android:textSize="20sp"
+        app:icon="@drawable/ic_back_24"
+        app:iconSize="32dp"
+        app:iconTint="#FFFFFF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/photo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/photo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/back"
+        app:layout_constraintBottom_toTopOf="@+id/toolbarBottom"/>
+
+    <Toolbar
+        android:id="@+id/toolbarBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/like"
+        style="@style/App.Widget.LikeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checkable="true"
+        android:contentDescription="@string/like"
+        android:textSize="20sp"
+        android:layout_marginStart="@dimen/_16dp"
+        android:textColor="#FFFFFF"
+        app:icon="@drawable/ic_like_selector_24"
+        app:iconPadding="8dp"
+        app:iconSize="32dp"
+        app:iconTint="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="@id/toolbarBottom"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/toolbarBottom"
+        tools:text="34" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/toShare"
+        style="@style/App.Widget.ShareButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checkable="true"
+        android:contentDescription="@string/toShare"
+        android:textSize="20sp"
+        android:textColor="#FFFFFF"
+        app:icon="@drawable/ic_to_share_24"
+        app:iconPadding="8dp"
+        app:iconSize="32dp"
+        app:iconTint="#FFFFFF"
+        app:layout_constraintStart_toEndOf="@id/like"
+        app:layout_constraintTop_toTopOf="@id/toolbarBottom"
+        app:layout_constraintEnd_toStartOf="@id/views"
+        tools:text="13" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/views"
+        style="@style/App.Widget.MenuButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/_16dp"
+        android:contentDescription="@string/views"
+        android:textSize="20sp"
+        android:textColor="#FFFFFF"
+        app:icon="@drawable/view"
+        app:iconPadding="8dp"
+        app:iconSize="32dp"
+        app:iconTint="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/toolbarBottom"
+        tools:text="58" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

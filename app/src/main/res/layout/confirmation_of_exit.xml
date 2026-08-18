@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/exitConfirmationDialogBox"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardElevation="0dp"
+    app:cardCornerRadius="@dimen/_30dp"
+    app:strokeColor="#D8BFD8">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="40dp"
+            android:layout_height="5dp"
+            android:layout_marginTop="@dimen/_8dp"
+            android:backgroundTint="#d3d3d3"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:cardElevation="0dp"
+            app:cardCornerRadius="@dimen/_30dp"
+            app:strokeColor="#d3d3d3">
+
+            <!--        <View-->
+            <!--            android:id="@+id/line"-->
+            <!--            android:layout_width="40dp"-->
+            <!--            android:layout_height="5dp"-->
+            <!--            android:layout_marginTop="@dimen/_8dp"-->
+            <!--            android:background="#D8BFD8"-->
+            <!--            app:layout_constraintHorizontal_chainStyle="spread"-->
+            <!--            app:layout_constraintStart_toStartOf="parent"-->
+            <!--            app:layout_constraintEnd_toEndOf="parent"-->
+            <!--            app:layout_constraintTop_toTopOf="parent" />-->
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <ImageView
+            android:id="@+id/imageError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_22dp"
+            android:contentDescription="@string/image_error"
+            app:srcCompat="@drawable/ic_error_24"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/textExitConfirmation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:text="@string/confirmation"
+            android:layout_marginTop="@dimen/_22dp"
+            android:paddingBottom="@dimen/_22dp"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/imageError"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/signOut"
+            android:layout_width="150dp"
+            android:layout_height="70dp"
+            android:text="@string/sign_out"
+            android:layout_marginTop="50dp"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@id/textExitConfirmation"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/close"
+            style="@style/Widget.AppTheme.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_16dp"
+            android:layout_marginEnd="@dimen/_16dp"
+            app:icon="@drawable/ic_close_24"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
