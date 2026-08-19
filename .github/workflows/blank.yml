@@ -29,3 +29,13 @@ jobs:
         with:
           name: app-debug.apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Decode apiKey.properties
+        env:
+          SERVER_API_KEY_SECRET: ${{ secrets.SERVER_API_KEY_SECRET }}
+        run: echo $SERVER_API_KEY_SECRET > ./app/apiKey.properties
+
+      - name: Decode maps.properties
+        env:
+          MAPS_API_KEY_SECRET: ${{ secrets.MAPS_API_KEY_SECRET }}
+        run: echo $MAPS_API_KEY_SECRET > ./app/maps.properties
