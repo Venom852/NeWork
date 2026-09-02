@@ -151,7 +151,7 @@ class PostFragment : Fragment() {
 
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
-        var listUsers = ""
+//        var listUsers = ""
 
         arguments?.postBundle?.let {
             post = gson.fromJson(it, Post::class.java)
