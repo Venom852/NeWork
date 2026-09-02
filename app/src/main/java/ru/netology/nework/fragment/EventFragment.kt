@@ -57,10 +57,12 @@ import ru.netology.nework.fragment.NewEventFragment.Companion.statusEventAndCont
 import ru.netology.nework.fragment.PhotoFragment.Companion.EVENT
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
+import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.eventFragmentBundle
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.PARTICIPANTS
 import ru.netology.nework.fragment.UserFragment.Companion.SPEAKERS
@@ -71,6 +73,7 @@ import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.EventViewModel
 import ru.netology.nework.viewmodel.AuthViewModel
+import ru.netology.nework.viewmodel.PostUserWallViewModel
 import ru.netology.nework.viewmodel.UserViewModel
 import java.time.Instant
 import java.time.ZonedDateTime
@@ -147,6 +150,7 @@ class EventFragment : Fragment() {
         val viewModel: EventViewModel by activityViewModels()
         val viewModelUser: UserViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
+        val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
@@ -195,15 +199,18 @@ class EventFragment : Fragment() {
 
             //TODO(Настроить)
             avatar.setOnClickListener {
+                viewModelPostUserWall.saveAuthorId(event.authorId)
+
                 findNavController().navigate(
                     R.id.action_eventFragment2_to_yourProfileFragment,
                     Bundle().apply {
+                        statusPermissionToCross = PROHIBIT
+
                         if (event.ownedByMe) {
                             statusProfileFragment = YOUR
-                            eventFragmentBundle = gson.toJson(event.id)
                         } else {
                             statusProfileFragment = USER
-                            eventFragmentBundle = gson.toJson(event.id)
+//                            eventFragmentBundle = gson.toJson(event.authorId)
                         }
                     }
                 )

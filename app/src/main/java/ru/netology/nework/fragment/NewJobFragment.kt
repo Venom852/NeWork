@@ -70,6 +70,7 @@ class NewJobFragment : Fragment() {
                     dateInput.error = null
                 }
 
+                //TODO(Добавить ссылку)
                 if (!titleJobInput.text.toString().isEmpty() &&
                     !jobPostInput.text.toString().isEmpty() &&
                     !dateInput.text.toString().isEmpty()

@@ -37,7 +37,7 @@ import ru.netology.nework.fragment.UserFragment.Companion.status
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.PostViewModel
 import ru.netology.nework.viewmodel.EventViewModel
-import ru.netology.nework.viewmodel.MyWallViewModel
+import ru.netology.nework.viewmodel.PostMyWallViewModel
 import kotlin.getValue
 
 class AddLocationFragment : Fragment() {
@@ -80,7 +80,7 @@ class AddLocationFragment : Fragment() {
         binding = FragmentAddLocationBinding.inflate(layoutInflater, container, false)
 
         val viewModelPost: PostViewModel by activityViewModels()
-        val viewModelMyWall: MyWallViewModel by activityViewModels()
+        val viewModelMyWall: PostMyWallViewModel by activityViewModels()
         val viewModelEvent: EventViewModel by activityViewModels()
 
         arguments?.statusAddLocationFragment?.let {

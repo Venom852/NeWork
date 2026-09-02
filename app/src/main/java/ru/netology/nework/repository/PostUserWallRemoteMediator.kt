@@ -20,7 +20,7 @@ import ru.netology.nework.entity.toPostUserWallEntity
 import ru.netology.nework.error.ApiError
 
 @OptIn(ExperimentalPagingApi::class)
-class UserWallRemoteMediator(
+class PostUserWallRemoteMediator(
     private val apiService: ApiService,
     private val appDb: AppDb,
     private val postUserWallDao: PostUserWallDao,
@@ -35,7 +35,7 @@ class UserWallRemoteMediator(
 
         try {
             val job = CoroutineScope(Dispatchers.IO).launch {
-                authorId = authorIdDao.getAuthorId()
+                authorId = authorIdDao.getAuthorId().id
             }
 
             job.join()

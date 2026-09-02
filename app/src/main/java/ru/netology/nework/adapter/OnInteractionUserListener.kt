@@ -4,4 +4,5 @@ import ru.netology.nework.dto.User
 
 interface OnInteractionUserListener {
     fun onRadioButton(user: User)
+    fun onSaveAuthorId(authorId: Long)
 }

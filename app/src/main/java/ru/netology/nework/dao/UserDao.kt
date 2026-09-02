@@ -1,10 +1,12 @@
 package ru.netology.nework.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
+import ru.netology.nework.dto.User
 import ru.netology.nework.entity.UserEntity
 
 @Dao
@@ -14,6 +16,12 @@ interface UserDao {
 
     @Query("SELECT * FROM UserEntity ORDER BY id DESC")
     fun getAllUser(): List<UserEntity>
+
+    @Query("SELECT * FROM UserEntity WHERE id = :id")
+    fun getUserFlow(id: Long): Flow<UserEntity>
+
+    @Query("SELECT * FROM UserEntity WHERE id = :id")
+    fun getUserLiveData(id: Long): LiveData<UserEntity>
 
     @Query("SELECT * FROM UserEntity WHERE id = :id")
     fun getUser(id: Long): UserEntity

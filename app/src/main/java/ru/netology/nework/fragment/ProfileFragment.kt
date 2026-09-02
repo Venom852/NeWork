@@ -50,8 +50,8 @@ import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.JobMyViewModel
 import ru.netology.nework.viewmodel.JobViewModel
-import ru.netology.nework.viewmodel.MyWallViewModel
-import ru.netology.nework.viewmodel.UserWallViewModel
+import ru.netology.nework.viewmodel.PostMyWallViewModel
+import ru.netology.nework.viewmodel.PostUserWallViewModel
 import java.time.Instant
 import javax.inject.Inject
 import kotlin.getValue
@@ -66,14 +66,18 @@ class ProfileFragment : Fragment() {
     companion object {
         const val YOUR = "your"
         const val USER = "user"
-        private const val YOUR_NO_ID = "yourNoId"
+        const val ALLOW = "allow"
+        const val PROHIBIT = "prohibit"
         var Bundle.userFragmentBundle by StringArg
         var Bundle.postFragmentBundle by StringArg
         var Bundle.eventFragmentBundle by StringArg
         var Bundle.statusProfileFragment by StringArg
-        var status = YOUR_NO_ID
+        var Bundle.statusPermissionToCross by StringArg
+        var statusProfile = YOUR
+        var permissionToCross = ALLOW
     }
-//    private var post = Post(
+
+    //    private var post = Post(
 //        id = 0,
 //        author = "Me",
 //        authorId = 0,
@@ -131,6 +135,7 @@ class ProfileFragment : Fragment() {
         login = "",
         avatar = null
     )
+    private var privateStatusProfile = YOUR
     private var authorId = 0L
     private val gson = Gson()
 
@@ -143,8 +148,8 @@ class ProfileFragment : Fragment() {
         val bindingConfirmationOfExit =
             ConfirmationOfExitBinding.inflate(layoutInflater, container, false)
 
-        val viewModelMyWall: MyWallViewModel by activityViewModels()
-        val viewModelUserWall: UserWallViewModel by activityViewModels()
+        val viewModelPostMyWall: PostMyWallViewModel by activityViewModels()
+        val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
         val viewModelMyJob: JobMyViewModel by activityViewModels()
         val viewModelJob: JobViewModel by activityViewModels()
 
@@ -153,50 +158,60 @@ class ProfileFragment : Fragment() {
         val dialog = BottomSheetDialog(requireContext())
         var conditionAdd = NEW_POST
 
-        arguments?.userFragmentBundle?.let {
+//        arguments?.userFragmentBundle?.let {
 //            user = gson.fromJson(it, User::class.java)
-            authorId = gson.fromJson(it, Long::class.java)
+//            authorId = gson.fromJson(it, Long::class.java)
 
 //            if (auth.authStateFlow.value.id != authorId) {
-//                viewModelUserWall.saveAuthorId(user.id)
-////                status = USER
-//            } else {
-////                status = YOUR
+//            viewModelPostUserWall.saveAuthorId(authorId)
 //            }
 
-            arguments?.userFragmentBundle = null
-        }
+//            arguments?.userFragmentBundle = null
+//        }
 
-        arguments?.postFragmentBundle?.let {
-//            post = gson.fromJson(it, Post::class.java)
+//        arguments?.postFragmentBundle?.let {
+////            post = gson.fromJson(it, Post::class.java)
+//            authorId = gson.fromJson(it, Long::class.java)
 //
-//            viewModelUserWall.saveAuthorId(post.id)
-            authorId = gson.fromJson(it, Long::class.java)
-
-            arguments?.postFragmentBundle = null
-        }
-
-        arguments?.eventFragmentBundle?.let {
-//            event = gson.fromJson(it, Event::class.java)
+////            if (auth.authStateFlow.value.id != authorId) {
+//            viewModelPostUserWall.saveAuthorId(authorId)
+////            }
 //
-//            viewModelUserWall.saveAuthorId(event.id)
-            authorId = gson.fromJson(it, Long::class.java)
+//            arguments?.postFragmentBundle = null
+//        }
 
-            arguments?.eventFragmentBundle = null
-        }
+//        arguments?.eventFragmentBundle?.let {
+////            event = gson.fromJson(it, Event::class.java)
+//            authorId = gson.fromJson(it, Long::class.java)
+//
+////            if (auth.authStateFlow.value.id != authorId) {
+//            viewModelPostUserWall.saveAuthorId(authorId)
+////            }
+//
+//            arguments?.eventFragmentBundle = null
+//        }
 
         arguments?.statusProfileFragment?.let {
-            status = it
+            statusProfile = it
+            privateStatusProfile = it
             arguments?.statusProfileFragment = null
         }
 
+        arguments?.statusPermissionToCross?.let {
+            permissionToCross = it
+            arguments?.statusPermissionToCross = null
+        }
+
+//        if (status == YOUR) {
+//            authorId = auth.authStateFlow.value.id
+//        }
+
         val postAdapter = PostAdapter(object : OnInteractionPostListener {
             override fun onLike(post: Post) {
-                //TODO(Добавить статус)
-                if (status == YOUR) {
-                    viewModelMyWall.likeById(post.id)
+                if (privateStatusProfile == YOUR) {
+                    viewModelPostMyWall.likeById(post.id)
                 } else {
-                    viewModelUserWall.likeById(post.id)
+                    viewModelPostUserWall.likeById(post.id)
                 }
             }
 
@@ -211,11 +226,11 @@ class ProfileFragment : Fragment() {
             }
 
             override fun onRemove(post: Post) {
-                viewModelMyWall.removeById(post.id)
+                viewModelPostMyWall.removeById(post.id)
             }
 
             override fun onEdit(post: Post) {
-                viewModelMyWall.editById(post)
+                viewModelPostMyWall.editById(post)
                 findNavController().navigate(
                     R.id.action_yourProfileFragment_to_newPostFragment2,
                     Bundle().apply {
@@ -228,23 +243,25 @@ class ProfileFragment : Fragment() {
 
             override fun onPlayVideo(post: Post) {
                 if (!post.playSong) {
-                    viewModelMyWall.playVideo(post)
+                    viewModelPostMyWall.playVideo(post)
                 } else {
-                    viewModelMyWall.pauseVideo()
+                    viewModelPostMyWall.pauseVideo()
                 }
 
-                viewModelMyWall.playButtonVideo(post.id)
+                viewModelPostMyWall.playButtonVideo(post.id)
             }
 
             override fun onPlaySong(post: Post) {
                 if (!post.playSong) {
-                    viewModelMyWall.playSong(post)
+                    viewModelPostMyWall.playSong(post)
                 } else {
-                    viewModelMyWall.pauseSong()
+                    viewModelPostMyWall.pauseSong()
                 }
 
-                viewModelMyWall.playButtonSong(post.id)
+                viewModelPostMyWall.playButtonSong(post.id)
             }
+
+            override fun onSaveAuthorId(authorId: Long) = Unit
         })
 
         val jobAdapter = JobAdapter(object : OnInteractionJobListener {
@@ -274,15 +291,28 @@ class ProfileFragment : Fragment() {
             job.adapter = jobAdapter
 //            srlPosts.setOnRefreshListener(postAdapter::refresh)
 
-            if (status == YOUR_NO_ID) {
-                //TODO(Можно ли использовать во фрагменте)
-                CoroutineScope(Dispatchers.IO).launch {
-                    user = userDao.getUser(auth.authStateFlow.value.id).toUserDto()
+            //TODO(Можно ли использовать во фрагменте базу данных)
+//            CoroutineScope(Dispatchers.IO).launch {
+//                user = userDao.getUser(authorId).toUserDto()
+//            }
+
+//            viewModelPostUserWall.getUser(authorId)
+
+//            viewLifecycleOwner.lifecycleScope.launch {
+//                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                    viewModelPostUserWall.dataUserWall.collectLatest {
+//                        user = it
+//                    }
+//                }
+//            }
+
+            if (privateStatusProfile == YOUR) {
+                viewModelPostMyWall.dataMyUserWall.observe(viewLifecycleOwner) {
+                    user = it
                 }
             } else {
-                //TODO(Можно ли использовать во фрагменте)
-                CoroutineScope(Dispatchers.IO).launch {
-                    user = userDao.getUser(authorId).toUserDto()
+                viewModelPostUserWall.dataUserWall.observe(viewLifecycleOwner) {
+                    user = it
                 }
             }
 
@@ -292,13 +322,19 @@ class ProfileFragment : Fragment() {
                 .timeout(10_000)
                 .into(photo)
 
-            if (status == USER) {
+            if (privateStatusProfile == USER) {
                 toolbar.title = "${user.name}/${user.login}"
                 logOut.visibility = View.GONE
                 add.visibility = View.GONE
             }
 
             back.setOnClickListener {
+                permissionToCross = ALLOW
+
+                //TODO(Проверить)
+                lifecycleScope.launch{
+                    viewModelPostUserWall.removeAuthorId()
+                }
                 findNavController().navigateUp()
             }
 
@@ -325,17 +361,28 @@ class ProfileFragment : Fragment() {
 
             tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(p0: TabLayout.Tab?) {
-                    if (p0?.text.toString() == R.string.wall.toString()) {
-                        applyInset(binding.main)
+                    if (p0?.position == 0) {
+//                        applyInset(binding.main)
                         conditionAdd = NEW_POST
                         srlPosts.visibility = View.VISIBLE
                         srlJobs.visibility = View.GONE
                     } else {
-                        applyInset(binding.job)
+//                        applyInset(binding.job)
                         conditionAdd = NEW_JOB
                         srlPosts.visibility = View.GONE
                         srlJobs.visibility = View.VISIBLE
                     }
+//                    if (p0?.text.toString() == R.string.wall.toString()) {
+////                        applyInset(binding.main)
+//                        conditionAdd = NEW_POST
+//                        srlPosts.visibility = View.VISIBLE
+//                        srlJobs.visibility = View.GONE
+//                    } else {
+////                        applyInset(binding.job)
+//                        conditionAdd = NEW_JOB
+//                        srlPosts.visibility = View.GONE
+//                        srlJobs.visibility = View.VISIBLE
+//                    }
                 }
 
                 override fun onTabUnselected(p0: TabLayout.Tab?) = Unit
@@ -359,18 +406,18 @@ class ProfileFragment : Fragment() {
 //            }
 
             srlPosts.setOnRefreshListener {
-                if (status == YOUR) {
-                    viewModelMyWall.loadPosts()
+                if (privateStatusProfile == YOUR) {
+                    viewModelPostMyWall.loadPosts()
                 } else {
-                    //TODO(Добавить загрузку постов)
+                    viewModelPostUserWall.loadPosts()
                 }
             }
 
             srlJobs.setOnRefreshListener {
-                if (status == YOUR) {
-                    viewModelMyJob.refreshUsers()
+                if (privateStatusProfile == YOUR) {
+                    viewModelMyJob.loadJobs()
                 } else {
-                    viewModelJob.refreshUsers()
+                    viewModelJob.loadJobs()
                 }
             }
         }
@@ -408,30 +455,33 @@ class ProfileFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                if (status == YOUR || status == YOUR_NO_ID) {
-                    viewModelMyWall.dataPostMyWall.collectLatest(postAdapter::submitList)
+                if (privateStatusProfile == YOUR) {
+                    viewModelPostMyWall.dataPostMyWall.collectLatest(postAdapter::submitList)
                 } else {
-                    //TODO(Добавить данные)
+                    viewModelPostUserWall.dataPostUserWall.collectLatest(postAdapter::submitList)
                 }
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                if (status == YOUR || status == YOUR_NO_ID) {
-                    viewModelMyWall.dataState.collectLatest { state ->
+                if (privateStatusProfile == YOUR) {
+                    viewModelPostMyWall.dataState.collectLatest { state ->
                         binding.progress.isVisible = state.loading
                         binding.srlJobs.isRefreshing = state.refreshing
                     }
                 } else {
-                    //TODO(Добавить данные)
+                    viewModelPostUserWall.dataState.collectLatest { state ->
+                        binding.progress.isVisible = state.loading
+                        binding.srlJobs.isRefreshing = state.refreshing
+                    }
                 }
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                if (status == YOUR || status == YOUR_NO_ID) {
+                if (privateStatusProfile == YOUR) {
                     viewModelMyJob.dataMyJob.collectLatest(jobAdapter::submitList)
                 } else {
                     viewModelJob.dataUserJob.collectLatest(jobAdapter::submitList)
@@ -441,7 +491,7 @@ class ProfileFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                if (status == YOUR || status == YOUR_NO_ID) {
+                if (privateStatusProfile == YOUR) {
                     viewModelMyJob.dataState.collectLatest { state ->
                         binding.progress.isVisible = state.loading
                         binding.srlJobs.isRefreshing = state.refreshing
@@ -455,24 +505,24 @@ class ProfileFragment : Fragment() {
             }
         }
 
-        viewModelMyWall.errorMyWall403.observe(viewLifecycleOwner) {
+        viewModelPostMyWall.errorMyWall403.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), R.string.need_to_log, Toast.LENGTH_SHORT).show()
         }
 
-        viewModelMyWall.errorMyWall404.observe(viewLifecycleOwner) {
+        viewModelPostMyWall.errorMyWall404.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), R.string.post_not_found, Toast.LENGTH_SHORT).show()
         }
 
-        viewModelMyWall.errorMyWall415.observe(viewLifecycleOwner) {
+        viewModelPostMyWall.errorMyWall415.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), R.string.incorrect_file_format, Toast.LENGTH_SHORT)
                 .show()
         }
 
-        viewModelUserWall.errorWall403.observe(viewLifecycleOwner) {
+        viewModelPostUserWall.errorWall403.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), R.string.need_to_log, Toast.LENGTH_SHORT).show()
         }
 
-        viewModelUserWall.errorWall404.observe(viewLifecycleOwner) {
+        viewModelPostUserWall.errorWall404.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), R.string.post_not_found, Toast.LENGTH_SHORT).show()
         }
 

@@ -12,8 +12,8 @@ import ru.netology.nework.enumeration.AttachmentType
 
 interface JobRepository {
     //    fun getNewerCount(id: Long): Flow<Int>
-    suspend fun getAll()
     val data: Flow<List<Job>>
+    suspend fun getAll()
 //    suspend fun save(job: Job): Job
 //    suspend fun removeById(id: Long)
 //    suspend fun likeById(id: Long, postLikedByMe: Boolean?)

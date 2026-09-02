@@ -5,12 +5,17 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
+import ru.netology.nework.entity.PostMyWallEntity
 import ru.netology.nework.entity.PostUserWallEntity
 
 @Dao
 interface PostUserWallDao {
     @Query("SELECT * FROM PostUserWallEntity ORDER BY id DESC")
     fun getAll(): List<PostUserWallEntity>
+
+    @Query("SELECT * FROM PostUserWallEntity ORDER BY id DESC")
+    fun getAllFlow(): Flow<List<PostUserWallEntity>>
 
     @Query("SELECT * FROM PostUserWallEntity ORDER BY id DESC")
     fun getPagingSource(): PagingSource<Int, PostUserWallEntity>

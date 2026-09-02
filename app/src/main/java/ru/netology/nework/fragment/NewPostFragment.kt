@@ -42,7 +42,7 @@ import ru.netology.nework.fragment.AddLocationFragment.Companion.statusAddLocati
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_POST
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_WALL
 import ru.netology.nework.fragment.UserFragment.Companion.statusUserFragment
-import ru.netology.nework.viewmodel.MyWallViewModel
+import ru.netology.nework.viewmodel.PostMyWallViewModel
 import java.io.File
 import javax.inject.Inject
 
@@ -72,7 +72,7 @@ class NewPostFragment : Fragment() {
         var status = ""
 
         val viewModel: PostViewModel by activityViewModels()
-        val viewModelMyWall: MyWallViewModel by activityViewModels()
+        val viewModelMyWall: PostMyWallViewModel by activityViewModels()
 
         arguments?.textArg?.let {
             binding.content.setText(it)

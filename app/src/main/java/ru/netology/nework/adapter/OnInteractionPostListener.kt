@@ -9,4 +9,5 @@ interface OnInteractionPostListener {
     fun onEdit(post: Post)
     fun onPlayVideo(post: Post)
     fun onPlaySong(post: Post)
+    fun onSaveAuthorId(authorId: Long)
 }

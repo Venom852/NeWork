@@ -27,7 +27,8 @@ private String getMapkitApiKey() {
 
 android {
     namespace 'ru.netology.nework'
-    compileSdk 37
+//    compileSdk 37
+    compileSdkVersion 37
 
     defaultConfig {
         applicationId "ru.netology.nework"

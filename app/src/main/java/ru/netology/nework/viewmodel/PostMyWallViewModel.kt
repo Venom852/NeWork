@@ -4,10 +4,9 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.flow.map
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -21,15 +20,15 @@ import ru.netology.nework.model.MediaModel
 import ru.netology.nework.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
-import androidx.paging.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import ru.netology.nework.dao.PostMyWallDao
+import ru.netology.nework.dao.UserDao
 import ru.netology.nework.dto.Coordinates
+import ru.netology.nework.dto.User
 import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.PostMyWallEntity
-import ru.netology.nework.entity.toPostEntity
 import ru.netology.nework.entity.toPostMyWallDto
 import ru.netology.nework.entity.toPostMyWallEntity
 import ru.netology.nework.enumeration.AttachmentType
@@ -38,13 +37,13 @@ import ru.netology.nework.error.ErrorCode415
 import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.model.FeedModelState
 import ru.netology.nework.repository.PostMyWallRepository
-import java.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class MyWallViewModel @Inject constructor(
+class PostMyWallViewModel @Inject constructor(
     private val repository: PostMyWallRepository,
     private val postMyWallDao: PostMyWallDao,
+    private val userDao: UserDao,
     auth: AppAuth,
 ) : ViewModel() {
     var empty = Post(
@@ -91,6 +90,7 @@ class MyWallViewModel @Inject constructor(
 //            }
 //        }
 
+    //TODO(Нужно ли здесь присваивание)
     val dataPostMyWall: Flow<List<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
             repository.data.map { listPost ->
@@ -99,6 +99,9 @@ class MyWallViewModel @Inject constructor(
                 }
             }
         }
+
+    val dataMyUserWall: LiveData<User> = auth.authStateFlow
+        .flatMapLatest { userDao.getUserFlow(auth.authStateFlow.value.id).map { it.toUserDto() } }.asLiveData()
 
     val edited = MutableLiveData(empty)
 

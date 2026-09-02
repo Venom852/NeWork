@@ -41,16 +41,21 @@ import ru.netology.nework.adapter.EventAdapter
 import ru.netology.nework.adapter.PostLoadingStateAdapter
 import ru.netology.nework.adapter.UserAdapter
 import ru.netology.nework.auth.AppAuth
+import ru.netology.nework.databinding.CardPostBinding
+import ru.netology.nework.databinding.CardUsersBinding
 import ru.netology.nework.databinding.ConfirmationOfExitBinding
 import ru.netology.nework.dto.Event
 import ru.netology.nework.dto.User
 import ru.netology.nework.fragment.NewEventFragment.Companion.statusEventAndContent
 import ru.netology.nework.fragment.NewPostFragment.Companion.EDITING_NEW_POST
 import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
+import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_POST
 import ru.netology.nework.viewmodel.EventViewModel
+import ru.netology.nework.viewmodel.PostUserWallViewModel
 import ru.netology.nework.viewmodel.UserViewModel
 import javax.inject.Inject
 
@@ -66,6 +71,7 @@ class FeedFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentFeedBinding.inflate(layoutInflater, container, false)
+        val bindingCardPost = CardPostBinding.inflate(layoutInflater, container, false)
         val bindingAuthorizationDialogBox =
             AuthorizationDialogBoxBinding.inflate(layoutInflater, container, false)
         val bindingConfirmationOfExit =
@@ -79,6 +85,7 @@ class FeedFragment : Fragment() {
         val viewModelEvent: EventViewModel by activityViewModels()
         val viewModelUser: UserViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
+        val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
         val popupMenu = PopupMenu(binding.menuAuth.context, binding.menuAuth).apply {
             inflate(R.menu.auth_menu)
@@ -86,6 +93,9 @@ class FeedFragment : Fragment() {
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
         var conditionAdd = NEW_POST
+
+        //TODO()
+        bindingCardPost.avatar
 
         val postAdapter = PostAdapter(object : OnInteractionPostListener {
             override fun onLike(post: Post) {
@@ -142,6 +152,10 @@ class FeedFragment : Fragment() {
                 }
 
                 viewModelPost.playButtonSong(post.id)
+            }
+
+            override fun onSaveAuthorId(authorId: Long) {
+                viewModelPostUserWall.saveAuthorId(authorId)
             }
         })
 
@@ -210,10 +224,18 @@ class FeedFragment : Fragment() {
                     dialog.show()
                 }
             }
+
+            override fun onSaveAuthorId(authorId: Long) {
+                viewModelPostUserWall.saveAuthorId(authorId)
+            }
         })
 
         val userAdapter = UserAdapter(object : OnInteractionUserListener {
             override fun onRadioButton(user: User) = Unit
+
+            override fun onSaveAuthorId(authorId: Long) {
+                viewModelPostUserWall.saveAuthorId(authorId)
+            }
         })
 
         with(binding) {
@@ -307,9 +329,12 @@ class FeedFragment : Fragment() {
                             R.id.yourProfile -> {
                                 //TODO(Нужна ли здесь проверка авторизации?)
                                 if (authorization) {
+                                    viewModelPostUserWall.saveAuthorId(auth.authStateFlow.value.id)
+
                                     findNavController().navigate(
                                         R.id.action_feedFragment_to_yourProfileFragment,
                                         Bundle().apply {
+                                            statusPermissionToCross = PROHIBIT
                                             statusProfileFragment = YOUR
                                         }
                                     )

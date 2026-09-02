@@ -23,11 +23,11 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindUserWallRepository(impl: UserWallRepositoryImpl): UserWallRepository
+    abstract fun bindUserWallRepository(impl: PostUserWallRepositoryImpl): PostUserWallRepository
 
     @Binds
     @Singleton
-    abstract fun bindMyWallRepository(impl: MyWallRepositoryImpl): MyWallRepository
+    abstract fun bindMyWallRepository(impl: PostMyWallRepositoryImpl): PostMyWallRepository
 
     @Binds
     @Singleton

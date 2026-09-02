@@ -12,44 +12,71 @@ import ru.netology.nework.error.UnknownError
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
-import androidx.paging.PagingData
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.netology.nework.dao.AuthorIdDao
-import ru.netology.nework.db.AppDb
 import ru.netology.nework.dao.PostUserWallDao
-import ru.netology.nework.dao.PostUserWallRemoteKeyDao
-import ru.netology.nework.entity.PostUserWallEntity
+import ru.netology.nework.entity.toPostUserWallDto
+import ru.netology.nework.entity.toPostUserWallEntity
 import ru.netology.nework.error.ErrorCode404
 import kotlin.time.ExperimentalTime
 
 @Singleton
 @OptIn(ExperimentalPagingApi::class, ExperimentalTime::class)
-class UserWallRepositoryImpl @Inject constructor(
-    private val postUserWallDao: PostUserWallDao,
+class PostUserWallRepositoryImpl @Inject constructor(
+    private val dao: PostUserWallDao,
     private val authorIdDao: AuthorIdDao,
     private val apiService: ApiService,
-    appDb: AppDb,
-    postUserWallRemoteKeyDao: PostUserWallRemoteKeyDao,
-) : UserWallRepository {
-    override val data: Flow<PagingData<Post>> = Pager(
-        config = PagingConfig(pageSize = 5, enablePlaceholders = true),
-        pagingSourceFactory = { postUserWallDao.getPagingSource() },
-        remoteMediator = UserWallRemoteMediator(apiService, appDb, postUserWallDao, authorIdDao, postUserWallRemoteKeyDao)
-    ).flow.map {
-        it.map(PostUserWallEntity::toPostUserWallDto)
-    }
+//    appDb: AppDb,
+//    postUserWallRemoteKeyDao: PostUserWallRemoteKeyDao,
+) : PostUserWallRepository {
+//    override val data: Flow<PagingData<Post>> = Pager(
+//        config = PagingConfig(pageSize = 5, enablePlaceholders = true),
+//        pagingSourceFactory = { postUserWallDao.getPagingSource() },
+//        remoteMediator = UserWallRemoteMediator(apiService, appDb, postUserWallDao, authorIdDao, postUserWallRemoteKeyDao)
+//    ).flow.map {
+//        it.map(PostUserWallEntity::toPostUserWallDto)
+//    }
 
     var authorId = 0L
+
+    override val data: Flow<List<Post>> = dao.getAllFlow().map { it.toPostUserWallDto() }
+
+    override suspend fun getAll() {
+        try {
+            val job = CoroutineScope(Dispatchers.IO).launch {
+                authorId = authorIdDao.getAuthorId().id
+            }
+
+            job.join()
+
+            print(authorId)
+            val response = apiService.getAllWallPosts(authorId)
+
+            if (response.isSuccessful) {
+                val body = response.body() ?: throw ApiError(response.code(), response.message())
+                dao.insertPosts(body.map {
+                    it.copy(
+                        likes = it.likeOwnerIds.count().toLong()
+                    )
+                }.toPostUserWallEntity())
+
+                return
+            }
+
+            throw ApiError(response.code(), response.message())
+        } catch (_: IOException) {
+            throw NetworkError()
+        } catch (_: Exception) {
+            throw UnknownError()
+        }
+    }
 
     override suspend fun likeById(id: Long, postLikedByMe: Boolean?) {
         try {
             val job = CoroutineScope(Dispatchers.IO).launch {
-                authorId = authorIdDao.getAuthorId()
+                authorId = authorIdDao.getAuthorId().id
             }
 
             job.join()

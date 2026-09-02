@@ -33,7 +33,7 @@ class JobRepositoryImpl @Inject constructor(
     override suspend fun getAll() {
         try {
             val job = CoroutineScope(Dispatchers.IO).launch {
-                userId = authorIdDao.getAuthorId()
+                userId = authorIdDao.getAuthorId().id
             }
             job.join()
 

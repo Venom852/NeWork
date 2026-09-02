@@ -12,10 +12,12 @@ import ru.netology.nework.BuildConfig
 import ru.netology.nework.R
 import ru.netology.nework.databinding.CardUsersBinding
 import ru.netology.nework.dto.User
+import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_POST
 import ru.netology.nework.fragment.UserFragment.Companion.status
 import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.userFragmentBundle
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_WALL
@@ -76,80 +78,79 @@ class UserViewHolder(
 //            }
 
             userConstraint.setOnClickListener {
-//                if (status == CHOOSING_MENTIONED_USER_POST
-//                    || status == CHOOSING_SPEAKERS_USER
-//                ) {
-//                    findNavController(it).navigate(
-//                        R.id.action_feedFragment_to_yourProfileFragment,
-//                        Bundle().apply {
-//                            userFragmentBundle = gson.toJson(user)
-//                        })
-//                } else {
-//                    findNavController(it).navigate(
-//                        R.id.action_userFragment_to_yourProfileFragment,
-//                        Bundle().apply {
-//                            userFragmentBundle = gson.toJson(user)
-//                        })
-//                }
+                //TODO(Настроить)
+//                if (status == CHOOSING_MENTIONED_USER_POST || status == CHOOSING_SPEAKERS_USER
+//                    || status == CHOOSING_MENTIONED_USER_WALL || status == LIKE
+//                    || status == MENTIONED || status == PARTICIPANTS || status == SPEAKERS) {
 //
-//                when {
-//                    status == CHOOSING_MENTIONED_USER_POST || status == CHOOSING_SPEAKERS_USER
-//                            || status == CHOOSING_MENTIONED_USER_WALL || status == LIKE
-//                            || status == MENTIONED || status == PARTICIPANTS || status == SPEAKERS-> {
-//                        if (user.name == "Me") {
-//                            findNavController(it).navigate(
-//                                R.id.action_userFragment_to_yourProfileFragment,
-//                                Bundle().apply {
-//                                    userFragmentBundle = gson.toJson(user)
-//                                    statusProfileFragment = YOUR
-//                                })
-//                        } else {
-//                            findNavController(it).navigate(
-//                                R.id.action_userFragment_to_yourProfileFragment,
-//                                Bundle().apply {
-//                                    userFragmentBundle = gson.toJson(user)
-//                                    statusProfileFragment = USER
-//                                })
-//                        }
+//                    if (user.name == "Me") {
+//                        onInteractionUserListener.onSaveAuthorId(user.id)
+//
+//                        findNavController(it).navigate(
+//                            R.id.action_userFragment_to_yourProfileFragment,
+//                            Bundle().apply {
+//                                statusProfileFragment = YOUR
+//                            })
+//                    } else {
+//                        onInteractionUserListener.onSaveAuthorId(user.id)
+//
+//                        findNavController(it).navigate(
+//                            R.id.action_userFragment_to_yourProfileFragment,
+//                            Bundle().apply {
+////                                userFragmentBundle = gson.toJson(user.id)
+//                                statusProfileFragment = USER
+//                            })
+//                    }
+//                } else {
+//                    if (user.name == "Me") {
+//                        onInteractionUserListener.onSaveAuthorId(user.id)
+//
+//                        findNavController(it).navigate(
+//                            R.id.action_feedFragment_to_yourProfileFragment,
+//                            Bundle().apply {
+//                                statusProfileFragment = YOUR
+//                            })
+//                    } else {
+//                        onInteractionUserListener.onSaveAuthorId(user.id)
+//
+//                        findNavController(it).navigate(
+//                            R.id.action_feedFragment_to_yourProfileFragment,
+//                            Bundle().apply {
+////                                userFragmentBundle = gson.toJson(user.id)
+//                                statusProfileFragment = USER
+//                            })
 //                    }
 //                }
 
-                //TODO(Настроить)
+                onInteractionUserListener.onSaveAuthorId(user.id)
+
                 if (status == CHOOSING_MENTIONED_USER_POST || status == CHOOSING_SPEAKERS_USER
                     || status == CHOOSING_MENTIONED_USER_WALL || status == LIKE
                     || status == MENTIONED || status == PARTICIPANTS || status == SPEAKERS) {
 
-                    if (user.name == "Me") {
-                        findNavController(it).navigate(
-                            R.id.action_userFragment_to_yourProfileFragment,
-                            Bundle().apply {
-                                userFragmentBundle = gson.toJson(user.id)
+                    findNavController(it).navigate(
+                        R.id.action_userFragment_to_yourProfileFragment,
+                        Bundle().apply {
+                            statusPermissionToCross = PROHIBIT
+
+                            if (user.name == "Me123") {
                                 statusProfileFragment = YOUR
-                            })
-                    } else {
-                        findNavController(it).navigate(
-                            R.id.action_userFragment_to_yourProfileFragment,
-                            Bundle().apply {
-                                userFragmentBundle = gson.toJson(user.id)
+                            } else {
                                 statusProfileFragment = USER
-                            })
-                    }
+                            }
+                        })
                 } else {
-                    if (user.name == "Me") {
-                        findNavController(it).navigate(
-                            R.id.action_feedFragment_to_yourProfileFragment,
-                            Bundle().apply {
-                                userFragmentBundle = gson.toJson(user.id)
+                    findNavController(it).navigate(
+                        R.id.action_feedFragment_to_yourProfileFragment,
+                        Bundle().apply {
+                            statusPermissionToCross = PROHIBIT
+
+                            if (user.name == "Me123") {
                                 statusProfileFragment = YOUR
-                            })
-                    } else {
-                        findNavController(it).navigate(
-                            R.id.action_feedFragment_to_yourProfileFragment,
-                            Bundle().apply {
-                                userFragmentBundle = gson.toJson(user.id)
+                            } else {
                                 statusProfileFragment = USER
-                            })
-                    }
+                            }
+                        })
                 }
             }
         }

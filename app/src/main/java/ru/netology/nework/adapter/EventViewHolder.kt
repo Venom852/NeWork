@@ -23,10 +23,12 @@ import ru.netology.nework.fragment.EventFragment.Companion.eventBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.EVENT
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
+import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.eventFragmentBundle
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 import java.time.ZonedDateTime
@@ -157,15 +159,18 @@ class EventViewHolder(
 
             //TODO(Настроить)
             avatar.setOnClickListener {
+                onInteractionEventListener.onSaveAuthorId(event.authorId)
+
                 findNavController(it).navigate(
                     R.id.action_feedFragment_to_yourProfileFragment,
                     Bundle().apply {
+                        statusPermissionToCross = PROHIBIT
+
                         if (event.ownedByMe) {
                             statusProfileFragment = YOUR
-                            eventFragmentBundle = gson.toJson(event.id)
                         } else {
                             statusProfileFragment = USER
-                            eventFragmentBundle = gson.toJson(event.id)
+//                            eventFragmentBundle = gson.toJson(event.authorId)
                         }
                     }
                 )

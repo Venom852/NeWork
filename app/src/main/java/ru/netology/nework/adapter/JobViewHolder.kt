@@ -5,8 +5,8 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nework.R
 import ru.netology.nework.databinding.CardJobBinding
 import ru.netology.nework.dto.Job
-import ru.netology.nework.fragment.ProfileFragment.Companion.status
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfile
 
 class JobViewHolder(
     private val binding: CardJobBinding,
@@ -27,7 +27,7 @@ class JobViewHolder(
 
             if (job.link != null) link.text = job.link else link.visibility = View.GONE
 
-            delete.visibility = if (status == YOUR) View.VISIBLE else View.GONE
+            delete.visibility = if (statusProfile == YOUR) View.VISIBLE else View.GONE
 
             delete.setOnClickListener {
                 onInteractionJobListener.onDelete(job)

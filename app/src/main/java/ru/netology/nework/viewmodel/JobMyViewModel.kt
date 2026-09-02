@@ -37,7 +37,7 @@ class JobMyViewModel @Inject constructor(
         id = 0,
         name = "",
         position = "",
-        start = Instant.now(),
+        start = "",
         finish = null,
         link = null
     )
@@ -65,10 +65,10 @@ class JobMyViewModel @Inject constructor(
     private var dateEnd: String? = ""
 
     init {
-        loadUsers()
+        loadJobs()
     }
 
-    fun loadUsers() {
+    fun loadJobs() {
         viewModelScope.launch {
             try {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -85,7 +85,7 @@ class JobMyViewModel @Inject constructor(
         }
     }
 
-    fun refreshUsers() {
+    fun refreshJobs() {
         viewModelScope.launch {
             try {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -135,9 +135,9 @@ class JobMyViewModel @Inject constructor(
                 var jobServer = empty
 
                 if (dateStart != "" && dateEnd != "") {
-                    job = job.copy(start = Instant.parse(dateStart), finish = Instant.parse(dateEnd))
+                    job = job.copy(start = Instant.parse(dateStart).toString(), finish = Instant.parse(dateEnd).toString())
                 } else {
-                    job = job.copy(start = Instant.parse(dateStart))
+                    job = job.copy(start = Instant.parse(dateStart).toString())
                 }
 
                 jobMyDao.saveJob(JobMyEntity.fromJobMyDto(job))

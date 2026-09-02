@@ -42,10 +42,10 @@ class JobViewModel @Inject constructor(
     private var oldJobs = emptyList<Job>()
 
     init {
-        loadUsers()
+        loadJobs()
     }
 
-    fun loadUsers() {
+    fun loadJobs() {
         viewModelScope.launch {
             try {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -62,7 +62,7 @@ class JobViewModel @Inject constructor(
         }
     }
 
-    fun refreshUsers() {
+    fun refreshJobs() {
         viewModelScope.launch {
             try {
                 CoroutineScope(Dispatchers.IO).launch {

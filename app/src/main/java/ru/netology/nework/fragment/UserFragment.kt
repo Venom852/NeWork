@@ -32,9 +32,10 @@ import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.PostViewModel
 import ru.netology.nework.viewmodel.EventViewModel
-import ru.netology.nework.viewmodel.MyWallViewModel
+import ru.netology.nework.viewmodel.PostMyWallViewModel
 import ru.netology.nework.viewmodel.UserViewModel
 import androidx.fragment.app.viewModels
+import ru.netology.nework.viewmodel.PostUserWallViewModel
 import java.lang.reflect.Type
 import javax.inject.Inject
 import kotlin.getValue
@@ -68,9 +69,10 @@ class UserFragment : Fragment() {
         val binding = FragmentUserBinding.inflate(layoutInflater, container, false)
 
         val viewModelPost: PostViewModel by activityViewModels()
-        val viewModelMyWall: MyWallViewModel by activityViewModels()
+        val viewModelMyWall: PostMyWallViewModel by activityViewModels()
         val viewModelEvent: EventViewModel by activityViewModels()
         val viewModelUser: UserViewModel by activityViewModels()
+        val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
         val listIdUsers = mutableSetOf<Long>()
         val listMapUsers = mutableMapOf<Long, UserPreview>()
@@ -89,6 +91,10 @@ class UserFragment : Fragment() {
                     listIdUsers.add(user.id)
                 }
             }
+
+            override fun onSaveAuthorId(authorId: Long) {
+                viewModelPostUserWall.saveAuthorId(authorId)
+            }
         })
 
         arguments?.statusUserFragment?.let {
@@ -105,7 +111,6 @@ class UserFragment : Fragment() {
 //                listLong.add(number.toLong())
 //            }
 //
-//            //TODO(Стоит ли выполнять эту функцию сдесь или лучше в месте перехода)
 //            viewModelUser.saveUsers(listLong.toSet())
 //            arguments?.userBundleFragment = null
 //        }
@@ -144,7 +149,9 @@ class UserFragment : Fragment() {
 //                    userListDao.removeUsers()
 //                }
 
-                viewModelUser.removeUsers()
+                lifecycleScope.launch{
+                    viewModelUser.removeUsers()
+                }
 
                 findNavController().navigateUp()
             }
@@ -183,22 +190,6 @@ class UserFragment : Fragment() {
         }
 
         //TODO(Настроить)
-//        if (status == CHOOSING_MENTIONED_USER_POST ||
-//            status == CHOOSING_MENTIONED_USER_WALL ||
-//            status == CHOOSING_SPEAKERS_USER) {
-//            viewLifecycleOwner.lifecycleScope.launch {
-//                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                    viewModelUser.dataUser.collectLatest(userAdapter::submitList)
-//                }
-//            }
-//        } else {
-//            viewLifecycleOwner.lifecycleScope.launch {
-//                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                    viewModelUser.dataListUser.collectLatest(userAdapter::submitList)
-//                }
-//            }
-//        }
-
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 if (status == CHOOSING_MENTIONED_USER_POST ||

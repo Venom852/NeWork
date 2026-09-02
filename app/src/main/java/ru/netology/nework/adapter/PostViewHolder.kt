@@ -8,6 +8,7 @@ import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.net.toFile
 import androidx.core.net.toUri
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -21,13 +22,19 @@ import ru.netology.nework.fragment.PhotoFragment.Companion.POST
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
 import ru.netology.nework.fragment.PostFragment.Companion.postBundle
+import ru.netology.nework.fragment.ProfileFragment.Companion.ALLOW
+import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.permissionToCross
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.postFragmentBundle
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
+import ru.netology.nework.viewmodel.PostUserWallViewModel
 import java.time.ZonedDateTime
+import kotlin.getValue
 
 class PostViewHolder(
     private val binding: CardPostBinding,
@@ -138,18 +145,23 @@ class PostViewHolder(
 
             //TODO(Настроить)
             avatar.setOnClickListener {
-                findNavController(it).navigate(
-                    R.id.action_feedFragment_to_yourProfileFragment,
-                    Bundle().apply {
-                        if (post.ownedByMe) {
-                            statusProfileFragment = YOUR
-                            postFragmentBundle = gson.toJson(post.authorId)
-                        } else {
-                            statusProfileFragment = USER
-                            postFragmentBundle = gson.toJson(post.authorId)
+                if (permissionToCross == ALLOW) {
+                    onInteractionPostListener.onSaveAuthorId(post.authorId)
+
+                    findNavController(it).navigate(
+                        R.id.action_feedFragment_to_yourProfileFragment,
+                        Bundle().apply {
+                            statusPermissionToCross = PROHIBIT
+
+                            if (post.ownedByMe) {
+                                statusProfileFragment = YOUR
+                            } else {
+                                statusProfileFragment = USER
+//                            postFragmentBundle = gson.toJson(post.authorId)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
 
             //TODO(Настроить)

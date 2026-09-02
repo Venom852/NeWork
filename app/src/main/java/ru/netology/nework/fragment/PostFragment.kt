@@ -59,10 +59,14 @@ import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
 import ru.netology.nework.fragment.PhotoFragment.Companion.POST
+import ru.netology.nework.fragment.ProfileFragment.Companion.ALLOW
+import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.permissionToCross
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.postFragmentBundle
+import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.MENTIONED
 import ru.netology.nework.fragment.UserFragment.Companion.statusUserFragment
@@ -71,6 +75,7 @@ import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.AuthViewModel
+import ru.netology.nework.viewmodel.PostUserWallViewModel
 import ru.netology.nework.viewmodel.UserViewModel
 import java.time.Instant
 import java.time.ZonedDateTime
@@ -142,6 +147,7 @@ class PostFragment : Fragment() {
         val viewModel: PostViewModel by activityViewModels()
         val viewModelUser: UserViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
+        val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
@@ -179,18 +185,23 @@ class PostFragment : Fragment() {
 
             //TODO(Настроить)
             avatar.setOnClickListener {
-                findNavController().navigate(
-                    R.id.action_postFragment2_to_yourProfileFragment,
-                    Bundle().apply {
-                        if (post.ownedByMe) {
-                            statusProfileFragment = YOUR
-                            postFragmentBundle = gson.toJson(post.authorId)
-                        } else {
-                            statusProfileFragment = USER
-                            postFragmentBundle = gson.toJson(post.authorId)
+                if (permissionToCross == ALLOW) {
+                    viewModelPostUserWall.saveAuthorId(post.authorId)
+
+                    findNavController().navigate(
+                        R.id.action_postFragment2_to_yourProfileFragment,
+                        Bundle().apply {
+                            statusPermissionToCross = PROHIBIT
+
+                            if (post.ownedByMe) {
+                                statusProfileFragment = YOUR
+                            } else {
+                                statusProfileFragment = USER
+//                            postFragmentBundle = gson.toJson(post.authorId)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
 
             //TODO(Настроить)
