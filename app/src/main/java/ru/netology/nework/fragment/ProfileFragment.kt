@@ -457,9 +457,9 @@ class ProfileFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 if (privateStatusProfile == YOUR) {
-                    viewModelPostMyWall.dataPostMyWall.collectLatest(postAdapter::submitList)
-                } else {
-                    viewModelPostUserWall.dataPostUserWall.collectLatest(postAdapter::submitList)
+//                    viewModelPostMyWall.dataPostMyWall.collectLatest(postAdapter::submitList)
+//                } else {
+//                    viewModelPostUserWall.dataPostUserWall.collectLatest(postAdapter::submitList)
                 }
             }
         }

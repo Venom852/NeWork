@@ -85,27 +85,27 @@ class PostViewModel @Inject constructor(
     val dataState: Flow<FeedModelState>
         get() = _dataState
 
-//    private val cachedPost: Flow<PagingData<Post>> = repository
-//        .data
-//        .cachedIn(viewModelScope)
-//
-//    val dataPost: Flow<PagingData<Post>> = auth.authStateFlow
-//        .flatMapLatest { (myId, _) ->
-//            cachedPost.map { pagingData ->
-//                pagingData.map { post ->
-//                    post.copy(ownedByMe = post.authorId == myId)
-//                }
-//            }
-//        }
+    private val cachedPost: Flow<PagingData<Post>> = repository
+        .data
+        .cachedIn(viewModelScope)
 
-    val dataPost: Flow<List<Post>> = auth.authStateFlow
+    val dataPost: Flow<PagingData<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            repository.data.map { listPost ->
-                listPost.map { post ->
+            cachedPost.map { pagingData ->
+                pagingData.map { post ->
                     post.copy(ownedByMe = post.authorId == myId)
                 }
             }
         }
+
+//    val dataPost: Flow<List<Post>> = auth.authStateFlow
+//        .flatMapLatest { (myId, _) ->
+//            repository.data.map { listPost ->
+//                listPost.map { post ->
+//                    post.copy(ownedByMe = post.authorId == myId)
+//                }
+//            }
+//        }
 
     val edited = MutableLiveData(empty)
 

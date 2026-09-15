@@ -8,8 +8,8 @@ import ru.netology.nework.dto.Post
 import ru.netology.nework.enumeration.AttachmentType
 
 interface PostRepository {
-//    val data: Flow<PagingData<Post>>
-    val data: Flow<List<Post>>
+    val data: Flow<PagingData<Post>>
+//    val data: Flow<List<Post>>
     suspend fun getAll()
     suspend fun save(post: Post): Post
     suspend fun removeById(id: Long)

@@ -240,20 +240,20 @@ class FeedFragment : Fragment() {
         })
 
         with(binding) {
-//            cardPost.adapter = postAdapter.withLoadStateHeaderAndFooter(
-//                header = PostLoadingStateAdapter(object :
-//                    PostLoadingStateAdapter.OnInteractionListener {
-//                    override fun onRetry() {
-//                        postAdapter.retry()
-//                    }
-//                }),
-//                footer = PostLoadingStateAdapter(object :
-//                    PostLoadingStateAdapter.OnInteractionListener {
-//                    override fun onRetry() {
-//                        postAdapter.retry()
-//                    }
-//                })
-//            )
+            cardPost.adapter = postAdapter.withLoadStateHeaderAndFooter(
+                header = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        postAdapter.retry()
+                    }
+                }),
+                footer = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        postAdapter.retry()
+                    }
+                })
+            )
 
 //            cardEvent.adapter = eventAdapter.withLoadStateHeaderAndFooter(
 //                header = PostLoadingStateAdapter(object :
@@ -270,15 +270,15 @@ class FeedFragment : Fragment() {
 //                })
 //            )
 
-            cardPost.adapter = postAdapter
+//            cardPost.adapter = postAdapter
             cardEvent.adapter = eventAdapter
             cardUser.adapter = userAdapter
 
-            srlMainPosts.setOnRefreshListener { viewModelPost.loadPosts() }
+//            srlMainPosts.setOnRefreshListener { viewModelPost.loadPosts() }
             srlMainEvents.setOnRefreshListener { viewModelEvent.loadEvents() }
             srlMainUsers.setOnRefreshListener { viewModelUser.loadUsers() }
 
-//            srlMainPosts.setOnRefreshListener(postAdapter::refresh)
+            srlMainPosts.setOnRefreshListener(postAdapter::refresh)
 //            srlMainEvent.setOnRefreshListener(eventAdapter::refresh)
 
             add.setOnClickListener {
@@ -429,23 +429,23 @@ class FeedFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModelPost.dataPost.collectLatest(postAdapter::submitList)
+//                viewModelPost.dataPost.collectLatest(postAdapter::submitList)
 
-//                viewModelPost.dataPost.collectLatest(postAdapter::submitData)
+                viewModelPost.dataPost.collectLatest(postAdapter::submitData)
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModelPost.dataState.collectLatest { state ->
-                    binding.progress.isVisible = state.loading
-                    binding.srlMainPosts.isRefreshing = state.refreshing
-                }
-
-//                postAdapter.loadStateFlow.collectLatest { state ->
-//                    binding.srlMainPosts.isRefreshing =
-//                        state.refresh is LoadState.Loading
+//                viewModelPost.dataState.collectLatest { state ->
+//                    binding.progress.isVisible = state.loading
+//                    binding.srlMainPosts.isRefreshing = state.refreshing
 //                }
+
+                postAdapter.loadStateFlow.collectLatest { state ->
+                    binding.srlMainPosts.isRefreshing =
+                        state.refresh is LoadState.Loading
+                }
             }
         }
 
@@ -496,11 +496,11 @@ class FeedFragment : Fragment() {
                         }
                     }
 
-                    viewModelPost.loadPosts()
+//                    viewModelPost.loadPosts()
                     viewModelEvent.loadEvents()
                     viewModelUser.loadUsers()
 
-//                    postAdapter.refresh()
+                    postAdapter.refresh()
 //                    eventAdapter.refresh()
                 }
             }
