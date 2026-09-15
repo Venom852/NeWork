@@ -46,7 +46,8 @@ import ru.netology.nework.databinding.CardUsersBinding
 import ru.netology.nework.databinding.ConfirmationOfExitBinding
 import ru.netology.nework.dto.Event
 import ru.netology.nework.dto.User
-import ru.netology.nework.fragment.NewEventFragment.Companion.statusEventAndContent
+import ru.netology.nework.fragment.NewEventFragment.Companion.newEventFragmentBundle
+import ru.netology.nework.fragment.NewEventFragment.Companion.statusEventFragment
 import ru.netology.nework.fragment.NewPostFragment.Companion.EDITING_NEW_POST
 import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
@@ -54,6 +55,7 @@ import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_POST
+import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.viewmodel.EventViewModel
 import ru.netology.nework.viewmodel.PostUserWallViewModel
 import ru.netology.nework.viewmodel.UserViewModel
@@ -71,7 +73,6 @@ class FeedFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentFeedBinding.inflate(layoutInflater, container, false)
-        val bindingCardPost = CardPostBinding.inflate(layoutInflater, container, false)
         val bindingAuthorizationDialogBox =
             AuthorizationDialogBoxBinding.inflate(layoutInflater, container, false)
         val bindingConfirmationOfExit =
@@ -87,6 +88,7 @@ class FeedFragment : Fragment() {
         val viewModelAuth: AuthViewModel by viewModels()
         val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
+        val mediaObserver = MediaLifecycleObserver()
         val popupMenu = PopupMenu(binding.menuAuth.context, binding.menuAuth).apply {
             inflate(R.menu.auth_menu)
         }
@@ -94,8 +96,7 @@ class FeedFragment : Fragment() {
         val authorization = viewModelAuth.authenticated
         var conditionAdd = NEW_POST
 
-        //TODO()
-        bindingCardPost.avatar
+        lifecycle.addObserver(mediaObserver)
 
         val postAdapter = PostAdapter(object : OnInteractionPostListener {
             override fun onLike(post: Post) {
@@ -146,9 +147,9 @@ class FeedFragment : Fragment() {
 
             override fun onPlaySong(post: Post) {
                 if (!post.playSong) {
-                    viewModelPost.playSong(post)
+                    viewModelPost.playSong(post, mediaObserver)
                 } else {
-                    viewModelPost.pauseSong()
+                    viewModelPost.pauseSong(mediaObserver)
                 }
 
                 viewModelPost.playButtonSong(post.id)
@@ -190,7 +191,7 @@ class FeedFragment : Fragment() {
                 findNavController().navigate(
                     R.id.action_feedFragment_to_newEventFragment3,
                     Bundle().apply {
-                        statusEventAndContent = event.content
+                        newEventFragmentBundle = event.content
                     }
                 )
             }
@@ -287,7 +288,8 @@ class FeedFragment : Fragment() {
                             findNavController().navigate(
                                 R.id.action_feedFragment_to_newPostFragment,
                                 Bundle().apply {
-                                    newPostFragmentBundle = NEW_POST
+//                                    newPostFragmentBundle = NEW_POST
+                                    statusFragment = NEW_POST
                                 }
                             )
                         }
@@ -296,7 +298,7 @@ class FeedFragment : Fragment() {
                             findNavController().navigate(
                                 R.id.action_feedFragment_to_newEventFragment,
                                 Bundle().apply {
-                                    statusEventAndContent = NEW_EVENT
+                                    statusEventFragment = NEW_EVENT
                                 }
                             )
                         }

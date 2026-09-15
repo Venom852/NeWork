@@ -151,7 +151,7 @@ class PostFragment : Fragment() {
 
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
-//        var listUsers = ""
+        var listUsers = ""
 
         arguments?.postBundle?.let {
             post = gson.fromJson(it, Post::class.java)
@@ -245,13 +245,13 @@ class PostFragment : Fragment() {
 //                    listUsers = "$listUsers,$it"
 //                }
 
-                viewModelUser.saveUsers(post.likeOwnerIds)
+//                viewModelUser.saveUsers(post.likeOwnerIds)
 
                 findNavController().navigate(
                     R.id.action_postFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = LIKE
-//                        userBundleFragment = listUsers
+                        userBundleFragment = gson.toJson(post.likeOwnerIds.toList())
                     }
                 )
             }
@@ -266,13 +266,13 @@ class PostFragment : Fragment() {
 //                    listUsers = "$listUsers,$it"
 //                }
 
-                viewModelUser.saveUsers(post.mentionIds)
+//                viewModelUser.saveUsers(post.mentionIds)
 
                 findNavController().navigate(
                     R.id.action_postFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = MENTIONED
-//                        userBundleFragment = gson.toJson(listUsers)
+                        userBundleFragment = gson.toJson(post.mentionIds.toList())
                     }
                 )
             }

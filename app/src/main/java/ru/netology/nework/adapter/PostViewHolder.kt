@@ -98,26 +98,28 @@ class PostViewHolder(
 //            }
 //
             //TODO(Настроить)
-//            if (post.attachment?.type == AttachmentType.AUDIO) {
-//                groupSong.visibility = View.VISIBLE
-//
-//                val songFile = post.attachment.url.toUri().toFile()
-//
-//                val retriever = MediaMetadataRetriever()
-//                retriever.setDataSource(songFile.absolutePath)
-//                val durationStr =
-//                    retriever.extractMetadata(
-//                        MediaMetadataRetriever.METADATA_KEY_DURATION
-//                    )
-//                val duration = durationStr?.toIntOrNull() ?: 0
-//                val title = retriever.extractMetadata(
-//                    MediaMetadataRetriever.METADATA_KEY_TITLE
-//                ) ?: "noName"
-//                retriever.release()
-//
-//                titleSong.text = title
-//                timeSong.text = duration.toString()
-//            }
+            if (post.attachment?.type == AttachmentType.AUDIO) {
+                groupSong.visibility = View.VISIBLE
+
+                val songFile = post.attachment.url.toUri().toFile()
+
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(songFile.absolutePath)
+
+                val durationStr =
+                    retriever.extractMetadata(
+                        MediaMetadataRetriever.METADATA_KEY_DURATION
+                    )
+
+                val duration = durationStr?.toIntOrNull() ?: 0
+                val title = retriever.extractMetadata(
+                    MediaMetadataRetriever.METADATA_KEY_TITLE
+                ) ?: "noName"
+                retriever.release()
+
+                titleSong.text = title
+                timeSong.text = duration.toString()
+            }
 
             like.setOnClickListener {
                 onInteractionPostListener.onLike(post)
@@ -181,9 +183,9 @@ class PostViewHolder(
 //            }
 
             //TODO(Настроить)
-//            playSong.setOnClickListener {
-//                onInteractionPostListener.onPlaySong(post)
-//            }
+            playSong.setOnClickListener {
+                onInteractionPostListener.onPlaySong(post)
+            }
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {

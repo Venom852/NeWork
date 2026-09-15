@@ -43,6 +43,7 @@ import ru.netology.nework.error.ErrorCode415
 import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.model.FeedModelState
 import java.time.Instant
+import java.time.ZonedDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -53,11 +54,12 @@ class PostViewModel @Inject constructor(
 ) : ViewModel() {
     var empty = Post(
         id = 0,
-        author = "Me",
+        author = "Me123",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
         content = "",
+        //TODO(Сделать везде дату)
         published = "",
         link = null,
         likedByMe = false,
@@ -77,7 +79,8 @@ class PostViewModel @Inject constructor(
     )
 
     private val noMedia = MediaModel()
-    private val mediaObserver = MediaLifecycleObserver()
+
+    //    private val mediaObserver = MediaLifecycleObserver()
     private val _dataState = MutableStateFlow(FeedModelState())
     val dataState: Flow<FeedModelState>
         get() = _dataState
@@ -98,7 +101,7 @@ class PostViewModel @Inject constructor(
     val dataPost: Flow<List<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
             repository.data.map { listPost ->
-                listPost.map {post ->
+                listPost.map { post ->
                     post.copy(ownedByMe = post.authorId == myId)
                 }
             }
@@ -138,6 +141,10 @@ class PostViewModel @Inject constructor(
 
     fun loadPosts() {
         viewModelScope.launch {
+            CoroutineScope(Dispatchers.IO).launch {
+                oldPosts = dao.getAll().toPostDto()
+            }
+
             try {
                 _dataState.value = FeedModelState(loading = true)
                 repository.getAll()
@@ -151,6 +158,10 @@ class PostViewModel @Inject constructor(
 
     fun refreshPosts() {
         viewModelScope.launch {
+            CoroutineScope(Dispatchers.IO).launch {
+                oldPosts = dao.getAll().toPostDto()
+            }
+
             try {
                 _dataState.value = FeedModelState(loading = true)
                 repository.getAll()
@@ -191,7 +202,9 @@ class PostViewModel @Inject constructor(
             CoroutineScope(Dispatchers.IO).launch {
                 oldPosts = dao.getAll().toPostDto()
             }
+
             dao.removeById(id)
+
             try {
                 repository.removeById(id)
             } catch (_: ErrorCode403) {
@@ -205,24 +218,35 @@ class PostViewModel @Inject constructor(
     }
 
     fun saveContent(content: String) {
-        edited.value?.let {
+        edited.value?.let { newPost ->
+            //TODO(Нужно ли заключить весь код в корутину)
             viewModelScope.launch {
                 CoroutineScope(Dispatchers.IO).launch {
                     oldPosts = dao.getAll().toPostDto()
                 }
 
-                var post = it.copy(
-                    content = content,
-                    mentionIds = listMentionedUser,
-                    users = listMapUser
-                )
+                val data = ZonedDateTime.now().toString()
                 var postServer = empty
+                var post = newPost.copy(
+//                    published = "${data.dayOfMonth}.${data.monthValue}.${data.year} ${data.hour}:${data.minute}",
+//                    published = data,
+                    content = content,
+                    ownedByMe = true
+                )
+
+                if (!listMentionedUser.isEmpty() && !listMapUser.isEmpty()) {
+                    post = newPost.copy(
+                        mentionIds = listMentionedUser,
+                        users = listMapUser
+                    )
+                }
 
                 if (coordinates.lat != 0.0 || coordinates.long != 0.0) {
                     post = post.copy(coords = coordinates)
                 }
 
                 dao.save(PostEntity.fromPostDto(post))
+                //TODO(Нужно ли здесь использовать)
                 _postCreated.value = Unit
 
                 try {
@@ -239,40 +263,44 @@ class PostViewModel @Inject constructor(
                         }
                     }
 
-//                    if (post.id == 0L) {
-                    oldPost = oldPosts.first()
-                    dao.changeIdPostById(
-                        oldPost.id,
-                        postServer.id,
-                        postServer.author,
-                        postServer.authorId,
-                        postServer.authorAvatar,
-                        postServer.authorJob,
-                        postServer.attachment?.url,
-                        postServer.attachment?.type
-                    )
+                    if (post.id == 0L) {
+//                    oldPost = oldPosts.first()
+                        dao.changeIdPostById(
+                            0L,
+                            postServer.id,
+//                            postServer.author,
+                            postServer.authorId,
+                            postServer.authorAvatar,
+                            postServer.authorJob,
+                            postServer.mentionedMe,
+                            postServer.attachment?.url,
+                            postServer.attachment?.type
+                        )
 
-                    _media.value = noMedia
-                    listMentionedUser = emptySet()
-                    coordinates = Coordinates(0.0, 0.0)
-                    listMapUser = emptyMap()
-//                    }
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                    }
                 } catch (_: ErrorCode403) {
+//                    dao.insertPosts(oldPosts.toPostEntity())
                     _errorPost403.value = Unit
                     if (post.id == 0L && _media.value == noMedia) {
-                        dao.removeById(oldPost.id)
+                        dao.removeById(0L)
                         return@launch
                     } else dao.insertPosts(oldPosts.toPostEntity())
                 } catch (_: ErrorCode415) {
+//                    dao.insertPosts(oldPosts.toPostEntity())
                     _errorPost415.value = Unit
                     if (post.id == 0L && _media.value == noMedia) {
                         dao.removeById(oldPost.id)
                         return@launch
                     } else dao.insertPosts(oldPosts.toPostEntity())
                 } catch (e: Exception) {
+//                    dao.insertPosts(oldPosts.toPostEntity())
                     e.printStackTrace()
-                    if (post.id == 0L && _media.value == noMedia) {
-                        dao.removeById(oldPost.id)
+                    if (post.id == 0L) {
+                        dao.removeById(0L)
                         return@launch
                     } else dao.insertPosts(oldPosts.toPostEntity())
                 }
@@ -282,16 +310,13 @@ class PostViewModel @Inject constructor(
     }
 
     fun editById(post: Post) {
-        viewModelScope.launch {
-            edited.value = post
-        }
+        edited.value = post
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
-        viewModelScope.launch {
-            _media.value = MediaModel(null, null, attachmentType)
-            _media.value = MediaModel(uri, file, attachmentType)
-        }
+        //TODO(Проверить нужно ли здесь)
+        _media.value = MediaModel(null, null, attachmentType)
+        _media.value = MediaModel(uri, file, attachmentType)
     }
 
     fun playButtonSong(id: Long) {
@@ -306,8 +331,8 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun playSong(post: Post) {
-        mediaObserver.stop()
+    fun playSong(post: Post, mediaObserver: MediaLifecycleObserver) {
+//        mediaObserver.stop()
         mediaObserver.apply {
             mediaPlayer?.setDataSource(
                 post.attachment?.url
@@ -315,38 +340,30 @@ class PostViewModel @Inject constructor(
         }.play()
     }
 
-    fun pauseSong() {
-        viewModelScope.launch {
-            mediaObserver.pause()
-        }
+    fun pauseSong(mediaObserver: MediaLifecycleObserver) {
+        mediaObserver.pause()
     }
 
     fun playVideo(post: Post) {
-        mediaObserver.stop()
-        mediaObserver.apply {
-            mediaPlayer?.setDataSource(
-                post.attachment?.url
-            )
-        }.play()
+//        mediaObserver.stop()
+//        mediaObserver.apply {
+//            mediaPlayer?.setDataSource(
+//                post.attachment?.url
+//            )
+//        }.play()
     }
 
     fun pauseVideo() {
-        viewModelScope.launch {
-            mediaObserver.pause()
-        }
+//        mediaObserver.pause()
     }
 
-    fun mentionUsers(listMentioned: Set<Long>, listMap: Map<Long, UserPreview>) {
-        viewModelScope.launch {
-            listMapUser = listMap
-            listMentionedUser = listMentioned
-        }
+    fun mentionUsers(listIdUsers: Set<Long>, listMapUsers: Map<Long, UserPreview>) {
+        listMapUser = listMapUsers
+        listMentionedUser = listIdUsers
     }
 
     fun addLocation(coords: Coordinates) {
-        viewModelScope.launch {
-            coordinates = coords
-        }
+        coordinates = coords
     }
 
     private fun saveLikeOwnerIds(post: Post): Set<Long> {

@@ -58,9 +58,11 @@ class NewEventFragment : Fragment() {
     companion object {
         const val NEW_EVENT = "newEvent"
         private var editing = false
-        var Bundle.textArg by StringArg
-        var Bundle.statusEventAndContent by StringArg
+        var Bundle.newEventFragmentBundle by StringArg
+        var Bundle.statusEventFragment by StringArg
     }
+
+    private var status = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,25 +81,35 @@ class NewEventFragment : Fragment() {
         var date = ""
         var dateEvent = ""
 
-        arguments?.textArg?.let {
+        arguments?.newEventFragmentBundle?.let {
+//            val text = it
+//            if (text == NEW_EVENT) {
+//                lifecycleScope.launch {
+//                    if (contentDraftDao.getDraft() != null) {
+//                        binding.content.setText(contentDraftDao.getDraft())
+//                        contentDraftDao.removeDraft()
+//                    }
+//                }
+//            } else {
+//                binding.content.setText(text)
+//                editing = true
+//            }
             binding.content.setText(it)
-            arguments?.textArg = null
+            editing = true
+            arguments?.newEventFragmentBundle = null
         }
 
-        arguments?.statusEventAndContent?.let {
-            val text = it
-            if (text == NEW_EVENT) {
+        arguments?.statusEventFragment?.let {
+            status = it
+            if (status == NEW_EVENT) {
                 lifecycleScope.launch {
                     if (contentDraftDao.getDraft() != null) {
                         binding.content.setText(contentDraftDao.getDraft())
                         contentDraftDao.removeDraft()
                     }
                 }
-            } else {
-                binding.content.setText(text)
-                editing = true
             }
-            arguments?.statusEventAndContent = null
+            arguments?.statusEventFragment = null
         }
 
         val pickPhotoLauncher =
@@ -139,6 +151,7 @@ class NewEventFragment : Fragment() {
             }
 
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
+
         val audio =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 when (it.resultCode) {
@@ -167,6 +180,8 @@ class NewEventFragment : Fragment() {
 
         with(binding) {
             content.requestFocus()
+
+            groupPhotoContainer.visibility = View.GONE
 
             save.setOnClickListener {
                 if (!content.text.isNullOrBlank()) {
@@ -381,7 +396,7 @@ class NewEventFragment : Fragment() {
             dialogCalendar.show()
         }
 
-        bindingCardCalendar.calendarView.setOnDateChangeListener { view, year, month, day ->
+        bindingCardCalendar.calendarView.setOnDateChangeListener { _, year, month, day ->
             val calendar = Calendar.getInstance()
             calendar.set(year, month, day)
 

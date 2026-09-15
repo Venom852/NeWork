@@ -102,6 +102,10 @@ class PostUserWallViewModel @Inject constructor(
 
     fun loadPosts() {
         viewModelScope.launch {
+            CoroutineScope(Dispatchers.IO).launch {
+                oldPosts = postUserWallDao.getAll().toPostUserWallDto()
+            }
+
             try {
                 _dataState.value = FeedModelState(loading = true)
                 repository.getAll()
@@ -115,6 +119,10 @@ class PostUserWallViewModel @Inject constructor(
 
     fun refreshPosts() {
         viewModelScope.launch {
+            CoroutineScope(Dispatchers.IO).launch {
+                oldPosts = postUserWallDao.getAll().toPostUserWallDto()
+            }
+
             try {
                 _dataState.value = FeedModelState(loading = true)
                 repository.getAll()
@@ -126,16 +134,16 @@ class PostUserWallViewModel @Inject constructor(
         }
     }
 
-    fun likeById(id: Long) {
+    fun likeById(post: Post) {
         viewModelScope.launch {
             CoroutineScope(Dispatchers.IO).launch {
                 oldPosts = postUserWallDao.getAll().toPostUserWallDto()
             }
 
-            val postLikedByMe = oldPosts.find { it.id == id }?.likedByMe
-            postUserWallDao.likeById(id)
+            val postLikedByMe = oldPosts.find { it.id == post.id }?.likedByMe
+            postUserWallDao.likeById(post.id, saveLikeOwnerIds(post))
             try {
-                repository.likeById(id, postLikedByMe)
+                repository.likeById(post.id, postLikedByMe)
             } catch (_: ErrorCode403) {
                 postUserWallDao.insertPosts(oldPosts.toPostUserWallEntity())
                 _errorWall403.value = Unit
@@ -159,6 +167,12 @@ class PostUserWallViewModel @Inject constructor(
         viewModelScope.launch {
             authorIdDao.removeId()
         }
+    }
+
+    private fun saveLikeOwnerIds(post: Post): Set<Long> {
+        val listLikeOwnerIds = post.likeOwnerIds.toMutableSet()
+        listLikeOwnerIds.add(post.id)
+        return listLikeOwnerIds.toSet()
     }
 
 //    fun getUser(id: Long): User {

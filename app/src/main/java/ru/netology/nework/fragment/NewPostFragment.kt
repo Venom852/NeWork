@@ -48,6 +48,9 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class NewPostFragment : Fragment() {
+    @Inject
+    lateinit var contentDraftDao: ContentDraftDao
+
     companion object {
         const val NEW_POST = "newPost"
         const val NEW_POST_WALL = "newPostWall"
@@ -59,8 +62,7 @@ class NewPostFragment : Fragment() {
         var Bundle.statusFragment by StringArg
     }
 
-    @Inject
-    lateinit var contentDraftDao: ContentDraftDao
+    private var status = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,8 +70,6 @@ class NewPostFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentNewPostBinding.inflate(layoutInflater, container, false)
-
-        var status = ""
 
         val viewModel: PostViewModel by activityViewModels()
         val viewModelMyWall: PostMyWallViewModel by activityViewModels()
@@ -80,6 +80,24 @@ class NewPostFragment : Fragment() {
         }
 
         arguments?.newPostFragmentBundle?.let {
+//            status = it
+//            if (status == NEW_POST || status == NEW_POST_WALL) {
+//                lifecycleScope.launch {
+//                    if (contentDraftDao.getDraft() != null) {
+//                        binding.content.setText(contentDraftDao.getDraft())
+//                        contentDraftDao.removeDraft()
+//                    }
+//                }
+//            } else {
+//                binding.content.setText(it)
+//                editing = true
+//            }
+            binding.content.setText(it)
+            editing = true
+            arguments?.newPostFragmentBundle = null
+        }
+
+        arguments?.statusFragment?.let {
             status = it
             if (status == NEW_POST || status == NEW_POST_WALL) {
                 lifecycleScope.launch {
@@ -88,11 +106,8 @@ class NewPostFragment : Fragment() {
                         contentDraftDao.removeDraft()
                     }
                 }
-            } else {
-                binding.content.setText(it)
-                editing = true
             }
-            arguments?.newPostFragmentBundle = null
+            arguments?.statusFragment = null
         }
 
         val pickPhotoLauncher =
@@ -150,6 +165,7 @@ class NewPostFragment : Fragment() {
             }
 
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
+
         val audio =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 when (it.resultCode) {
@@ -202,7 +218,7 @@ class NewPostFragment : Fragment() {
                     viewModel.edited.value = viewModel.empty
                     viewModel.changeMedia(null, null, null)
                 } else {
-                    viewModelMyWall.edited.value = viewModel.empty
+                    viewModelMyWall.edited.value = viewModelMyWall.empty
                     viewModelMyWall.changeMedia(null, null, null)
                 }
 
@@ -216,7 +232,7 @@ class NewPostFragment : Fragment() {
                     viewModel.listMapUser = emptyMap<Long, UserPreview>()
                     viewModel.coordinates = Coordinates(lat = 0.0, long = 0.0)
                 } else {
-                    viewModelMyWall.edited.value = viewModel.empty
+                    viewModelMyWall.edited.value = viewModelMyWall.empty
                     viewModelMyWall.changeMedia(null, null, null)
                     viewModelMyWall.listMentionedUser = emptySet<Long>()
                     viewModelMyWall.listMapUser = emptyMap<Long, UserPreview>()
@@ -264,7 +280,6 @@ class NewPostFragment : Fragment() {
             }
 
             attachMedia.setOnClickListener {
-
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.choose_audio_or_video)
                     setOnMenuItemClickListener { menuItem ->
@@ -425,7 +440,7 @@ class NewPostFragment : Fragment() {
             if (status == NEW_POST || status == EDITING_NEW_POST) {
                 viewModel.edited.value = viewModel.empty
             } else {
-                viewModelMyWall.edited.value = viewModel.empty
+                viewModelMyWall.edited.value = viewModelMyWall.empty
             }
 
             findNavController().navigateUp()

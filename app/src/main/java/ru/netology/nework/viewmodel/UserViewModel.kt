@@ -1,6 +1,7 @@
 package ru.netology.nework.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -13,6 +14,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -43,7 +46,10 @@ class UserViewModel @Inject constructor(
 
     val dataUser: Flow<List<User>> = auth.authStateFlow
         .flatMapLatest { repository.data }
-    val dataListUser = userListDao.getAllFlow().map { it.toUserListDto() }
+//    var dataListUser = userListDao.getAllFlow().map { it.toUserListDto() }
+//    var dataListUser = auth.authStateFlow
+//    .flatMapLatest { flow<List<User>> { listUsers.toList() } }
+    var dataListUser = liveData<List<User>> {  }
 
     private val _dataState = MutableStateFlow(FeedModelState())
     val dataState: Flow<FeedModelState>
@@ -90,20 +96,24 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    fun saveUsers(users: Set<Long>) {
-        viewModelScope.launch {
-            try {
+    fun saveUsers(users: List<Long>) {
+        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+            val job = CoroutineScope(Dispatchers.IO).launch {
                 users.forEach {
-                    async(Dispatchers.IO) {
-                        listUsers.add(userDao.getUser(it).toUserDto())
-                    }.await()
+                    listUsers.add(userDao.getUser(it).toUserDto())
                 }
-
-                userListDao.insertUsers(listUsers.toUserListEntity())
-//                dataListUser = flow { listUsers.toList() }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
+
+            job.join()
+
+            dataListUser = liveData<List<User>> { listUsers.toList()}
+//                userListDao.insertUsers(listUsers.toUserListEntity())
+//                val f = flow<List<User>> { listUsers.toList() }
+//                val s = listUsers.toList()
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
         }
     }
 

@@ -6,9 +6,12 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
+import ru.netology.nework.dto.Coordinates
+import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.EventEntity
 import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.enumeration.AttachmentType
+import ru.netology.nework.enumeration.EventType
 
 @Dao
 interface EventDao {
@@ -39,14 +42,28 @@ interface EventDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEvents(events: List<EventEntity>)
 
-    @Query("UPDATE EventEntity Set content = :text WHERE id = :id")
-    suspend fun changeContentById(id: Long, text: String)
+    @Query("UPDATE EventEntity Set content = :text, speakerIds = :newSpeakerIds, " +
+            "users = :newUsers, coords = :newCoordinates, type = :newType, dateTime = :newDateTime" +
+            " WHERE id = :id")
+    suspend fun changeContentById(
+        id: Long,
+        text: String,
+        newSpeakerIds: Set<Long>,
+        newUsers: Map<Long, UserPreview>,
+        newCoordinates: Coordinates?,
+        newType: EventType?,
+        newDateTime: String?
+    )
 
-    @Query("UPDATE EventEntity Set id = :newId, author = :newAuthor, authorId = :newAuthorId, authorAvatar = :newAuthorAvatar, authorJob = :newAuthorJob, url = :newUrl, type = :newType WHERE id = :id")
+    @Query("UPDATE EventEntity Set id = :newId, " +
+//            "author = :newAuthor, " +
+            "authorId = :newAuthorId, " +
+            "authorAvatar = :newAuthorAvatar, authorJob = :newAuthorJob, url = :newUrl, " +
+            "type = :newType WHERE id = :id")
     suspend fun changeIdEventById(
         id: Long,
         newId: Long,
-        newAuthor: String,
+//        newAuthor: String,
         newAuthorId: Long,
         newAuthorAvatar: String?,
         newAuthorJob: String?,
@@ -58,7 +75,9 @@ interface EventDao {
 //    suspend fun browse()
 
     suspend fun save(event: EventEntity) =
-        if (event.id == 0L) insert(event) else changeContentById(event.id, event.content)
+        if (event.id == 0L) insert(event) else changeContentById(event.id, event.content,
+            event.speakerIds, event.users, event.coords,
+            event.type, event.datetime)
 
     @Query(
         """

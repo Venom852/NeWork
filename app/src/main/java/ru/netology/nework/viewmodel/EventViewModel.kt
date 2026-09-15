@@ -32,6 +32,7 @@ import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.EventEntity
 import ru.netology.nework.entity.toEventDto
 import ru.netology.nework.entity.toEventEntity
+import ru.netology.nework.entity.toPostDto
 import ru.netology.nework.entity.toPostEntity
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.enumeration.EventType
@@ -43,6 +44,7 @@ import ru.netology.nework.repository.EventRepository
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.collections.map
 
@@ -103,7 +105,7 @@ class EventViewModel @Inject constructor(
     val dataEvent: Flow<List<Event>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
             eventRepository.data.map { listEvent ->
-                listEvent.map {event ->
+                listEvent.map { event ->
                     event.copy(ownedByMe = event.authorId == myId)
                 }
             }
@@ -145,6 +147,10 @@ class EventViewModel @Inject constructor(
 
     fun loadEvents() {
         viewModelScope.launch {
+            CoroutineScope(Dispatchers.IO).launch {
+                oldEvents = eventDao.getAll().toEventDto()
+            }
+
             try {
                 _dataState.value = FeedModelState(loading = true)
                 eventRepository.getAll()
@@ -158,6 +164,10 @@ class EventViewModel @Inject constructor(
 
     fun refreshEvents() {
         viewModelScope.launch {
+            CoroutineScope(Dispatchers.IO).launch {
+                oldEvents = eventDao.getAll().toEventDto()
+            }
+
             try {
                 _dataState.value = FeedModelState(loading = true)
                 eventRepository.getAll()
@@ -237,7 +247,6 @@ class EventViewModel @Inject constructor(
         }
     }
 
-    //TODO(Настроить)
     fun saveContent(content: String) {
         edited.value?.let {
             viewModelScope.launch {
@@ -245,12 +254,20 @@ class EventViewModel @Inject constructor(
                     oldEvents = eventDao.getAll().toEventDto()
                 }
 
+                val data = ZonedDateTime.now()
                 var eventServer = empty
                 var event = it.copy(
+//                    published = "${data.dayOfMonth}.${data.monthValue}.${data.year} ${data.hour}:${data.minute}",
+                    published = data.toString(),
                     content = content,
-                    speakerIds = listSpeakersUsers,
-                    users = listMapUsers
                 )
+
+                if (!listSpeakersUsers.isEmpty() && !listMapUsers.isEmpty()) {
+                    event = it.copy(
+                        speakerIds = listSpeakersUsers,
+                        users = listMapUsers
+                    )
+                }
 
                 if (coordinates.lat != 0.0 || coordinates.long != 0.0) {
                     event = event.copy(coords = coordinates)
@@ -263,9 +280,11 @@ class EventViewModel @Inject constructor(
                 //TODO(Настроить)
                 if (dateTime != "") {
 //                    event = event.copy(datetime = LocalDateTime.parse(dateTime).toInstant(ZoneOffset.ofHours(3)))
+                    event = event.copy(datetime = dateTime)
                 }
 
                 eventDao.save(EventEntity.fromEventDto(event))
+                //TODO(Нужно ли здесь использовать)
                 _eventCreated.value = Unit
 
                 try {
@@ -282,12 +301,12 @@ class EventViewModel @Inject constructor(
                         }
                     }
 
-//                    if (event.id == 0L) {
-                        oldEvent = oldEvents.first()
+                    if (event.id == 0L) {
+//                        oldEvent = oldEvents.first()
                         eventDao.changeIdEventById(
-                            oldEvent.id,
+                            0L,
                             eventServer.id,
-                            eventServer.author,
+//                            eventServer.author,
                             eventServer.authorId,
                             eventServer.authorAvatar,
                             eventServer.authorJob,
@@ -301,27 +320,28 @@ class EventViewModel @Inject constructor(
                         listMapUsers = emptyMap()
                         dateTime = ""
                         type = EventType.NOT_ASSIGNED
-//                    } else {
-//
-//                    }
+                    }
                 } catch (_: ErrorCode403) {
+                    eventDao.insertEvents(oldEvents.toEventEntity())
                     _errorEvent403.value = Unit
-                    if (event.id == 0L && _media.value == noMedia) {
-                        eventDao.removeById(oldEvent.id)
-                        return@launch
-                    } else eventDao.insertEvents(oldEvents.toEventEntity())
+//                    if (event.id == 0L && _media.value == noMedia) {
+//                        eventDao.removeById(oldEvent.id)
+//                        return@launch
+//                    } else eventDao.insertEvents(oldEvents.toEventEntity())
                 } catch (_: ErrorCode415) {
+                    eventDao.insertEvents(oldEvents.toEventEntity())
                     _errorEvent415.value = Unit
-                    if (event.id == 0L && _media.value == noMedia) {
-                        eventDao.removeById(oldEvent.id)
-                        return@launch
-                    } else eventDao.insertEvents(oldEvents.toEventEntity())
+//                    if (event.id == 0L && _media.value == noMedia) {
+//                        eventDao.removeById(oldEvent.id)
+//                        return@launch
+//                    } else eventDao.insertEvents(oldEvents.toEventEntity())
                 } catch (e: Exception) {
+                    eventDao.insertEvents(oldEvents.toEventEntity())
                     e.printStackTrace()
-                    if (event.id == 0L && _media.value == noMedia) {
-                        eventDao.removeById(oldEvent.id)
-                        return@launch
-                    } else eventDao.insertEvents(oldEvents.toEventEntity())
+//                    if (event.id == 0L && _media.value == noMedia) {
+//                        eventDao.removeById(oldEvent.id)
+//                        return@launch
+//                    } else eventDao.insertEvents(oldEvents.toEventEntity())
                 }
             }
         }
@@ -329,16 +349,13 @@ class EventViewModel @Inject constructor(
     }
 
     fun editById(event: Event) {
-        viewModelScope.launch {
-            edited.value = event
-        }
+        edited.value = event
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
-        viewModelScope.launch {
-            _media.value = MediaModel(null, null, attachmentType)
-            _media.value = MediaModel(uri, file, attachmentType)
-        }
+        //TODO(Проверить нужно ли здесь)
+        _media.value = MediaModel(null, null, attachmentType)
+        _media.value = MediaModel(uri, file, attachmentType)
     }
 
     fun playButtonSong(id: Long) {
@@ -384,23 +401,17 @@ class EventViewModel @Inject constructor(
     }
 
     fun speakersAdded(listSpeakers: Set<Long>, listMap: Map<Long, UserPreview>) {
-        viewModelScope.launch {
-            listMapUsers = listMap
-            listSpeakersUsers = listSpeakers
-        }
+        listMapUsers = listMap
+        listSpeakersUsers = listSpeakers
     }
 
     fun addLocation(coords: Coordinates) {
-        viewModelScope.launch {
-            coordinates = coords
-        }
+        coordinates = coords
     }
 
     fun saveDate(dateContent: String, eventType: EventType) {
-        viewModelScope.launch {
-            dateTime = dateContent
-            type = eventType
-        }
+        dateTime = dateContent
+        type = eventType
     }
 
     private fun saveLikeOwnerIds(event: Event): Set<Long> {

@@ -35,15 +35,27 @@ import ru.netology.nework.viewmodel.EventViewModel
 import ru.netology.nework.viewmodel.PostMyWallViewModel
 import ru.netology.nework.viewmodel.UserViewModel
 import androidx.fragment.app.viewModels
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import ru.netology.nework.auth.AppAuth
+import ru.netology.nework.dao.UserDao
 import ru.netology.nework.viewmodel.PostUserWallViewModel
 import java.lang.reflect.Type
 import javax.inject.Inject
 import kotlin.getValue
 
 @AndroidEntryPoint
+@OptIn(ExperimentalCoroutinesApi::class)
 class UserFragment : Fragment() {
     @Inject
     lateinit var userListDao: UserListDao
+    @Inject
+    lateinit var userDao: UserDao
+    @Inject
+    lateinit var auth: AppAuth
 
     companion object {
         const val CHOOSING_MENTIONED_USER_POST = "choosingMentionedUserPost"
@@ -60,6 +72,9 @@ class UserFragment : Fragment() {
     }
 
     private val gson = Gson()
+    private val listUsers = mutableListOf<User>()
+//    var dataListUser = flowOf<List<User>>()
+    var dataListUserFragment = emptyList<User>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,6 +92,7 @@ class UserFragment : Fragment() {
         val listIdUsers = mutableSetOf<Long>()
         val listMapUsers = mutableMapOf<Long, UserPreview>()
 //        val typeToken = TypeToken.getParameterized(List::class.java, Long::class.java).type
+        val typeToken: Type = object : TypeToken<List<Long>>() {}.type
 
         applyInset(binding.cardUser)
 
@@ -102,18 +118,29 @@ class UserFragment : Fragment() {
             arguments?.statusUserFragment = null
         }
 
-//        arguments?.userBundleFragment?.let {
-////            val users: List<Long> = gson.fromJson(it, typeToken)
+        arguments?.userBundleFragment?.let {
+            val users: List<Long> = gson.fromJson(it, typeToken)
 //            val listString = it.split(',')
 //            val listLong = mutableListOf<Long>()
 //
 //            listString.forEach { number ->
 //                listLong.add(number.toLong())
 //            }
+
+            viewModelUser.saveUsers(users)
+
+//            CoroutineScope(Dispatchers.IO).launch {
+//                users.forEach { long ->
+////                    async {
+//                        listUsers.add(userDao.getUser(long).toUserDto())
+////                    }.await()
+//                }
+//            }
 //
-//            viewModelUser.saveUsers(listLong.toSet())
-//            arguments?.userBundleFragment = null
-//        }
+//            dataListUserFragment = listUsers.toList()
+
+            arguments?.userBundleFragment = null
+        }
 
         when (status) {
             CHOOSING_MENTIONED_USER_POST, CHOOSING_MENTIONED_USER_WALL, CHOOSING_SPEAKERS_USER ->
@@ -149,9 +176,9 @@ class UserFragment : Fragment() {
 //                    userListDao.removeUsers()
 //                }
 
-                lifecycleScope.launch{
-                    viewModelUser.removeUsers()
-                }
+//                lifecycleScope.launch{
+//                    viewModelUser.removeUsers()
+//                }
 
                 findNavController().navigateUp()
             }
@@ -185,6 +212,8 @@ class UserFragment : Fragment() {
                     status == CHOOSING_MENTIONED_USER_WALL ||
                     status == CHOOSING_SPEAKERS_USER) {
                     viewModelUser.loadUsers()
+                } else {
+                    binding.srlUsers.isRefreshing = false
                 }
             }
         }
@@ -197,7 +226,10 @@ class UserFragment : Fragment() {
                     status == CHOOSING_SPEAKERS_USER) {
                     viewModelUser.dataUser.collectLatest(userAdapter::submitList)
                 } else {
-                    viewModelUser.dataListUser.collectLatest(userAdapter::submitList)
+//                    viewModelUser.dataListUser.collectLatest(userAdapter::submitList)
+//                    dataListUser.collectLatest(userAdapter::submitList)
+//                    dataListUserFragment = listUsers.toList()
+//                    userAdapter.submitList(dataListUserFragment)
                 }
 //                when (status) {
 //                    CHOOSING_MENTIONED_USER_POST, CHOOSING_MENTIONED_USER_WALL, CHOOSING_SPEAKERS_USER ->
@@ -206,6 +238,10 @@ class UserFragment : Fragment() {
 //                    else -> viewModelUser.dataListUser.collectLatest(userAdapter::submitList)
 //                }
             }
+        }
+
+        viewModelUser.dataListUser.observe(viewLifecycleOwner) {
+            userAdapter.submitList(it)
         }
 
         viewLifecycleOwner.lifecycleScope.launch {

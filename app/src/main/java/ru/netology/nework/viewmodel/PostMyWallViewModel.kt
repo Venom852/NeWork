@@ -29,6 +29,8 @@ import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.dto.User
 import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.PostMyWallEntity
+import ru.netology.nework.entity.toPostDto
+import ru.netology.nework.entity.toPostEntity
 import ru.netology.nework.entity.toPostMyWallDto
 import ru.netology.nework.entity.toPostMyWallEntity
 import ru.netology.nework.enumeration.AttachmentType
@@ -37,6 +39,7 @@ import ru.netology.nework.error.ErrorCode415
 import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.model.FeedModelState
 import ru.netology.nework.repository.PostMyWallRepository
+import java.time.ZonedDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -101,7 +104,8 @@ class PostMyWallViewModel @Inject constructor(
         }
 
     val dataMyUserWall: LiveData<User> = auth.authStateFlow
-        .flatMapLatest { userDao.getUserFlow(auth.authStateFlow.value.id).map { it.toUserDto() } }.asLiveData()
+        .flatMapLatest { userDao.getUserFlow(auth.authStateFlow.value.id).map { it.toUserDto() } }
+        .asLiveData()
 
     val edited = MutableLiveData(empty)
 
@@ -137,6 +141,10 @@ class PostMyWallViewModel @Inject constructor(
 
     fun loadPosts() {
         viewModelScope.launch {
+            CoroutineScope(Dispatchers.IO).launch {
+                oldPosts = postMyWallDao.getAll().toPostMyWallDto()
+            }
+
             try {
                 _dataState.value = FeedModelState(loading = true)
                 repository.getAll()
@@ -150,6 +158,10 @@ class PostMyWallViewModel @Inject constructor(
 
     fun refreshPosts() {
         viewModelScope.launch {
+            CoroutineScope(Dispatchers.IO).launch {
+                oldPosts = postMyWallDao.getAll().toPostMyWallDto()
+            }
+
             try {
                 _dataState.value = FeedModelState(loading = true)
                 repository.getAll()
@@ -161,16 +173,17 @@ class PostMyWallViewModel @Inject constructor(
         }
     }
 
-    fun likeById(id: Long) {
+    fun likeById(post: Post) {
         viewModelScope.launch {
             CoroutineScope(Dispatchers.IO).launch {
                 oldPosts = postMyWallDao.getAll().toPostMyWallDto()
             }
 
-            val postLikedByMe = oldPosts.find { it.id == id }?.likedByMe
-            postMyWallDao.likeById(id)
+            val postLikedByMe = oldPosts.find { it.id == post.id }?.likedByMe
+            postMyWallDao.likeById(post.id, saveLikeOwnerIds(post))
+
             try {
-                repository.likeById(id, postLikedByMe)
+                repository.likeById(post.id, postLikedByMe)
             } catch (_: ErrorCode403) {
                 postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
                 _errorMyWall403.value = Unit
@@ -191,6 +204,7 @@ class PostMyWallViewModel @Inject constructor(
             }
 
             postMyWallDao.removeById(id)
+
             try {
                 repository.removeById(id)
             } catch (_: ErrorCode403) {
@@ -210,18 +224,27 @@ class PostMyWallViewModel @Inject constructor(
                     oldPosts = postMyWallDao.getAll().toPostMyWallDto()
                 }
 
-                var post = it.copy(
-                    content = content,
-                    mentionIds = listMentionedUser,
-                    users = listMapUser
-                )
+                val data = ZonedDateTime.now()
                 var postServer = empty
+                var post = it.copy(
+//                    published = "${data.dayOfMonth}.${data.monthValue}.${data.year} ${data.hour}:${data.minute}",
+                    published = data.toString(),
+                    content = content
+                )
+
+                if (!listMentionedUser.isEmpty() && !listMapUser.isEmpty()) {
+                    post = it.copy(
+                        mentionIds = listMentionedUser,
+                        users = listMapUser
+                    )
+                }
 
                 if (coordinates.lat != 0.0 || coordinates.long != 0.0) {
                     post = post.copy(coords = coordinates)
                 }
 
                 postMyWallDao.save(PostMyWallEntity.fromPostMyWallDto(post))
+                //TODO(Нужно ли здесь использовать)
                 _postCreated.value = Unit
 
                 try {
@@ -238,15 +261,16 @@ class PostMyWallViewModel @Inject constructor(
                         }
                     }
 
-//                    if (post.id == 0L) {
-                        oldPost = oldPosts.first()
-                    postMyWallDao.changeIdPostById(
-                            oldPost.id,
+                    if (post.id == 0L) {
+//                    oldPost = oldPosts.first()
+                        postMyWallDao.changeIdPostById(
+                            0L,
                             postServer.id,
-                            postServer.author,
+//                            postServer.author,
                             postServer.authorId,
                             postServer.authorAvatar,
                             postServer.authorJob,
+                            postServer.mentionedMe,
                             postServer.attachment?.url,
                             postServer.attachment?.type
                         )
@@ -255,25 +279,28 @@ class PostMyWallViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-//                    }
+                    }
                 } catch (_: ErrorCode403) {
+                    postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
                     _errorMyWall403.value = Unit
-                    if (post.id == 0L && _media.value == noMedia) {
-                        postMyWallDao.removeById(oldPost.id)
-                        return@launch
-                    } else postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
+//                    if (post.id == 0L && _media.value == noMedia) {
+//                        dao.removeById(0L)
+//                        return@launch
+//                    } else dao.insertPosts(oldPosts.toPostEntity())
                 } catch (_: ErrorCode415) {
+                    postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
                     _errorMyWall415.value = Unit
-                    if (post.id == 0L && _media.value == noMedia) {
-                        postMyWallDao.removeById(oldPost.id)
-                        return@launch
-                    } else postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
+//                    if (post.id == 0L && _media.value == noMedia) {
+//                        dao.removeById(oldPost.id)
+//                        return@launch
+//                    } else dao.insertPosts(oldPosts.toPostEntity())
                 } catch (e: Exception) {
+                    postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
                     e.printStackTrace()
-                    if (post.id == 0L && _media.value == noMedia) {
-                        postMyWallDao.removeById(oldPost.id)
-                        return@launch
-                    } else postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
+//                    if (post.id == 0L && _media.value == noMedia) {
+//                        dao.removeById(oldPost.id)
+//                        return@launch
+//                    } else dao.insertPosts(oldPosts.toPostEntity())
                 }
             }
         }
@@ -281,16 +308,13 @@ class PostMyWallViewModel @Inject constructor(
     }
 
     fun editById(post: Post) {
-        viewModelScope.launch {
-            edited.value = post
-        }
+        edited.value = post
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
-        viewModelScope.launch {
-            _media.value = MediaModel(null, null, attachmentType)
-            _media.value = MediaModel(uri, file, attachmentType)
-        }
+        //TODO(Проверить нужно ли здесь)
+        _media.value = MediaModel(null, null, attachmentType)
+        _media.value = MediaModel(uri, file, attachmentType)
     }
 
     fun playButtonSong(id: Long) {
@@ -336,15 +360,17 @@ class PostMyWallViewModel @Inject constructor(
     }
 
     fun mentionUsers(listMentioned: Set<Long>, listMap: Map<Long, UserPreview>) {
-        viewModelScope.launch {
-            listMapUser = listMap
-            listMentionedUser = listMentioned
-        }
+        listMapUser = listMap
+        listMentionedUser = listMentioned
     }
 
     fun addLocation(coords: Coordinates) {
-        viewModelScope.launch {
-            coordinates = coords
-        }
+        coordinates = coords
+    }
+
+    private fun saveLikeOwnerIds(post: Post): Set<Long> {
+        val listLikeOwnerIds = post.likeOwnerIds.toMutableSet()
+        listLikeOwnerIds.add(post.id)
+        return listLikeOwnerIds.toSet()
     }
 }

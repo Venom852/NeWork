@@ -41,7 +41,7 @@ class UserViewHolder(
             loginUser.text = user.login
 
             radioButton.visibility = if (status == CHOOSING_MENTIONED_USER_POST
-                || status == CHOOSING_SPEAKERS_USER
+                || status == CHOOSING_MENTIONED_USER_WALL || status == CHOOSING_SPEAKERS_USER
             ) View.VISIBLE else View.GONE
 
             Glide.with(avatarUser)

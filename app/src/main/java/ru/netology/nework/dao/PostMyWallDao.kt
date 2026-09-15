@@ -6,6 +6,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
+import ru.netology.nework.dto.Coordinates
+import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.entity.PostMyWallEntity
 import ru.netology.nework.enumeration.AttachmentType
@@ -36,17 +38,29 @@ interface PostMyWallDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPosts(posts: List<PostMyWallEntity>)
 
-    @Query("UPDATE PostMyWallEntity Set content = :text WHERE id = :id")
-    suspend fun changeContentById(id: Long, text: String)
+    @Query("UPDATE PostMyWallEntity Set content = :text, mentionIds = :newMentionIds, " +
+            "users = :newUsers, coords = :newCoordinates WHERE id = :id")
+    suspend fun changeContentById(
+        id: Long,
+        text: String,
+        newMentionIds: Set<Long>,
+        newUsers: Map<Long, UserPreview>,
+        newCoordinates: Coordinates?
+    )
 
-    @Query("UPDATE PostMyWallEntity Set id = :newId, author = :newAuthor, authorId = :newAuthorId, authorAvatar = :newAuthorAvatar, authorJob = :newAuthorJob, url = :newUrl, type = :newType WHERE id = :id")
+    @Query("UPDATE PostMyWallEntity Set id = :newId, " +
+//            "author = :newAuthor, " +
+            "authorId = :newAuthorId," +
+            " authorAvatar = :newAuthorAvatar, authorJob = :newAuthorJob, mentionedMe = :newMentionedMe," +
+            " url = :newUrl, type = :newType WHERE id = :id")
     suspend fun changeIdPostById(
         id: Long,
         newId: Long,
-        newAuthor: String,
+//        newAuthor: String,
         newAuthorId: Long,
         newAuthorAvatar: String?,
         newAuthorJob: String?,
+        newMentionedMe: Boolean,
         newUrl: String?,
         newType: AttachmentType?
     )
@@ -55,17 +69,19 @@ interface PostMyWallDao {
 //    suspend fun browse()
 
     suspend fun save(post: PostMyWallEntity) =
-        if (post.id == 0L) insert(post) else changeContentById(post.id, post.content)
+        if (post.id == 0L) insert(post) else changeContentById(post.id, post.content,
+            post.mentionIds, post.users, post.coords)
 
     @Query(
         """
             UPDATE PostMyWallEntity SET
                 likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
-                likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END
+                likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END,
+                likeOwnerIds = :likeOwnerIds
             WHERE id = :id;
         """
     )
-    suspend fun likeById(id: Long)
+    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>)
 
     @Query(
         """

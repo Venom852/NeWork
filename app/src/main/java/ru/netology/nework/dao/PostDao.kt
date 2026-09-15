@@ -6,6 +6,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
+import ru.netology.nework.dto.AttachmentEmbeddable
+import ru.netology.nework.dto.Coordinates
+import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.entity.UserEntity
 import ru.netology.nework.enumeration.AttachmentType
@@ -36,17 +39,29 @@ interface PostDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPosts(posts: List<PostEntity>)
 
-    @Query("UPDATE PostEntity Set content = :text WHERE id = :id")
-    suspend fun changeContentById(id: Long, text: String)
+    @Query("UPDATE PostEntity Set content = :text, mentionIds = :newMentionIds, " +
+            "users = :newUsers, coords = :newCoordinates WHERE id = :id")
+    suspend fun changeContentById(
+        id: Long,
+        text: String,
+        newMentionIds: Set<Long>,
+        newUsers: Map<Long, UserPreview>,
+        newCoordinates: Coordinates?
+    )
 
-    @Query("UPDATE PostEntity Set id = :newId, author = :newAuthor, authorId = :newAuthorId, authorAvatar = :newAuthorAvatar, authorJob = :newAuthorJob, url = :newUrl, type = :newType WHERE id = :id")
+    @Query("UPDATE PostEntity Set id = :newId, " +
+//            "author = :newAuthor, " +
+            "authorId = :newAuthorId," +
+            " authorAvatar = :newAuthorAvatar, authorJob = :newAuthorJob, mentionedMe = :newMentionedMe," +
+            " url = :newUrl, type = :newType WHERE id = :id")
     suspend fun changeIdPostById(
         id: Long,
         newId: Long,
-        newAuthor: String,
+//        newAuthor: String,
         newAuthorId: Long,
         newAuthorAvatar: String?,
         newAuthorJob: String?,
+        newMentionedMe: Boolean,
         newUrl: String?,
         newType: AttachmentType?
     )
@@ -55,7 +70,8 @@ interface PostDao {
 //    suspend fun browse()
 
     suspend fun save(post: PostEntity) =
-        if (post.id == 0L) insert(post) else changeContentById(post.id, post.content)
+        if (post.id == 0L) insert(post) else changeContentById(post.id, post.content,
+            post.mentionIds, post.users, post.coords)
 
     @Query(
         """

@@ -33,9 +33,10 @@ interface PostUserWallDao {
         """
             UPDATE PostUserWallEntity SET
                 likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
-                likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END
+                likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END,
+                likeOwnerIds = :likeOwnerIds
             WHERE id = :id;
         """
     )
-    suspend fun likeById(id: Long)
+    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>)
 }

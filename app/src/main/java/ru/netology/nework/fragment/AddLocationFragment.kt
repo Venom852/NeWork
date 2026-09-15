@@ -45,15 +45,17 @@ class AddLocationFragment : Fragment() {
         const val POST = "post"
         const val WALL = "wall"
         const val EVENT = "event"
-        var statusFragment = ""
+//        var statusFragment = ""
         var Bundle.statusAddLocationFragment by StringArg
     }
 
+    private var statusFragment = ""
     private lateinit var yandexMap: Map
     private lateinit var mapKit: MapKit
     private lateinit var placemarkMapObject: PlacemarkMapObject
     private lateinit var binding: FragmentAddLocationBinding
     private val smoothAnimation = Animation(Animation.Type.SMOOTH, 3F)
+    //TODO(Нужно ли изменить переменную с коллекции на обычную)
     private val listPoint = mutableListOf<Coordinates>()
 
     private val placemarkTapListener = MapObjectTapListener { mapObject, point ->
@@ -118,6 +120,7 @@ class AddLocationFragment : Fragment() {
         return binding.root
     }
 
+    //TODO(Проверить работает ли в другом методе)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val mapView = binding.map
         val mapWindow = mapView.mapWindow

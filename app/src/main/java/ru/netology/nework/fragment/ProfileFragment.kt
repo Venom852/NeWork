@@ -209,9 +209,9 @@ class ProfileFragment : Fragment() {
         val postAdapter = PostAdapter(object : OnInteractionPostListener {
             override fun onLike(post: Post) {
                 if (privateStatusProfile == YOUR) {
-                    viewModelPostMyWall.likeById(post.id)
+                    viewModelPostMyWall.likeById(post)
                 } else {
-                    viewModelPostUserWall.likeById(post.id)
+                    viewModelPostUserWall.likeById(post)
                 }
             }
 
@@ -349,7 +349,8 @@ class ProfileFragment : Fragment() {
                     findNavController().navigate(
                         R.id.action_yourProfileFragment_to_newPostFragment,
                         Bundle().apply {
-                            newPostFragmentBundle = NEW_POST_WALL
+//                            newPostFragmentBundle = NEW_POST_WALL
+                            statusFragment = NEW_POST_WALL
                         }
                     )
                 } else {

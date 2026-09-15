@@ -53,7 +53,7 @@ import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.enumeration.EventType
 import ru.netology.nework.extensions.DrawableImageProvider
 import ru.netology.nework.extensions.ImageInfo
-import ru.netology.nework.fragment.NewEventFragment.Companion.statusEventAndContent
+import ru.netology.nework.fragment.NewEventFragment.Companion.newEventFragmentBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.EVENT
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
@@ -253,7 +253,7 @@ class EventFragment : Fragment() {
 //                    listUsers = "$listUsers$it,"
 //                }
 
-                viewModelUser.saveUsers(event.speakerIds)
+//                viewModelUser.saveUsers(event.speakerIds)
 
                 findNavController().navigate(
                     R.id.action_eventFragment2_to_userFragment,
@@ -270,7 +270,7 @@ class EventFragment : Fragment() {
 //                    listUsers = "$listUsers$it,"
 //                }
 
-                viewModelUser.saveUsers(event.likeOwnerIds)
+//                viewModelUser.saveUsers(event.likeOwnerIds)
 
                 findNavController().navigate(
                     R.id.action_eventFragment2_to_userFragment,
@@ -287,7 +287,7 @@ class EventFragment : Fragment() {
 //                    listUsers = "$listUsers$it,"
 //                }
 
-                viewModelUser.saveUsers(event.participantsIds)
+//                viewModelUser.saveUsers(event.participantsIds)
 
                 findNavController().navigate(
                     R.id.action_eventFragment2_to_userFragment,
@@ -314,7 +314,7 @@ class EventFragment : Fragment() {
                                 findNavController().navigate(
                                     R.id.action_eventFragment2_to_newEventFragment,
                                     Bundle().apply {
-                                        statusEventAndContent = event.content
+                                        newEventFragmentBundle = event.content
                                     }
                                 )
                                 true
