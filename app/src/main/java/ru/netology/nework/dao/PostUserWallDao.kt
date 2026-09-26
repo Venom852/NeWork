@@ -39,4 +39,7 @@ interface PostUserWallDao {
         """
     )
     suspend fun likeById(id: Long, likeOwnerIds: Set<Long>)
+
+    @Query("DELETE FROM PostUserWallEntity")
+    suspend fun removeDao()
 }

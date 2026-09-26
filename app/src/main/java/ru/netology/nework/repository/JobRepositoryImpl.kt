@@ -28,14 +28,14 @@ class JobRepositoryImpl @Inject constructor(
 ) : JobRepository {
     override val data: Flow<List<Job>> = jobDao.getAllFlow().map { it.toJobDto() }
 
-    var userId = 0L
+//    var userId = 0L
 
-    override suspend fun getAll() {
+    override suspend fun getAll(userId: Long) {
         try {
-            val job = CoroutineScope(Dispatchers.IO).launch {
-                userId = authorIdDao.getAuthorId().id
-            }
-            job.join()
+//            val job = CoroutineScope(Dispatchers.IO).launch {
+//                userId = authorIdDao.getAuthorId().id
+//            }
+//            job.join()
 
             val response = apiService.getAllJobs(userId)
 

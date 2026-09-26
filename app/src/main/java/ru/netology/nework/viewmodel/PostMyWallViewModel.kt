@@ -76,6 +76,7 @@ class PostMyWallViewModel @Inject constructor(
 
     private val noMedia = MediaModel()
     private val mediaObserver = MediaLifecycleObserver()
+    private var authorId = 0L
     private val _dataState = MutableStateFlow(FeedModelState())
     val dataState: Flow<FeedModelState>
         get() = _dataState
@@ -104,7 +105,7 @@ class PostMyWallViewModel @Inject constructor(
         }
 
     val dataMyUserWall: LiveData<User> = auth.authStateFlow
-        .flatMapLatest { userDao.getUserFlow(auth.authStateFlow.value.id).map { it.toUserDto() } }
+        .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
         .asLiveData()
 
     val edited = MutableLiveData(empty)
@@ -135,15 +136,17 @@ class PostMyWallViewModel @Inject constructor(
     var listMapUser = emptyMap<Long, UserPreview>()
     var coordinates = Coordinates(lat = 0.0, long = 0.0)
 
-    init {
-        loadPosts()
-    }
+//    init {
+//        loadPosts()
+//    }
 
-    fun loadPosts() {
+    fun loadPosts(id: Long) {
         viewModelScope.launch {
             CoroutineScope(Dispatchers.IO).launch {
                 oldPosts = postMyWallDao.getAll().toPostMyWallDto()
             }
+
+            authorId = id
 
             try {
                 _dataState.value = FeedModelState(loading = true)

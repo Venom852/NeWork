@@ -8,6 +8,6 @@ import ru.netology.nework.dto.User
 interface PostUserWallRepository {
 //    val data: Flow<PagingData<Post>>
     val data: Flow<List<Post>>
-    suspend fun getAll()
-    suspend fun likeById(id: Long, postLikedByMe: Boolean?)
+    suspend fun getAll(authorId: Long)
+    suspend fun likeById(id: Long, postLikedByMe: Boolean?, authorId: Long)
 }

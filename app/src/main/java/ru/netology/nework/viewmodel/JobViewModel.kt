@@ -41,11 +41,11 @@ class JobViewModel @Inject constructor(
 
     private var oldJobs = emptyList<Job>()
 
-    init {
-        loadJobs()
-    }
+//    init {
+//        loadJobs()
+//    }
 
-    fun loadJobs() {
+    fun loadJobs(id: Long) {
         viewModelScope.launch {
             try {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -53,7 +53,7 @@ class JobViewModel @Inject constructor(
                 }
 
                 _dataState.value = FeedModelState(loading = true)
-                repository.getAll()
+                repository.getAll(id)
                 _dataState.value = FeedModelState()
             } catch (e: Exception) {
                 jobDao.insertJobs(oldJobs.toJobEntity())
@@ -62,20 +62,20 @@ class JobViewModel @Inject constructor(
         }
     }
 
-    fun refreshJobs() {
-        viewModelScope.launch {
-            try {
-                CoroutineScope(Dispatchers.IO).launch {
-                    oldJobs = jobDao.getAll().toJobDto()
-                }
-
-                _dataState.value = FeedModelState(refreshing = true)
-                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                jobDao.insertJobs(oldJobs.toJobEntity())
-                e.printStackTrace()
-            }
-        }
-    }
+//    fun refreshJobs() {
+//        viewModelScope.launch {
+//            try {
+//                CoroutineScope(Dispatchers.IO).launch {
+//                    oldJobs = jobDao.getAll().toJobDto()
+//                }
+//
+//                _dataState.value = FeedModelState(refreshing = true)
+//                repository.getAll(id)
+//                _dataState.value = FeedModelState()
+//            } catch (e: Exception) {
+//                jobDao.insertJobs(oldJobs.toJobEntity())
+//                e.printStackTrace()
+//            }
+//        }
+//    }
 }

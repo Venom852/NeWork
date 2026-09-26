@@ -6,116 +6,169 @@
     android:layout_height="match_parent"
     tools:context=".fragment.ProfileFragment">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/back"
-        style="@style/App.Widget.MenuButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:contentDescription="@string/back"
-        android:textSize="20sp"
-        app:icon="@drawable/ic_back_24"
-        app:iconSize="32dp"
-        app:iconTint="#000000"
-        android:padding="@dimen/_8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/logOut"
-        style="@style/App.Widget.MenuButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:contentDescription="@string/back"
-        android:textSize="20sp"
-        app:icon="@drawable/ic_logout_48"
-        app:iconSize="32dp"
-        app:iconTint="#000000"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
-        android:layout_width="@dimen/_0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toStartOf="@id/logOut"
-        app:layout_constraintStart_toEndOf="@id/back"
-        app:layout_constraintTop_toTopOf="parent"
-        app:title="@string/you" />
-
-<!--    <ScrollView-->
-<!--        android:id="@+id/photoScr"-->
-<!--        android:layout_width="@dimen/_0dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/toolbar">-->
-
-<!--        <androidx.constraintlayout.widget.ConstraintLayout-->
-<!--            android:layout_width="@dimen/_0dp"-->
-<!--            android:layout_height="wrap_content">-->
-
-<!--            <ImageView-->
-<!--                android:id="@+id/photo"-->
-<!--                android:layout_width="@dimen/_0dp"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:adjustViewBounds="true"-->
-<!--                android:contentDescription="@string/you_photo"-->
-<!--                app:layout_constraintEnd_toEndOf="parent"-->
-<!--                app:layout_constraintStart_toStartOf="parent"-->
-<!--                app:layout_constraintTop_toTopOf="parent"-->
-<!--                tools:srcCompat="@drawable/ic_nature_24" />-->
-
-<!--        </androidx.constraintlayout.widget.ConstraintLayout>-->
-<!--    </ScrollView>-->
-
-    <ImageView
-        android:id="@+id/photo"
-        android:layout_width="@dimen/_0dp"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:contentDescription="@string/you_photo"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        tools:srcCompat="@drawable/ic_nature_24" />
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabs"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:tabMode="fixed"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/photo">
+        android:fitsSystemWindows="true"
+        app:liftOnScrollTargetViewId="@id/srlPosts"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsingToolbar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/wall" />
+            app:contentScrim="?attr/colorSurface"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+            app:titleEnabled="false">
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+<!--            <com.google.android.material.button.MaterialButton-->
+<!--                android:id="@+id/back"-->
+<!--                style="@style/App.Widget.MenuButton"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="4dp"-->
+<!--                android:contentDescription="@string/back"-->
+<!--                android:padding="@dimen/_8dp"-->
+<!--                android:textSize="20sp"-->
+<!--                app:icon="@drawable/ic_back_24"-->
+<!--                app:iconSize="32dp"-->
+<!--                app:iconTint="#000000"-->
+<!--                app:layout_collapseMode="pin"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--            <com.google.android.material.button.MaterialButton-->
+<!--                android:id="@+id/logOut"-->
+<!--                style="@style/App.Widget.MenuButton"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="4dp"-->
+<!--                android:contentDescription="@string/back"-->
+<!--                android:textSize="20sp"-->
+<!--                app:icon="@drawable/ic_logout_48"-->
+<!--                app:iconSize="32dp"-->
+<!--                app:iconTint="#000000"-->
+<!--                app:layout_collapseMode="pin"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_collapseMode="pin"
+                app:contentInsetStart="0dp">
+
+                <LinearLayout
+                    android:id="@+id/panel"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    app:layout_collapseMode="pin">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/back"
+                        style="@style/App.Widget.MenuButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/back"
+                        android:textSize="20sp"
+                        app:icon="@drawable/ic_back_24"
+                        app:iconSize="32dp"
+                        app:iconTint="#000000" />
+
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_16dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/you"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="23sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/logOut"
+                        style="@style/App.Widget.MenuButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/back"
+                        android:textSize="20sp"
+                        app:icon="@drawable/ic_logout_48"
+                        app:iconSize="32dp"
+                        app:iconTint="#000000" />
+
+                </LinearLayout>
+
+            </com.google.android.material.appbar.MaterialToolbar>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/constraintPhoto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_collapseMode="parallax">
+
+                <ImageView
+                    android:id="@+id/photo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/you_photo"
+                    android:paddingTop="?attr/actionBarSize"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_collapseMode="parallax"
+                    tools:srcCompat="@drawable/ic_nature_24" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabs"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/jobs" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/constraintPhoto"
+            app:tabMode="fixed">
 
-    </com.google.android.material.tabs.TabLayout>
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/wall" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/jobs" />
+
+        </com.google.android.material.tabs.TabLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/srlPosts"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:background="#FFFFFF"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tabs"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/appBar">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/main"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/card_post" />
 
@@ -125,16 +178,19 @@
         android:id="@+id/srlJobs"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
+        android:background="#FFFFFF"
         android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tabs"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/appBar">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/job"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/card_job" />
 

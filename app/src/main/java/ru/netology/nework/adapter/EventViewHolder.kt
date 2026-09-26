@@ -27,7 +27,7 @@ import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
-import ru.netology.nework.fragment.ProfileFragment.Companion.eventFragmentBundle
+import ru.netology.nework.fragment.ProfileFragment.Companion.profileFragmentBundle
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
@@ -159,8 +159,6 @@ class EventViewHolder(
 
             //TODO(Настроить)
             avatar.setOnClickListener {
-                onInteractionEventListener.onSaveAuthorId(event.authorId)
-
                 findNavController(it).navigate(
                     R.id.action_feedFragment_to_yourProfileFragment,
                     Bundle().apply {
@@ -168,9 +166,10 @@ class EventViewHolder(
 
                         if (event.ownedByMe) {
                             statusProfileFragment = YOUR
+                            profileFragmentBundle = gson.toJson(event.authorId)
                         } else {
                             statusProfileFragment = USER
-//                            eventFragmentBundle = gson.toJson(event.authorId)
+                            profileFragmentBundle = gson.toJson(event.authorId)
                         }
                     }
                 )

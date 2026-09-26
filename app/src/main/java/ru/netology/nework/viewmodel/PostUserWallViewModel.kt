@@ -53,6 +53,7 @@ class PostUserWallViewModel @Inject constructor(
         avatar = null
     )
     private val mediaObserver = MediaLifecycleObserver()
+    private var authorId = 0L
     private val _dataState = MutableStateFlow(FeedModelState())
     val dataState: Flow<FeedModelState>
         get() = _dataState
@@ -69,21 +70,14 @@ class PostUserWallViewModel @Inject constructor(
 //            }
 //        }
 
-    //TODO(Нужно ли здесь присваивание)
     val dataPostUserWall: Flow<List<Post>> = auth.authStateFlow
-        .flatMapLatest { (myId, _) ->
-            repository.data.map { listPost ->
-                listPost.map { post ->
-                    post.copy(ownedByMe = post.authorId == myId)
-                }
-            }
-        }
+        .flatMapLatest { repository.data }
 
 //    val dataUserWall: Flow<User> = auth.authStateFlow
 //        .flatMapLatest { userDao.getUserFlow(authorIdDao.getAuthorId().id).map { it.toUserDto() } }
 
     val dataUserWall: LiveData<User> = auth.authStateFlow
-        .flatMapLatest { userDao.getUserFlow(authorIdDao.getAuthorId().id).map { it.toUserDto() } }
+        .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
         .asLiveData(Dispatchers.IO)
 
     private val _errorWall403 = SingleLiveEvent<Unit>()
@@ -96,19 +90,21 @@ class PostUserWallViewModel @Inject constructor(
 
     private var oldPosts = emptyList<Post>()
 
-    init {
-        loadPosts()
-    }
+//    init {
+//        loadPosts()
+//    }
 
-    fun loadPosts() {
+    fun loadPosts(id: Long) {
         viewModelScope.launch {
             CoroutineScope(Dispatchers.IO).launch {
                 oldPosts = postUserWallDao.getAll().toPostUserWallDto()
             }
 
+            authorId = id
+
             try {
                 _dataState.value = FeedModelState(loading = true)
-                repository.getAll()
+                repository.getAll(id)
                 _dataState.value = FeedModelState()
             } catch (e: Exception) {
                 postUserWallDao.insertPosts(oldPosts.toPostUserWallEntity())
@@ -117,22 +113,22 @@ class PostUserWallViewModel @Inject constructor(
         }
     }
 
-    fun refreshPosts() {
-        viewModelScope.launch {
-            CoroutineScope(Dispatchers.IO).launch {
-                oldPosts = postUserWallDao.getAll().toPostUserWallDto()
-            }
-
-            try {
-                _dataState.value = FeedModelState(loading = true)
-                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                postUserWallDao.insertPosts(oldPosts.toPostUserWallEntity())
-                e.printStackTrace()
-            }
-        }
-    }
+//    fun refreshPosts() {
+//        viewModelScope.launch {
+//            CoroutineScope(Dispatchers.IO).launch {
+//                oldPosts = postUserWallDao.getAll().toPostUserWallDto()
+//            }
+//
+//            try {
+//                _dataState.value = FeedModelState(loading = true)
+//                repository.getAll()
+//                _dataState.value = FeedModelState()
+//            } catch (e: Exception) {
+//                postUserWallDao.insertPosts(oldPosts.toPostUserWallEntity())
+//                e.printStackTrace()
+//            }
+//        }
+//    }
 
     fun likeById(post: Post) {
         viewModelScope.launch {
@@ -143,7 +139,7 @@ class PostUserWallViewModel @Inject constructor(
             val postLikedByMe = oldPosts.find { it.id == post.id }?.likedByMe
             postUserWallDao.likeById(post.id, saveLikeOwnerIds(post))
             try {
-                repository.likeById(post.id, postLikedByMe)
+                repository.likeById(post.id, postLikedByMe, post.authorId)
             } catch (_: ErrorCode403) {
                 postUserWallDao.insertPosts(oldPosts.toPostUserWallEntity())
                 _errorWall403.value = Unit

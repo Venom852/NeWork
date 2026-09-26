@@ -102,4 +102,7 @@
     <string name="no_registration">У вас нет учетной записи? Зарегистрировать</string>
     <string name="pick_audio">Выберите аудио</string>
     <string name="pick_video">Выберите видео</string>
+    <string name="audio_added">Аудио добавлено</string>
+    <string name="video_added">Видео добавлено</string>
+    <string name="photo_added">Фото добавлено</string>
 </resources>

@@ -1,5 +1,6 @@
 package ru.netology.nework.fragment
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -33,6 +34,8 @@ import ru.netology.nework.adapter.OnInteractionJobListener
 import ru.netology.nework.adapter.PostAdapter
 import ru.netology.nework.adapter.PostLoadingStateAdapter
 import ru.netology.nework.auth.AppAuth
+import ru.netology.nework.dao.JobDao
+import ru.netology.nework.dao.PostUserWallDao
 import ru.netology.nework.dao.UserDao
 import ru.netology.nework.databinding.ConfirmationOfExitBinding
 import ru.netology.nework.databinding.FragmentProfileBinding
@@ -57,78 +60,29 @@ import javax.inject.Inject
 import kotlin.getValue
 
 @AndroidEntryPoint
+@SuppressLint("SetTextI18n")
 class ProfileFragment : Fragment() {
     @Inject
     lateinit var auth: AppAuth
     @Inject
     lateinit var userDao: UserDao
+    @Inject
+    lateinit var postUserWallDao: PostUserWallDao
+    @Inject
+    lateinit var jobDao: JobDao
 
     companion object {
         const val YOUR = "your"
         const val USER = "user"
         const val ALLOW = "allow"
         const val PROHIBIT = "prohibit"
-        var Bundle.userFragmentBundle by StringArg
-        var Bundle.postFragmentBundle by StringArg
-        var Bundle.eventFragmentBundle by StringArg
+        var Bundle.profileFragmentBundle by StringArg
         var Bundle.statusProfileFragment by StringArg
         var Bundle.statusPermissionToCross by StringArg
         var statusProfile = YOUR
         var permissionToCross = ALLOW
     }
 
-    //    private var post = Post(
-//        id = 0,
-//        author = "Me",
-//        authorId = 0,
-//        authorAvatar = null,
-//        authorJob = null,
-//        content = "",
-//        published = "",
-//        link = null,
-//        likedByMe = false,
-//        toShare = false,
-//        likes = 0,
-//        numberViews = 0,
-//        attachment = null,
-//        shared = 0,
-//        ownedByMe = false,
-//        mentionIds = emptySet(),
-//        coords = null,
-//        mentionedMe = false,
-//        likeOwnerIds = emptySet(),
-//        users = emptyMap(),
-//        playSong = false,
-//        playVideo = false
-//    )
-//    private var event = Event(
-//        id = 0,
-//        author = "Me",
-//        authorId = 0,
-//        authorAvatar = null,
-//        authorJob = null,
-//        content = "",
-//        published = "",
-//        datetime = "",
-//        type = null,
-//        link = null,
-//        likedByMe = false,
-//        toShare = false,
-//        likes = 0,
-//        participants = 0,
-//        numberViews = 0,
-//        attachment = null,
-//        shared = 0,
-//        ownedByMe = false,
-//        speakerIds = emptySet(),
-//        coords = null,
-//        participatedByMe = false,
-//        likeOwnerIds = emptySet(),
-//        participantsIds = emptySet(),
-//        users = emptyMap(),
-//        playSong = false,
-//        playVideo = false
-//    )
     private var user = User(
         id = 0,
         name = "",
@@ -158,39 +112,6 @@ class ProfileFragment : Fragment() {
         val dialog = BottomSheetDialog(requireContext())
         var conditionAdd = NEW_POST
 
-//        arguments?.userFragmentBundle?.let {
-//            user = gson.fromJson(it, User::class.java)
-//            authorId = gson.fromJson(it, Long::class.java)
-
-//            if (auth.authStateFlow.value.id != authorId) {
-//            viewModelPostUserWall.saveAuthorId(authorId)
-//            }
-
-//            arguments?.userFragmentBundle = null
-//        }
-
-//        arguments?.postFragmentBundle?.let {
-////            post = gson.fromJson(it, Post::class.java)
-//            authorId = gson.fromJson(it, Long::class.java)
-//
-////            if (auth.authStateFlow.value.id != authorId) {
-//            viewModelPostUserWall.saveAuthorId(authorId)
-////            }
-//
-//            arguments?.postFragmentBundle = null
-//        }
-
-//        arguments?.eventFragmentBundle?.let {
-////            event = gson.fromJson(it, Event::class.java)
-//            authorId = gson.fromJson(it, Long::class.java)
-//
-////            if (auth.authStateFlow.value.id != authorId) {
-//            viewModelPostUserWall.saveAuthorId(authorId)
-////            }
-//
-//            arguments?.eventFragmentBundle = null
-//        }
-
         arguments?.statusProfileFragment?.let {
             statusProfile = it
             privateStatusProfile = it
@@ -202,9 +123,18 @@ class ProfileFragment : Fragment() {
             arguments?.statusPermissionToCross = null
         }
 
-//        if (status == YOUR) {
-//            authorId = auth.authStateFlow.value.id
-//        }
+        arguments?.profileFragmentBundle?.let {
+            authorId = gson.fromJson(it, Long::class.java)
+
+            if (privateStatusProfile == YOUR) {
+                viewModelPostMyWall.loadPosts(authorId)
+            } else {
+                viewModelPostUserWall.loadPosts(authorId)
+                viewModelJob.loadJobs(authorId)
+            }
+
+            arguments?.profileFragmentBundle = null
+        }
 
         val postAdapter = PostAdapter(object : OnInteractionPostListener {
             override fun onLike(post: Post) {
@@ -291,12 +221,9 @@ class ProfileFragment : Fragment() {
             job.adapter = jobAdapter
 //            srlPosts.setOnRefreshListener(postAdapter::refresh)
 
-            //TODO(Можно ли использовать во фрагменте базу данных)
 //            CoroutineScope(Dispatchers.IO).launch {
 //                user = userDao.getUser(authorId).toUserDto()
 //            }
-
-//            viewModelPostUserWall.getUser(authorId)
 
 //            viewLifecycleOwner.lifecycleScope.launch {
 //                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -313,28 +240,31 @@ class ProfileFragment : Fragment() {
             } else {
                 viewModelPostUserWall.dataUserWall.observe(viewLifecycleOwner) {
                     user = it
+                    if (privateStatusProfile == USER) {
+                        fillingToolbar(binding)
+                    }
+
                 }
             }
 
+            if (privateStatusProfile == USER) {
+                fillingToolbar(binding)
+            }
+
             Glide.with(photo)
-                .load(user.avatar)
+                .load(user.avatar.toString())
                 .error(R.drawable.ic_error_24)
                 .timeout(10_000)
                 .into(photo)
 
-            if (privateStatusProfile == USER) {
-                toolbar.title = "${user.name}/${user.login}"
-                logOut.visibility = View.GONE
-                add.visibility = View.GONE
-            }
-
             back.setOnClickListener {
                 permissionToCross = ALLOW
 
-                //TODO(Проверить)
                 lifecycleScope.launch{
-                    viewModelPostUserWall.removeAuthorId()
+                    postUserWallDao.removeDao()
+                    jobDao.removeDao()
                 }
+
                 findNavController().navigateUp()
             }
 
@@ -373,17 +303,6 @@ class ProfileFragment : Fragment() {
                         srlPosts.visibility = View.GONE
                         srlJobs.visibility = View.VISIBLE
                     }
-//                    if (p0?.text.toString() == R.string.wall.toString()) {
-////                        applyInset(binding.main)
-//                        conditionAdd = NEW_POST
-//                        srlPosts.visibility = View.VISIBLE
-//                        srlJobs.visibility = View.GONE
-//                    } else {
-////                        applyInset(binding.job)
-//                        conditionAdd = NEW_JOB
-//                        srlPosts.visibility = View.GONE
-//                        srlJobs.visibility = View.VISIBLE
-//                    }
                 }
 
                 override fun onTabUnselected(p0: TabLayout.Tab?) = Unit
@@ -392,25 +311,11 @@ class ProfileFragment : Fragment() {
 
             })
 
-//            wallButton.setOnClickListener {
-//                applyInset(binding.main)
-//                conditionAdd = NEW_POST
-//                srlPosts.visibility = View.VISIBLE
-//                srlJobs.visibility = View.GONE
-//            }
-//
-//            jobsButton.setOnClickListener {
-//                applyInset(binding.job)
-//                conditionAdd = NEW_JOB
-//                srlPosts.visibility = View.GONE
-//                srlJobs.visibility = View.VISIBLE
-//            }
-
             srlPosts.setOnRefreshListener {
                 if (privateStatusProfile == YOUR) {
-                    viewModelPostMyWall.loadPosts()
+                    viewModelPostMyWall.loadPosts(authorId)
                 } else {
-                    viewModelPostUserWall.loadPosts()
+                    viewModelPostUserWall.loadPosts(authorId)
                 }
             }
 
@@ -418,7 +323,7 @@ class ProfileFragment : Fragment() {
                 if (privateStatusProfile == YOUR) {
                     viewModelMyJob.loadJobs()
                 } else {
-                    viewModelJob.loadJobs()
+                    viewModelJob.loadJobs(authorId)
                 }
             }
         }
@@ -469,12 +374,12 @@ class ProfileFragment : Fragment() {
                 if (privateStatusProfile == YOUR) {
                     viewModelPostMyWall.dataState.collectLatest { state ->
                         binding.progress.isVisible = state.loading
-                        binding.srlJobs.isRefreshing = state.refreshing
+                        binding.srlPosts.isRefreshing = state.refreshing
                     }
                 } else {
                     viewModelPostUserWall.dataState.collectLatest { state ->
                         binding.progress.isVisible = state.loading
-                        binding.srlJobs.isRefreshing = state.refreshing
+                        binding.srlPosts.isRefreshing = state.refreshing
                     }
                 }
             }
@@ -536,6 +441,14 @@ class ProfileFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    private fun fillingToolbar(binding: FragmentProfileBinding) {
+        with(binding){
+            title.text = "${user.name}/${user.login}"
+            logOut.visibility = View.GONE
+            add.visibility = View.GONE
+        }
     }
 
     private fun applyInset(main: View) {

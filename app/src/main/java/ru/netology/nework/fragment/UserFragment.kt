@@ -42,6 +42,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import ru.netology.nework.auth.AppAuth
 import ru.netology.nework.dao.UserDao
+import ru.netology.nework.fragment.NewPostFragment.Companion.listIdUsersFragment
+import ru.netology.nework.fragment.NewPostFragment.Companion.listMapUsersFragment
 import ru.netology.nework.viewmodel.PostUserWallViewModel
 import java.lang.reflect.Type
 import javax.inject.Inject
@@ -73,8 +75,7 @@ class UserFragment : Fragment() {
 
     private val gson = Gson()
     private val listUsers = mutableListOf<User>()
-//    var dataListUser = flowOf<List<User>>()
-    var dataListUserFragment = emptyList<User>()
+    private var users = listOf<Long>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -91,7 +92,6 @@ class UserFragment : Fragment() {
 
         val listIdUsers = mutableSetOf<Long>()
         val listMapUsers = mutableMapOf<Long, UserPreview>()
-//        val typeToken = TypeToken.getParameterized(List::class.java, Long::class.java).type
         val typeToken: Type = object : TypeToken<List<Long>>() {}.type
 
         applyInset(binding.cardUser)
@@ -119,26 +119,7 @@ class UserFragment : Fragment() {
         }
 
         arguments?.userBundleFragment?.let {
-            val users: List<Long> = gson.fromJson(it, typeToken)
-//            val listString = it.split(',')
-//            val listLong = mutableListOf<Long>()
-//
-//            listString.forEach { number ->
-//                listLong.add(number.toLong())
-//            }
-
-            viewModelUser.saveUsers(users)
-
-//            CoroutineScope(Dispatchers.IO).launch {
-//                users.forEach { long ->
-////                    async {
-//                        listUsers.add(userDao.getUser(long).toUserDto())
-////                    }.await()
-//                }
-//            }
-//
-//            dataListUserFragment = listUsers.toList()
-
+            users = gson.fromJson(it, typeToken)
             arguments?.userBundleFragment = null
         }
 
@@ -170,16 +151,7 @@ class UserFragment : Fragment() {
         with(binding) {
             cardUser.adapter = userAdapter
 
-            //TODO(Настроить)
             back.setOnClickListener {
-//                CoroutineScope(Dispatchers.IO).launch {
-//                    userListDao.removeUsers()
-//                }
-
-//                lifecycleScope.launch{
-//                    viewModelUser.removeUsers()
-//                }
-
                 findNavController().navigateUp()
             }
 
@@ -205,6 +177,12 @@ class UserFragment : Fragment() {
                 }
 
                 findNavController().navigateUp()
+//                findNavController().navigate(
+//                    R.id.action_userFragment_to_newPostFragment,
+//                    Bundle().apply {
+//                    listIdUsersFragment = gson.toJson(listIdUsers)
+//                    listMapUsersFragment = gson.toJson(listMapUsers)
+//                })
             }
 
             srlUsers.setOnRefreshListener {
@@ -218,7 +196,6 @@ class UserFragment : Fragment() {
             }
         }
 
-        //TODO(Настроить)
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 if (status == CHOOSING_MENTIONED_USER_POST ||
@@ -226,22 +203,19 @@ class UserFragment : Fragment() {
                     status == CHOOSING_SPEAKERS_USER) {
                     viewModelUser.dataUser.collectLatest(userAdapter::submitList)
                 } else {
-//                    viewModelUser.dataListUser.collectLatest(userAdapter::submitList)
-//                    dataListUser.collectLatest(userAdapter::submitList)
-//                    dataListUserFragment = listUsers.toList()
-//                    userAdapter.submitList(dataListUserFragment)
-                }
-//                when (status) {
-//                    CHOOSING_MENTIONED_USER_POST, CHOOSING_MENTIONED_USER_WALL, CHOOSING_SPEAKERS_USER ->
-//                        viewModelUser.dataUser.collectLatest(userAdapter::submitList)
-//
-//                    else -> viewModelUser.dataListUser.collectLatest(userAdapter::submitList)
-//                }
-            }
-        }
+                    viewModelUser.dataUser.collectLatest {list ->
+                        users.forEach {userId->
+                            list.forEach {
+                                if (it.id == userId) {
+                                    listUsers.add(it)
+                                }
+                            }
+                        }
 
-        viewModelUser.dataListUser.observe(viewLifecycleOwner) {
-            userAdapter.submitList(it)
+                        userAdapter.submitList(listUsers)
+                    }
+                }
+            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {

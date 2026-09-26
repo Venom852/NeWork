@@ -61,7 +61,7 @@ import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
-import ru.netology.nework.fragment.ProfileFragment.Companion.eventFragmentBundle
+import ru.netology.nework.fragment.ProfileFragment.Companion.profileFragmentBundle
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.PARTICIPANTS
@@ -199,8 +199,6 @@ class EventFragment : Fragment() {
 
             //TODO(Настроить)
             avatar.setOnClickListener {
-                viewModelPostUserWall.saveAuthorId(event.authorId)
-
                 findNavController().navigate(
                     R.id.action_eventFragment2_to_yourProfileFragment,
                     Bundle().apply {
@@ -208,9 +206,10 @@ class EventFragment : Fragment() {
 
                         if (event.ownedByMe) {
                             statusProfileFragment = YOUR
+                            profileFragmentBundle = gson.toJson(event.authorId)
                         } else {
                             statusProfileFragment = USER
-//                            eventFragmentBundle = gson.toJson(event.authorId)
+                            profileFragmentBundle = gson.toJson(event.authorId)
                         }
                     }
                 )
@@ -247,53 +246,32 @@ class EventFragment : Fragment() {
                 findNavController().navigateUp()
             }
 
-            //TODO(Настроить)
             listSpeakers.setOnClickListener {
-//                event.speakerIds.forEach {
-//                    listUsers = "$listUsers$it,"
-//                }
-
-//                viewModelUser.saveUsers(event.speakerIds)
-
                 findNavController().navigate(
                     R.id.action_eventFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = SPEAKERS
-//                        userBundleFragment = gson.toJson(listUsers)
+                        userBundleFragment = gson.toJson(event.speakerIds.toList())
                     }
                 )
             }
 
-            //TODO(Настроить)
             listLikeUsers.setOnClickListener {
-//                event.likeOwnerIds.forEach {
-//                    listUsers = "$listUsers$it,"
-//                }
-
-//                viewModelUser.saveUsers(event.likeOwnerIds)
-
                 findNavController().navigate(
                     R.id.action_eventFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = LIKE
-//                        userBundleFragment = gson.toJson(listUsers)
+                        userBundleFragment = gson.toJson(event.likeOwnerIds.toList())
                     }
                 )
             }
 
-            //TODO(Настроить)
             listParticipants.setOnClickListener {
-//                event.participantsIds.forEach {
-//                    listUsers = "$listUsers$it,"
-//                }
-
-//                viewModelUser.saveUsers(event.participantsIds)
-
                 findNavController().navigate(
                     R.id.action_eventFragment2_to_userFragment,
                     Bundle().apply {
                         statusUserFragment = PARTICIPANTS
-//                        userBundleFragment = gson.toJson(listUsers)
+                        userBundleFragment = gson.toJson(event.participantsIds.toList())
                     }
                 )
             }

@@ -26,7 +26,7 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalPagingApi::class, ExperimentalTime::class)
 class PostUserWallRepositoryImpl @Inject constructor(
     private val dao: PostUserWallDao,
-    private val authorIdDao: AuthorIdDao,
+//    private val authorIdDao: AuthorIdDao,
     private val apiService: ApiService,
 //    appDb: AppDb,
 //    postUserWallRemoteKeyDao: PostUserWallRemoteKeyDao,
@@ -39,19 +39,19 @@ class PostUserWallRepositoryImpl @Inject constructor(
 //        it.map(PostUserWallEntity::toPostUserWallDto)
 //    }
 
-    var authorId = 0L
+//    private var authorId = 0L
 
     override val data: Flow<List<Post>> = dao.getAllFlow().map { it.toPostUserWallDto() }
 
-    override suspend fun getAll() {
+    override suspend fun getAll(authorId: Long) {
         try {
-            val job = CoroutineScope(Dispatchers.IO).launch {
-                authorId = authorIdDao.getAuthorId().id
-            }
+//            val job = CoroutineScope(Dispatchers.IO).launch {
+//                authorId = authorIdDao.getAuthorId().id
+//            }
+//
+//            job.join()
 
-            job.join()
-
-            print(authorId)
+//            print(authorId)
             val response = apiService.getAllWallPosts(authorId)
 
             if (response.isSuccessful) {
@@ -73,13 +73,13 @@ class PostUserWallRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun likeById(id: Long, postLikedByMe: Boolean?) {
+    override suspend fun likeById(id: Long, postLikedByMe: Boolean?, authorId: Long) {
         try {
-            val job = CoroutineScope(Dispatchers.IO).launch {
-                authorId = authorIdDao.getAuthorId().id
-            }
-
-            job.join()
+//            val job = CoroutineScope(Dispatchers.IO).launch {
+//                authorId = authorIdDao.getAuthorId().id
+//            }
+//
+//            job.join()
 
             if (postLikedByMe != null && !postLikedByMe) {
                 val response = apiService.likeByIdWallPost(authorId, id)

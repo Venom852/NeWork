@@ -17,9 +17,9 @@ import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USE
 import ru.netology.nework.fragment.UserFragment.Companion.status
 import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.profileFragmentBundle
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
-import ru.netology.nework.fragment.ProfileFragment.Companion.userFragmentBundle
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_WALL
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_SPEAKERS_USER
 import ru.netology.nework.fragment.UserFragment.Companion.LIKE
@@ -79,51 +79,6 @@ class UserViewHolder(
 
             userConstraint.setOnClickListener {
                 //TODO(Настроить)
-//                if (status == CHOOSING_MENTIONED_USER_POST || status == CHOOSING_SPEAKERS_USER
-//                    || status == CHOOSING_MENTIONED_USER_WALL || status == LIKE
-//                    || status == MENTIONED || status == PARTICIPANTS || status == SPEAKERS) {
-//
-//                    if (user.name == "Me") {
-//                        onInteractionUserListener.onSaveAuthorId(user.id)
-//
-//                        findNavController(it).navigate(
-//                            R.id.action_userFragment_to_yourProfileFragment,
-//                            Bundle().apply {
-//                                statusProfileFragment = YOUR
-//                            })
-//                    } else {
-//                        onInteractionUserListener.onSaveAuthorId(user.id)
-//
-//                        findNavController(it).navigate(
-//                            R.id.action_userFragment_to_yourProfileFragment,
-//                            Bundle().apply {
-////                                userFragmentBundle = gson.toJson(user.id)
-//                                statusProfileFragment = USER
-//                            })
-//                    }
-//                } else {
-//                    if (user.name == "Me") {
-//                        onInteractionUserListener.onSaveAuthorId(user.id)
-//
-//                        findNavController(it).navigate(
-//                            R.id.action_feedFragment_to_yourProfileFragment,
-//                            Bundle().apply {
-//                                statusProfileFragment = YOUR
-//                            })
-//                    } else {
-//                        onInteractionUserListener.onSaveAuthorId(user.id)
-//
-//                        findNavController(it).navigate(
-//                            R.id.action_feedFragment_to_yourProfileFragment,
-//                            Bundle().apply {
-////                                userFragmentBundle = gson.toJson(user.id)
-//                                statusProfileFragment = USER
-//                            })
-//                    }
-//                }
-
-                onInteractionUserListener.onSaveAuthorId(user.id)
-
                 if (status == CHOOSING_MENTIONED_USER_POST || status == CHOOSING_SPEAKERS_USER
                     || status == CHOOSING_MENTIONED_USER_WALL || status == LIKE
                     || status == MENTIONED || status == PARTICIPANTS || status == SPEAKERS) {
@@ -135,8 +90,10 @@ class UserViewHolder(
 
                             if (user.name == "Me123") {
                                 statusProfileFragment = YOUR
+                                profileFragmentBundle = gson.toJson(user.id)
                             } else {
                                 statusProfileFragment = USER
+                                profileFragmentBundle = gson.toJson(user.id)
                             }
                         })
                 } else {
@@ -147,8 +104,10 @@ class UserViewHolder(
 
                             if (user.name == "Me123") {
                                 statusProfileFragment = YOUR
+                                profileFragmentBundle = gson.toJson(user.id)
                             } else {
                                 statusProfileFragment = USER
+                                profileFragmentBundle = gson.toJson(user.id)
                             }
                         })
                 }

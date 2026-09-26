@@ -42,11 +42,13 @@ import com.yandex.mapkit.mapview.MapView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netology.nework.BuildConfig
 import ru.netology.nework.dao.PostDao
 import ru.netology.nework.dao.UserDao
+import ru.netology.nework.dao.UserListDao
 import ru.netology.nework.databinding.AuthorizationDialogBoxBinding
 import ru.netology.nework.dto.Post
 import ru.netology.nework.dto.User
@@ -65,7 +67,7 @@ import ru.netology.nework.fragment.ProfileFragment.Companion.USER
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.permissionToCross
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
-import ru.netology.nework.fragment.ProfileFragment.Companion.postFragmentBundle
+import ru.netology.nework.fragment.ProfileFragment.Companion.profileFragmentBundle
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.MENTIONED
@@ -88,6 +90,7 @@ import kotlin.getValue
 class PostFragment : Fragment() {
     @Inject
     lateinit var postDao: PostDao
+
     @Inject
     lateinit var userDao: UserDao
 
@@ -145,13 +148,11 @@ class PostFragment : Fragment() {
             AuthorizationDialogBoxBinding.inflate(layoutInflater, container, false)
 
         val viewModel: PostViewModel by activityViewModels()
-        val viewModelUser: UserViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
         val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
-        var listUsers = ""
 
         arguments?.postBundle?.let {
             post = gson.fromJson(it, Post::class.java)
@@ -186,8 +187,6 @@ class PostFragment : Fragment() {
             //TODO(Настроить)
             avatar.setOnClickListener {
                 if (permissionToCross == ALLOW) {
-                    viewModelPostUserWall.saveAuthorId(post.authorId)
-
                     findNavController().navigate(
                         R.id.action_postFragment2_to_yourProfileFragment,
                         Bundle().apply {
@@ -195,9 +194,10 @@ class PostFragment : Fragment() {
 
                             if (post.ownedByMe) {
                                 statusProfileFragment = YOUR
+                                profileFragmentBundle = gson.toJson(post.authorId)
                             } else {
                                 statusProfileFragment = USER
-//                            postFragmentBundle = gson.toJson(post.authorId)
+                                profileFragmentBundle = gson.toJson(post.authorId)
                             }
                         }
                     )
@@ -235,18 +235,7 @@ class PostFragment : Fragment() {
                 findNavController().navigateUp()
             }
 
-            //TODO(Настроить)
             listLikeUsers.setOnClickListener {
-//                post.likeOwnerIds.forEach {
-//                    if (listUsers.isEmpty()) {
-//                        listUsers = it.toString()
-//                    }
-//
-//                    listUsers = "$listUsers,$it"
-//                }
-
-//                viewModelUser.saveUsers(post.likeOwnerIds)
-
                 findNavController().navigate(
                     R.id.action_postFragment2_to_userFragment,
                     Bundle().apply {
@@ -256,18 +245,7 @@ class PostFragment : Fragment() {
                 )
             }
 
-            //TODO(Настроить)
             listMentionedUsers.setOnClickListener {
-//                post.mentionIds.forEach {
-//                    if (listUsers.isEmpty()) {
-//                        listUsers = it.toString()
-//                    }
-//
-//                    listUsers = "$listUsers,$it"
-//                }
-
-//                viewModelUser.saveUsers(post.mentionIds)
-
                 findNavController().navigate(
                     R.id.action_postFragment2_to_userFragment,
                     Bundle().apply {

@@ -2,6 +2,7 @@ package ru.netology.nework.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,29 +35,16 @@ import ru.netology.nework.repository.UserRepository
 class UserViewModel @Inject constructor(
     private val repository: UserRepository,
     private val userDao: UserDao,
-    private val userListDao: UserListDao,
     auth: AppAuth,
 ) : ViewModel() {
-//    var empty = User(
-//        id = 0,
-//        name = "",
-//        login = "",
-//        avatar = null
-//    )
-
     val dataUser: Flow<List<User>> = auth.authStateFlow
         .flatMapLatest { repository.data }
-//    var dataListUser = userListDao.getAllFlow().map { it.toUserListDto() }
-//    var dataListUser = auth.authStateFlow
-//    .flatMapLatest { flow<List<User>> { listUsers.toList() } }
-    var dataListUser = liveData<List<User>> {  }
 
     private val _dataState = MutableStateFlow(FeedModelState())
     val dataState: Flow<FeedModelState>
         get() = _dataState
 
     private var oldUsers = emptyList<User>()
-    private val listUsers = mutableListOf<User>()
 
     init {
         loadUsers()
@@ -65,9 +53,9 @@ class UserViewModel @Inject constructor(
     fun loadUsers() {
         viewModelScope.launch {
             try {
-//                CoroutineScope(Dispatchers.IO).launch {
-//                    oldUsers = userDao.getAllUser().toUserDto()
-//                }
+                CoroutineScope(Dispatchers.IO).launch {
+                    oldUsers = userDao.getAllUser().toUserDto()
+                }
 
                 _dataState.value = FeedModelState(loading = true)
                 repository.getAll()
@@ -82,9 +70,9 @@ class UserViewModel @Inject constructor(
     fun refreshUsers() {
         viewModelScope.launch {
             try {
-//                CoroutineScope(Dispatchers.IO).launch {
-//                    oldUsers = userDao.getAllUser().toUserDto()
-//                }
+                CoroutineScope(Dispatchers.IO).launch {
+                    oldUsers = userDao.getAllUser().toUserDto()
+                }
 
                 _dataState.value = FeedModelState(refreshing = true)
                 repository.getAll()
@@ -93,33 +81,6 @@ class UserViewModel @Inject constructor(
                 userDao.insertUsers(oldUsers.toUserEntity())
                 e.printStackTrace()
             }
-        }
-    }
-
-    fun saveUsers(users: List<Long>) {
-        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-            val job = CoroutineScope(Dispatchers.IO).launch {
-                users.forEach {
-                    listUsers.add(userDao.getUser(it).toUserDto())
-                }
-            }
-
-            job.join()
-
-            dataListUser = liveData<List<User>> { listUsers.toList()}
-//                userListDao.insertUsers(listUsers.toUserListEntity())
-//                val f = flow<List<User>> { listUsers.toList() }
-//                val s = listUsers.toList()
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-        }
-    }
-
-    fun removeUsers() {
-        viewModelScope.launch {
-            userListDao.removeUsers()
         }
     }
 }

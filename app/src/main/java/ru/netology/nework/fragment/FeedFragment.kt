@@ -34,6 +34,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.LoadState
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -52,6 +53,7 @@ import ru.netology.nework.fragment.NewPostFragment.Companion.EDITING_NEW_POST
 import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
+import ru.netology.nework.fragment.ProfileFragment.Companion.profileFragmentBundle
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_POST
@@ -95,6 +97,7 @@ class FeedFragment : Fragment() {
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
         var conditionAdd = NEW_POST
+        val gson = Gson()
 
         lifecycle.addObserver(mediaObserver)
 
@@ -331,13 +334,12 @@ class FeedFragment : Fragment() {
                             R.id.yourProfile -> {
                                 //TODO(Нужна ли здесь проверка авторизации?)
                                 if (authorization) {
-                                    viewModelPostUserWall.saveAuthorId(auth.authStateFlow.value.id)
-
                                     findNavController().navigate(
                                         R.id.action_feedFragment_to_yourProfileFragment,
                                         Bundle().apply {
                                             statusPermissionToCross = PROHIBIT
                                             statusProfileFragment = YOUR
+                                            profileFragmentBundle = gson.toJson(auth.authStateFlow.value.id)
                                         }
                                     )
                                 } else {

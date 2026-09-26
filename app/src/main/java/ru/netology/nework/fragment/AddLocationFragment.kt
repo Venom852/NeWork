@@ -96,7 +96,7 @@ class AddLocationFragment : Fragment() {
             }
 
             save.setOnClickListener {
-                when (status) {
+                when (statusFragment) {
                     POST -> {
                         Toast.makeText(requireContext(), R.string.coordinates_added, Toast.LENGTH_SHORT).show()
                         viewModelPost.addLocation(listPoint.first())

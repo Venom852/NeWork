@@ -131,6 +131,7 @@ class PostViewModel @Inject constructor(
 
     private var oldPost = empty
     private var oldPosts = emptyList<Post>()
+    var statusMedia = false
     var listMentionedUser = emptySet<Long>()
     var listMapUser = emptyMap<Long, UserPreview>()
     var coordinates = Coordinates(lat = 0.0, long = 0.0)
@@ -217,7 +218,7 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun saveContent(content: String) {
+    fun saveContent(content: String, listIdUsers: Set<Long>? = null, listMapUsers: Map<Long, UserPreview>? = null) {
         edited.value?.let { newPost ->
             //TODO(Нужно ли заключить весь код в корутину)
             viewModelScope.launch {
@@ -228,13 +229,19 @@ class PostViewModel @Inject constructor(
                 val data = ZonedDateTime.now().toString()
                 var postServer = empty
                 var post = newPost.copy(
-//                    published = "${data.dayOfMonth}.${data.monthValue}.${data.year} ${data.hour}:${data.minute}",
-//                    published = data,
+                    published = data,
                     content = content,
                     ownedByMe = true
                 )
 
-                if (!listMentionedUser.isEmpty() && !listMapUser.isEmpty()) {
+//                if (listIdUsers != null && listMapUsers != null) {
+//                    post = newPost.copy(
+//                        mentionIds = listIdUsers,
+//                        users = listMapUsers
+//                    )
+//                }
+
+                if (!listMentionedUser.isEmpty() || !listMapUser.isEmpty()) {
                     post = newPost.copy(
                         mentionIds = listMentionedUser,
                         users = listMapUser
@@ -250,9 +257,23 @@ class PostViewModel @Inject constructor(
                 _postCreated.value = Unit
 
                 try {
-                    when (_media.value) {
-                        noMedia -> postServer = repository.save(post)
-                        else -> _media.value?.file?.let { file ->
+//                    when (_media.value) {
+//                        noMedia -> postServer = repository.save(post)
+//                        else -> _media.value?.file?.let { file ->
+//                            _media.value?.attachmentType?.let { attachmentType ->
+//                                postServer = repository.saveWithAttachment(
+//                                    post,
+//                                    MediaUpload(file),
+//                                    attachmentType
+//                                )
+//                            }
+//                        }
+//                    }
+
+                    if (!statusMedia) {
+                        postServer = repository.save(post)
+                    } else {
+                        _media.value?.file?.let { file ->
                             _media.value?.attachmentType?.let { attachmentType ->
                                 postServer = repository.saveWithAttachment(
                                     post,
@@ -262,6 +283,7 @@ class PostViewModel @Inject constructor(
                             }
                         }
                     }
+
 
                     if (post.id == 0L) {
 //                    oldPost = oldPosts.first()
@@ -281,6 +303,7 @@ class PostViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
+                        statusMedia = false
                     }
                 } catch (_: ErrorCode403) {
 //                    dao.insertPosts(oldPosts.toPostEntity())
@@ -314,8 +337,9 @@ class PostViewModel @Inject constructor(
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
+        statusMedia = true
         //TODO(Проверить нужно ли здесь)
-        _media.value = MediaModel(null, null, attachmentType)
+//        _media.value = MediaModel(null, null, attachmentType)
         _media.value = MediaModel(uri, file, attachmentType)
     }
 

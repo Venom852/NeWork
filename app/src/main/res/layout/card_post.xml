@@ -178,14 +178,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_16dp"
-            android:layout_marginEnd="304dp"
             android:checkable="true"
             android:contentDescription="@string/play"
             android:padding="@dimen/_0dp"
             app:icon="@drawable/ic_play_selector"
             app:iconSize="65dp"
             app:iconTint="#000000"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/imageContent" />
 

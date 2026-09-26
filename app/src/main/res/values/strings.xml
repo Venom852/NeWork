@@ -125,4 +125,7 @@
     <string name="no_registration">Don\'t have an account? Register</string>
     <string name="pick_audio">Pick audio</string>
     <string name="pick_video">Pick video</string>
+    <string name="audio_added">Audio added</string>
+    <string name="video_added">Video added</string>
+    <string name="photo_added">Photo added</string>
 </resources>
