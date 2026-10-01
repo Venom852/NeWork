@@ -44,7 +44,7 @@ class PostUserWallViewModel @Inject constructor(
     private val postUserWallDao: PostUserWallDao,
     private val authorIdDao: AuthorIdDao,
     private val userDao: UserDao,
-    auth: AppAuth,
+    val auth: AppAuth,
 ) : ViewModel() {
     private var user = User(
         id = 0,
@@ -58,27 +58,28 @@ class PostUserWallViewModel @Inject constructor(
     val dataState: Flow<FeedModelState>
         get() = _dataState
 //    private val cachedPost: Flow<PagingData<Post>> = repository
-//        .data
+//        .getData(authorId)
 //        .cachedIn(viewModelScope)
 //
-//    val dataUserWall: Flow<PagingData<Post>> = auth.authStateFlow
+//    val dataPostUserWall: Flow<PagingData<Post>> = auth.authStateFlow
 //        .flatMapLatest { (myId, _) ->
-//            cachedPost.map { pagingData ->
-//                pagingData.map { post ->
-//                    post.copy(ownedByMe = post.authorId == myId)
-//                }
-//            }
+//            cachedPost
+////                .map { pagingData ->
+////                pagingData.map { post ->
+////                    post.copy(ownedByMe = post.authorId == myId)
+////                }
+////            }
 //        }
 
-    val dataPostUserWall: Flow<List<Post>> = auth.authStateFlow
-        .flatMapLatest { repository.data }
+//    val dataPostUserWall: Flow<List<Post>> = auth.authStateFlow
+//        .flatMapLatest { repository.data }
 
 //    val dataUserWall: Flow<User> = auth.authStateFlow
 //        .flatMapLatest { userDao.getUserFlow(authorIdDao.getAuthorId().id).map { it.toUserDto() } }
 
-    val dataUserWall: LiveData<User> = auth.authStateFlow
-        .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
-        .asLiveData(Dispatchers.IO)
+//    val dataUserWall: LiveData<User> = auth.authStateFlow
+//        .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
+//        .asLiveData(Dispatchers.IO)
 
     private val _errorWall403 = SingleLiveEvent<Unit>()
     val errorWall403: LiveData<Unit>
@@ -92,6 +93,29 @@ class PostUserWallViewModel @Inject constructor(
 
 //    init {
 //        loadPosts()
+//    }
+
+    fun cachedPost(authorId: Long): Flow<PagingData<Post>> = repository
+        .getData(authorId)
+        .cachedIn(viewModelScope)
+
+    fun dataPostUserWall(authorId: Long): Flow<PagingData<Post>> = auth.authStateFlow
+        .flatMapLatest { (myId, _) ->
+            cachedPost(authorId)
+//                .map { pagingData ->
+//                pagingData.map { post ->
+//                    post.copy(ownedByMe = post.authorId == myId)
+//                }
+//            }
+        }
+
+    fun dataUserWall(authorId: Long): LiveData<User> = auth.authStateFlow
+        .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
+        .asLiveData(Dispatchers.IO)
+
+//    fun initializeAuthorId(id: Long) {
+//        authorId = id
+//        repository.initializeAuthorIdRep(id)
 //    }
 
     fun loadPosts(id: Long) {

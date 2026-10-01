@@ -89,27 +89,27 @@ class EventViewModel @Inject constructor(
     private val _dataState = MutableStateFlow(FeedModelState())
     val dataState: Flow<FeedModelState>
         get() = _dataState
-//    private val cachedPost: Flow<PagingData<Event>> = eventRepository
-//        .data
-//        .cachedIn(viewModelScope)
-//
-//    val dataEvent: Flow<PagingData<Event>> = auth.authStateFlow
-//        .flatMapLatest { (myId, _) ->
-//            cachedPost.map { pagingData ->
-//                pagingData.map { event ->
-//                    event.copy(ownedByMe = event.authorId == myId)
-//                }
-//            }
-//        }
+    private val cachedPost: Flow<PagingData<Event>> = eventRepository
+        .data
+        .cachedIn(viewModelScope)
 
-    val dataEvent: Flow<List<Event>> = auth.authStateFlow
+    val dataEvent: Flow<PagingData<Event>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            eventRepository.data.map { listEvent ->
-                listEvent.map { event ->
+            cachedPost.map { pagingData ->
+                pagingData.map { event ->
                     event.copy(ownedByMe = event.authorId == myId)
                 }
             }
         }
+
+//    val dataEvent: Flow<List<Event>> = auth.authStateFlow
+//        .flatMapLatest { (myId, _) ->
+//            eventRepository.data.map { listEvent ->
+//                listEvent.map { event ->
+//                    event.copy(ownedByMe = event.authorId == myId)
+//                }
+//            }
+//        }
 
     val edited = MutableLiveData(empty)
 

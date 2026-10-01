@@ -41,18 +41,18 @@ import kotlin.time.ExperimentalTime
 class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
     private val apiService: ApiService,
-//    appDb: AppDb,
-//    postRemoteKeyDao: PostRemoteKeyDao,
+    appDb: AppDb,
+    postRemoteKeyDao: PostRemoteKeyDao,
 ) : PostRepository {
-//    override val data: Flow<PagingData<Post>> = Pager(
-//        config = PagingConfig(pageSize = 5, enablePlaceholders = true),
-//        pagingSourceFactory = { dao.getPagingSource() },
-//        remoteMediator = PostRemoteMediator(apiService, appDb, dao, postRemoteKeyDao)
-//    ).flow.map {
-//        it.map(PostEntity::toPostDto)
-//    }
+    override val data: Flow<PagingData<Post>> = Pager(
+        config = PagingConfig(pageSize = 5, enablePlaceholders = true),
+        pagingSourceFactory = { dao.getPagingSource() },
+        remoteMediator = PostRemoteMediator(apiService, appDb, dao, postRemoteKeyDao)
+    ).flow.map {
+        it.map(PostEntity::toPostDto)
+    }
 
-    override val data: Flow<List<Post>> = dao.getAllFlow().map { it.toPostDto() }
+//    override val data: Flow<List<Post>> = dao.getAllFlow().map { it.toPostDto() }
 
     override suspend fun getAll() {
         try {

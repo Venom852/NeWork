@@ -53,13 +53,12 @@ class PostViewModel @Inject constructor(
     auth: AppAuth,
 ) : ViewModel() {
     var empty = Post(
-        id = 0,
+        id = 0L,
         author = "Me123",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
         content = "",
-        //TODO(Сделать везде дату)
         published = "",
         link = null,
         likedByMe = false,
@@ -85,27 +84,27 @@ class PostViewModel @Inject constructor(
     val dataState: Flow<FeedModelState>
         get() = _dataState
 
-//    private val cachedPost: Flow<PagingData<Post>> = repository
-//        .data
-//        .cachedIn(viewModelScope)
-//
-//    val dataPost: Flow<PagingData<Post>> = auth.authStateFlow
-//        .flatMapLatest { (myId, _) ->
-//            cachedPost.map { pagingData ->
-//                pagingData.map { post ->
-//                    post.copy(ownedByMe = post.authorId == myId)
-//                }
-//            }
-//        }
+    private val cachedPost: Flow<PagingData<Post>> = repository
+        .data
+        .cachedIn(viewModelScope)
 
-    val dataPost: Flow<List<Post>> = auth.authStateFlow
+    val dataPost: Flow<PagingData<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            repository.data.map { listPost ->
-                listPost.map { post ->
+            cachedPost.map { pagingData ->
+                pagingData.map { post ->
                     post.copy(ownedByMe = post.authorId == myId)
                 }
             }
         }
+
+//    val dataPost: Flow<List<Post>> = auth.authStateFlow
+//        .flatMapLatest { (myId, _) ->
+//            repository.data.map { listPost ->
+//                listPost.map { post ->
+//                    post.copy(ownedByMe = post.authorId == myId)
+//                }
+//            }
+//        }
 
     val edited = MutableLiveData(empty)
 
@@ -136,9 +135,9 @@ class PostViewModel @Inject constructor(
     var listMapUser = emptyMap<Long, UserPreview>()
     var coordinates = Coordinates(lat = 0.0, long = 0.0)
 
-    init {
-        loadPosts()
-    }
+//    init {
+//        loadPosts()
+//    }
 
     fun loadPosts() {
         viewModelScope.launch {
@@ -226,7 +225,7 @@ class PostViewModel @Inject constructor(
                     oldPosts = dao.getAll().toPostDto()
                 }
 
-                val data = ZonedDateTime.now().toString()
+                val data = Instant.now().toString()
                 var postServer = empty
                 var post = newPost.copy(
                     published = data,
@@ -242,7 +241,7 @@ class PostViewModel @Inject constructor(
 //                }
 
                 if (!listMentionedUser.isEmpty() || !listMapUser.isEmpty()) {
-                    post = newPost.copy(
+                    post = post.copy(
                         mentionIds = listMentionedUser,
                         users = listMapUser
                     )
@@ -316,7 +315,7 @@ class PostViewModel @Inject constructor(
 //                    dao.insertPosts(oldPosts.toPostEntity())
                     _errorPost415.value = Unit
                     if (post.id == 0L && _media.value == noMedia) {
-                        dao.removeById(oldPost.id)
+                        dao.removeById(0L)
                         return@launch
                     } else dao.insertPosts(oldPosts.toPostEntity())
                 } catch (e: Exception) {

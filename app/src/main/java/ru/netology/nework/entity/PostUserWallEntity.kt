@@ -18,7 +18,7 @@ data class PostUserWallEntity(
     val authorAvatar: String?,
     val authorJob: String?,
     val content: String,
-    val published: String?,
+    val published: String,
     val link: String?,
     val likedByMe: Boolean,
     val toShare: Boolean,

@@ -92,7 +92,11 @@ class PostMyWallRemoteMediator(
                         )
                     )
                 }
-                postMyWallDao.insertPosts(body.toPostMyWallEntity())
+                postMyWallDao.insertPosts(body.map {
+                    it.copy(
+                        likes = it.likeOwnerIds.count().toLong()
+                    )
+                }.toPostMyWallEntity())
             }
             return MediatorResult.Success(endOfPaginationReached = false)
         } catch (e: Exception) {

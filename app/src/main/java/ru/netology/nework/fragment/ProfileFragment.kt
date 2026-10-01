@@ -127,9 +127,11 @@ class ProfileFragment : Fragment() {
             authorId = gson.fromJson(it, Long::class.java)
 
             if (privateStatusProfile == YOUR) {
-                viewModelPostMyWall.loadPosts(authorId)
+//                viewModelPostMyWall.loadPosts(authorId)
+//                viewModelPostMyWall.initializeAuthorId(authorId)
             } else {
-                viewModelPostUserWall.loadPosts(authorId)
+//                viewModelPostUserWall.loadPosts(authorId)
+//                viewModelPostUserWall.initializeAuthorId(authorId)
                 viewModelJob.loadJobs(authorId)
             }
 
@@ -201,25 +203,25 @@ class ProfileFragment : Fragment() {
 
         })
 
-//        binding.main.adapter = postAdapter.withLoadStateHeaderAndFooter(
-//            header = PostLoadingStateAdapter(object :
-//                PostLoadingStateAdapter.OnInteractionListener {
-//                override fun onRetry() {
-//                    postAdapter.retry()
-//                }
-//            }),
-//            footer = PostLoadingStateAdapter(object :
-//                PostLoadingStateAdapter.OnInteractionListener {
-//                override fun onRetry() {
-//                    postAdapter.retry()
-//                }
-//            })
-//        )
-
         with(binding) {
-            main.adapter = postAdapter
+            main.adapter = postAdapter.withLoadStateHeaderAndFooter(
+                header = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        postAdapter.retry()
+                    }
+                }),
+                footer = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        postAdapter.retry()
+                    }
+                })
+            )
+
+//            main.adapter = postAdapter
             job.adapter = jobAdapter
-//            srlPosts.setOnRefreshListener(postAdapter::refresh)
+            srlPosts.setOnRefreshListener(postAdapter::refresh)
 
 //            CoroutineScope(Dispatchers.IO).launch {
 //                user = userDao.getUser(authorId).toUserDto()
@@ -234,12 +236,25 @@ class ProfileFragment : Fragment() {
 //            }
 
             if (privateStatusProfile == YOUR) {
-                viewModelPostMyWall.dataMyUserWall.observe(viewLifecycleOwner) {
+                viewModelPostMyWall.dataMyUserWall(authorId).observe(viewLifecycleOwner) {
                     user = it
+
+                    Glide.with(photo)
+                        .load(user.avatar.toString())
+                        .error(R.drawable.ic_error_24)
+                        .timeout(10_000)
+                        .into(photo)
                 }
             } else {
-                viewModelPostUserWall.dataUserWall.observe(viewLifecycleOwner) {
+                viewModelPostUserWall.dataUserWall(authorId).observe(viewLifecycleOwner) {
                     user = it
+
+                    Glide.with(photo)
+                        .load(user.avatar.toString())
+                        .error(R.drawable.ic_error_24)
+                        .timeout(10_000)
+                        .into(photo)
+
                     if (privateStatusProfile == USER) {
                         fillingToolbar(binding)
                     }
@@ -247,15 +262,15 @@ class ProfileFragment : Fragment() {
                 }
             }
 
-            if (privateStatusProfile == USER) {
-                fillingToolbar(binding)
-            }
+//            if (privateStatusProfile == USER) {
+//                fillingToolbar(binding)
+//            }
 
-            Glide.with(photo)
-                .load(user.avatar.toString())
-                .error(R.drawable.ic_error_24)
-                .timeout(10_000)
-                .into(photo)
+//            Glide.with(photo)
+//                .load(user.avatar.toString())
+//                .error(R.drawable.ic_error_24)
+//                .timeout(10_000)
+//                .into(photo)
 
             back.setOnClickListener {
                 permissionToCross = ALLOW
@@ -311,13 +326,13 @@ class ProfileFragment : Fragment() {
 
             })
 
-            srlPosts.setOnRefreshListener {
-                if (privateStatusProfile == YOUR) {
-                    viewModelPostMyWall.loadPosts(authorId)
-                } else {
-                    viewModelPostUserWall.loadPosts(authorId)
-                }
-            }
+//            srlPosts.setOnRefreshListener {
+//                if (privateStatusProfile == YOUR) {
+//                    viewModelPostMyWall.loadPosts(authorId)
+//                } else {
+//                    viewModelPostUserWall.loadPosts(authorId)
+//                }
+//            }
 
             srlJobs.setOnRefreshListener {
                 if (privateStatusProfile == YOUR) {
@@ -340,47 +355,34 @@ class ProfileFragment : Fragment() {
             }
         }
 
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                if (status == YOUR) {
-//                    viewModelMyWall.dataMyWall.collectLatest(postAdapter::submitData)
-//                } else {
-//                    viewModelUserWall.dataUserWall.collectLatest(postAdapter::submitData)
-//                }
-//            }
-//        }
-//
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                postAdapter.loadStateFlow.collectLatest { state ->
-//                    binding.srlPosts.isRefreshing =
-//                        state.refresh is LoadState.Loading
-//                }
-//            }
-//        }
-
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 if (privateStatusProfile == YOUR) {
-                    viewModelPostMyWall.dataPostMyWall.collectLatest(postAdapter::submitList)
+//                    viewModelPostMyWall.dataPostMyWall.collectLatest(postAdapter::submitList)
+                    viewModelPostMyWall.dataPostMyWall.collectLatest(postAdapter::submitData)
                 } else {
-                    viewModelPostUserWall.dataPostUserWall.collectLatest(postAdapter::submitList)
+//                    viewModelPostUserWall.dataPostUserWall.collectLatest(postAdapter::submitList)
+                    viewModelPostUserWall.dataPostUserWall(authorId).collectLatest(postAdapter::submitData)
                 }
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                if (privateStatusProfile == YOUR) {
-                    viewModelPostMyWall.dataState.collectLatest { state ->
-                        binding.progress.isVisible = state.loading
-                        binding.srlPosts.isRefreshing = state.refreshing
-                    }
-                } else {
-                    viewModelPostUserWall.dataState.collectLatest { state ->
-                        binding.progress.isVisible = state.loading
-                        binding.srlPosts.isRefreshing = state.refreshing
-                    }
+//                if (privateStatusProfile == YOUR) {
+//                    viewModelPostMyWall.dataState.collectLatest { state ->
+//                        binding.progress.isVisible = state.loading
+//                        binding.srlPosts.isRefreshing = state.refreshing
+//                    }
+//                } else {
+//                    viewModelPostUserWall.dataState.collectLatest { state ->
+//                        binding.progress.isVisible = state.loading
+//                        binding.srlPosts.isRefreshing = state.refreshing
+//                    }
+//                }
+                postAdapter.loadStateFlow.collectLatest { state ->
+                    binding.srlPosts.isRefreshing =
+                        state.refresh is LoadState.Loading
                 }
             }
         }

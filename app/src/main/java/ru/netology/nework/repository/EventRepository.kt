@@ -9,8 +9,8 @@ import ru.netology.nework.dto.Post
 import ru.netology.nework.enumeration.AttachmentType
 
 interface EventRepository {
-//    val data: Flow<PagingData<Event>>
-    val data: Flow<List<Event>>
+    val data: Flow<PagingData<Event>>
+//    val data: Flow<List<Event>>
     suspend fun getAll()
     suspend fun save(event: Event): Event
     suspend fun removeById(id: Long)

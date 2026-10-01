@@ -9,8 +9,8 @@ import ru.netology.nework.dto.Event
 
 class EventAdapter(
     private val onInteractionEventListener: OnInteractionEventListener
-//) : PagingDataAdapter<Event, EventViewHolder>(EventDiffCallback()) {
-) : ListAdapter<Event, EventViewHolder>(EventDiffCallback()) {
+) : PagingDataAdapter<Event, EventViewHolder>(EventDiffCallback()) {
+//) : ListAdapter<Event, EventViewHolder>(EventDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)

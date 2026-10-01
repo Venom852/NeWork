@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.flow.map
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -47,7 +50,7 @@ class PostMyWallViewModel @Inject constructor(
     private val repository: PostMyWallRepository,
     private val postMyWallDao: PostMyWallDao,
     private val userDao: UserDao,
-    auth: AppAuth,
+    val auth: AppAuth,
 ) : ViewModel() {
     var empty = Post(
         id = 0,
@@ -81,32 +84,33 @@ class PostMyWallViewModel @Inject constructor(
     val dataState: Flow<FeedModelState>
         get() = _dataState
 
-//    private val cachedPost: Flow<PagingData<Post>> = repository
-//        .data
-//        .cachedIn(viewModelScope)
-//
-//    val dataPostMyWall: Flow<PagingData<Post>> = auth.authStateFlow
-//        .flatMapLatest { (myId, _) ->
-//            cachedPost.map { pagingData ->
-//                pagingData.map { post ->
-//                    post.copy(ownedByMe = post.authorId == myId)
-//                }
-//            }
-//        }
+    private val cachedPost: Flow<PagingData<Post>> = repository
+        .data
+        .cachedIn(viewModelScope)
 
     //TODO(Нужно ли здесь присваивание)
-    val dataPostMyWall: Flow<List<Post>> = auth.authStateFlow
+    val dataPostMyWall: Flow<PagingData<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            repository.data.map { listPost ->
-                listPost.map { post ->
+            cachedPost.map { pagingData ->
+                pagingData.map { post ->
                     post.copy(ownedByMe = post.authorId == myId)
                 }
             }
         }
 
-    val dataMyUserWall: LiveData<User> = auth.authStateFlow
-        .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
-        .asLiveData()
+    //TODO(Нужно ли здесь присваивание)
+//    val dataPostMyWall: Flow<List<Post>> = auth.authStateFlow
+//        .flatMapLatest { (myId, _) ->
+//            repository.data.map { listPost ->
+//                listPost.map { post ->
+//                    post.copy(ownedByMe = post.authorId == myId)
+//                }
+//            }
+//        }
+
+//    val dataMyUserWall: LiveData<User> = auth.authStateFlow
+//        .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
+//        .asLiveData()
 
     val edited = MutableLiveData(empty)
 
@@ -138,6 +142,14 @@ class PostMyWallViewModel @Inject constructor(
 
 //    init {
 //        loadPosts()
+//    }
+
+    fun dataMyUserWall(authorId: Long): LiveData<User> = auth.authStateFlow
+        .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
+        .asLiveData(Dispatchers.IO)
+
+//    fun initializeAuthorId(id: Long) {
+//        authorId = id
 //    }
 
     fun loadPosts(id: Long) {

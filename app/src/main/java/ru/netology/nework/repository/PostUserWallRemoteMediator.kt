@@ -24,29 +24,24 @@ class PostUserWallRemoteMediator(
     private val apiService: ApiService,
     private val appDb: AppDb,
     private val postUserWallDao: PostUserWallDao,
-    private val authorIdDao: AuthorIdDao,
+    private val authorIdLong: Long,
     private val postUserWallRemoteKeyDao: PostUserWallRemoteKeyDao,
 ) : RemoteMediator<Int, PostUserWallEntity>() {
+    private var authorId = 0L
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, PostUserWallEntity>
     ): MediatorResult {
-        var authorId = 0L
-
         try {
-            val job = CoroutineScope(Dispatchers.IO).launch {
-                authorId = authorIdDao.getAuthorId().id
-            }
-
-            job.join()
+//            authorId = authorIdLong
 
             val response = when (loadType) {
                 LoadType.REFRESH -> {
                     if (postUserWallRemoteKeyDao.max() == null) {
-                        apiService.getLatestWallPosts(authorId, state.config.initialLoadSize)
+                        apiService.getLatestWallPosts(authorIdLong, state.config.initialLoadSize)
                     } else {
                         val id = postUserWallRemoteKeyDao.max()!!
-                        apiService.getAfterWallPosts(authorId, id, state.config.pageSize)
+                        apiService.getAfterWallPosts(authorIdLong, id, state.config.pageSize)
                     }
                 }
 
@@ -58,7 +53,7 @@ class PostUserWallRemoteMediator(
                     val id = postUserWallRemoteKeyDao.min() ?: return MediatorResult.Success(
                         endOfPaginationReached = false
                     )
-                    apiService.getBeforeWallPosts(authorId, id, state.config.pageSize)
+                    apiService.getBeforeWallPosts(authorIdLong, id, state.config.pageSize)
                 }
             }
 
@@ -105,7 +100,11 @@ class PostUserWallRemoteMediator(
                         )
                     )
                 }
-                postUserWallDao.insertPosts(body.toPostUserWallEntity())
+                postUserWallDao.insertPosts(body.map {
+                    it.copy(
+                        likes = it.likeOwnerIds.count().toLong()
+                    )
+                }.toPostUserWallEntity())
             }
             return MediatorResult.Success(endOfPaginationReached = false)
         } catch (e: Exception) {

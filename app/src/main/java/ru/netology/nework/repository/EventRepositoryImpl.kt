@@ -44,15 +44,15 @@ class EventRepositoryImpl @Inject constructor(
     appDb: AppDb,
     eventRemoteKeyDao: EventRemoteKeyDao,
 ) : EventRepository {
-//    override val data: Flow<PagingData<Event>> = Pager(
-//        config = PagingConfig(pageSize = 5, enablePlaceholders = true),
-//        pagingSourceFactory = { eventDao.getPagingSource() },
-//        remoteMediator = EventRemoteMediator(apiService, appDb, eventDao, eventRemoteKeyDao)
-//    ).flow.map {
-//        it.map(EventEntity::toEventDto)
-//    }
+    override val data: Flow<PagingData<Event>> = Pager(
+        config = PagingConfig(pageSize = 5, enablePlaceholders = true),
+        pagingSourceFactory = { eventDao.getPagingSource() },
+        remoteMediator = EventRemoteMediator(apiService, appDb, eventDao, eventRemoteKeyDao)
+    ).flow.map {
+        it.map(EventEntity::toEventDto)
+    }
 
-    override val data: Flow<List<Event>> = eventDao.getAllFlow().map { it.toEventDto() }
+//    override val data: Flow<List<Event>> = eventDao.getAllFlow().map { it.toEventDto() }
 
     override suspend fun getAll() {
         try {

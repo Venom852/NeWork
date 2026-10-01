@@ -440,79 +440,86 @@ class PostFragment : Fragment() {
             if (!post.likeOwnerIds.isEmpty()) {
                 numberUsers = 0
 
-                post.likeOwnerIds.forEach {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        user = userDao.getUser(it).toUserDto()
-                    }
+                run exitLikeOwnerIds@{
+                    post.likeOwnerIds.forEach likeOwnerIds@{ idUser ->
+                        post.users.forEach {
+                            if (idUser == it.key) {
+                                when (numberUsers) {
+                                    0 -> {
+                                        likeUserOne.visibility = View.VISIBLE
 
-                    when (numberUsers) {
-                        0 -> {
-                            likeUserOne.visibility = View.VISIBLE
+                                        Glide.with(likeUserOne)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(likeUserOne)
 
-                            Glide.with(likeUserOne)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(likeUserOne)
+                                        ++numberUsers
+                                        return@likeOwnerIds
+                                    }
 
-                            ++numberUsers
+                                    1 -> {
+                                        likeUserTwo.visibility = View.VISIBLE
+
+                                        Glide.with(likeUserTwo)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(likeUserTwo)
+
+                                        ++numberUsers
+                                        return@likeOwnerIds
+                                    }
+
+                                    2 -> {
+                                        likeUserThree.visibility = View.VISIBLE
+
+                                        Glide.with(likeUserThree)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(likeUserThree)
+
+                                        ++numberUsers
+                                        return@likeOwnerIds
+                                    }
+
+                                    3 -> {
+                                        likeUserFour.visibility = View.VISIBLE
+
+                                        Glide.with(likeUserFour)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(likeUserFour)
+
+                                        ++numberUsers
+                                        return@likeOwnerIds
+                                    }
+
+                                    4 -> {
+                                        likeUserFive.visibility = View.VISIBLE
+                                        listLikeUsers.visibility = View.VISIBLE
+
+                                        Glide.with(likeUserFive)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(likeUserFive)
+
+                                        ++numberUsers
+                                        return@likeOwnerIds
+                                    }
+
+                                    else -> return@exitLikeOwnerIds
+                                }
+                            }
                         }
-
-                        1 -> {
-                            likeUserTwo.visibility = View.VISIBLE
-
-                            Glide.with(likeUserTwo)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(likeUserTwo)
-
-                            ++numberUsers
-                        }
-
-                        2 -> {
-                            likeUserThree.visibility = View.VISIBLE
-
-                            Glide.with(likeUserThree)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(likeUserThree)
-
-                            ++numberUsers
-                        }
-
-                        3 -> {
-                            likeUserFour.visibility = View.VISIBLE
-
-                            Glide.with(likeUserFour)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(likeUserFour)
-
-                            ++numberUsers
-                        }
-
-                        4 -> {
-                            likeUserFive.visibility = View.VISIBLE
-                            listLikeUsers.visibility = View.VISIBLE
-
-                            Glide.with(likeUserFive)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(likeUserFive)
-
-                            ++numberUsers
-                        }
-
-                        else -> return@forEach
                     }
                 }
             }
@@ -520,81 +527,88 @@ class PostFragment : Fragment() {
             if (!post.mentionIds.isEmpty()) {
                 numberUsers = 0
 
-                post.mentionIds.forEach {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        user = userDao.getUser(it).toUserDto()
-                    }
+                run exitMentionIds@{
+                    post.mentionIds.forEach mentionIds@{idUser ->
+                        post.users.forEach {
+                            if (idUser == it.key) {
+                                when (numberUsers) {
+                                    0 -> {
+                                        mentionedText.visibility = View.VISIBLE
+                                        mention.visibility = View.VISIBLE
+                                        mentionedOne.visibility = View.VISIBLE
 
-                    when (numberUsers) {
-                        0 -> {
-                            mentionedText.visibility = View.VISIBLE
-                            mention.visibility = View.VISIBLE
-                            mentionedOne.visibility = View.VISIBLE
+                                        Glide.with(mentionedOne)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(mentionedOne)
 
-                            Glide.with(mentionedOne)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(mentionedOne)
+                                        ++numberUsers
+                                        return@mentionIds
+                                    }
 
-                            ++numberUsers
+                                    1 -> {
+                                        mentionedTwo.visibility = View.VISIBLE
+
+                                        Glide.with(mentionedTwo)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(mentionedTwo)
+
+                                        ++numberUsers
+                                        return@mentionIds
+                                    }
+
+                                    2 -> {
+                                        mentionedThree.visibility = View.VISIBLE
+
+                                        Glide.with(mentionedThree)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(mentionedThree)
+
+                                        ++numberUsers
+                                        return@mentionIds
+                                    }
+
+                                    3 -> {
+                                        mentionedFour.visibility = View.VISIBLE
+
+                                        Glide.with(mentionedFour)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(mentionedFour)
+
+                                        ++numberUsers
+                                        return@mentionIds
+                                    }
+
+                                    4 -> {
+                                        mentionedFive.visibility = View.VISIBLE
+                                        listMentionedUsers.visibility = View.VISIBLE
+
+                                        Glide.with(mentionedFive)
+                                            .load(it.value.avatar)
+                                            .error(R.drawable.ic_netology)
+                                            .timeout(10_000)
+                                            .apply(options.circleCrop())
+                                            .into(mentionedFive)
+
+                                        ++numberUsers
+                                        return@mentionIds
+                                    }
+
+                                    else -> return@exitMentionIds
+                                }
+                            }
                         }
-
-                        1 -> {
-                            mentionedTwo.visibility = View.VISIBLE
-
-                            Glide.with(mentionedTwo)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(mentionedTwo)
-
-                            ++numberUsers
-                        }
-
-                        2 -> {
-                            mentionedThree.visibility = View.VISIBLE
-
-                            Glide.with(mentionedThree)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(mentionedThree)
-
-                            ++numberUsers
-                        }
-
-                        3 -> {
-                            mentionedFour.visibility = View.VISIBLE
-
-                            Glide.with(mentionedFour)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(mentionedFour)
-
-                            ++numberUsers
-                        }
-
-                        4 -> {
-                            mentionedFive.visibility = View.VISIBLE
-                            listMentionedUsers.visibility = View.VISIBLE
-
-                            Glide.with(mentionedFive)
-                                .load(user.avatar)
-                                .error(R.drawable.ic_netology)
-                                .timeout(10_000)
-                                .apply(options.circleCrop())
-                                .into(mentionedFive)
-
-                            ++numberUsers
-                        }
-
-                        else -> return@forEach
                     }
                 }
             }

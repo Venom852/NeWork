@@ -92,7 +92,12 @@ class EventRemoteMediator(
                         )
                     )
                 }
-                eventDao.insertEvents(body.toEventEntity())
+                eventDao.insertEvents(body.map {
+                    it.copy(
+                        likes = it.likeOwnerIds.count().toLong(),
+                        participants = it.participantsIds.count().toLong()
+                    )
+                }.toEventEntity())
             }
             return MediatorResult.Success(endOfPaginationReached = false)
         } catch (e: Exception) {

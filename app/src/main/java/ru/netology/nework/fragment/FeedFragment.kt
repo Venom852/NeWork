@@ -80,7 +80,7 @@ class FeedFragment : Fragment() {
         val bindingConfirmationOfExit =
             ConfirmationOfExitBinding.inflate(layoutInflater, container, false)
 
-//        applyInset(binding.cardPost)
+        applyInset(binding.main)
 //        applyInset(binding.cardEvent)
 //        applyInset(binding.cardUser)
 
@@ -243,46 +243,46 @@ class FeedFragment : Fragment() {
         })
 
         with(binding) {
-//            cardPost.adapter = postAdapter.withLoadStateHeaderAndFooter(
-//                header = PostLoadingStateAdapter(object :
-//                    PostLoadingStateAdapter.OnInteractionListener {
-//                    override fun onRetry() {
-//                        postAdapter.retry()
-//                    }
-//                }),
-//                footer = PostLoadingStateAdapter(object :
-//                    PostLoadingStateAdapter.OnInteractionListener {
-//                    override fun onRetry() {
-//                        postAdapter.retry()
-//                    }
-//                })
-//            )
+            cardPost.adapter = postAdapter.withLoadStateHeaderAndFooter(
+                header = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        postAdapter.retry()
+                    }
+                }),
+                footer = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        postAdapter.retry()
+                    }
+                })
+            )
 
-//            cardEvent.adapter = eventAdapter.withLoadStateHeaderAndFooter(
-//                header = PostLoadingStateAdapter(object :
-//                    PostLoadingStateAdapter.OnInteractionListener {
-//                    override fun onRetry() {
-//                        eventAdapter.retry()
-//                    }
-//                }),
-//                footer = PostLoadingStateAdapter(object :
-//                    PostLoadingStateAdapter.OnInteractionListener {
-//                    override fun onRetry() {
-//                        eventAdapter.retry()
-//                    }
-//                })
-//            )
+            cardEvent.adapter = eventAdapter.withLoadStateHeaderAndFooter(
+                header = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        eventAdapter.retry()
+                    }
+                }),
+                footer = PostLoadingStateAdapter(object :
+                    PostLoadingStateAdapter.OnInteractionListener {
+                    override fun onRetry() {
+                        eventAdapter.retry()
+                    }
+                })
+            )
 
-            cardPost.adapter = postAdapter
-            cardEvent.adapter = eventAdapter
+//            cardPost.adapter = postAdapter
+//            cardEvent.adapter = eventAdapter
             cardUser.adapter = userAdapter
 
-            srlMainPosts.setOnRefreshListener { viewModelPost.loadPosts() }
-            srlMainEvents.setOnRefreshListener { viewModelEvent.loadEvents() }
+//            srlMainPosts.setOnRefreshListener { viewModelPost.loadPosts() }
+//            srlMainEvents.setOnRefreshListener { viewModelEvent.loadEvents() }
             srlMainUsers.setOnRefreshListener { viewModelUser.loadUsers() }
 
-//            srlMainPosts.setOnRefreshListener(postAdapter::refresh)
-//            srlMainEvent.setOnRefreshListener(eventAdapter::refresh)
+            srlMainPosts.setOnRefreshListener(postAdapter::refresh)
+            srlMainEvents.setOnRefreshListener(eventAdapter::refresh)
 
             add.setOnClickListener {
                 if (authorization) {
@@ -431,45 +431,45 @@ class FeedFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModelPost.dataPost.collectLatest(postAdapter::submitList)
+//                viewModelPost.dataPost.collectLatest(postAdapter::submitList)
 
-//                viewModelPost.dataPost.collectLatest(postAdapter::submitData)
+                viewModelPost.dataPost.collectLatest(postAdapter::submitData)
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModelPost.dataState.collectLatest { state ->
-                    binding.progress.isVisible = state.loading
-                    binding.srlMainPosts.isRefreshing = state.refreshing
-                }
-
-//                postAdapter.loadStateFlow.collectLatest { state ->
-//                    binding.srlMainPosts.isRefreshing =
-//                        state.refresh is LoadState.Loading
+//                viewModelPost.dataState.collectLatest { state ->
+//                    binding.progress.isVisible = state.loading
+//                    binding.srlMainPosts.isRefreshing = state.refreshing
 //                }
-            }
-        }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModelEvent.dataEvent.collectLatest(eventAdapter::submitList)
-
-//                viewModelEvent.dataEvent.collectLatest(eventAdapter::submitData)
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModelEvent.dataState.collectLatest { state ->
-                    binding.progress.isVisible = state.loading
-                    binding.srlMainEvents.isRefreshing = state.refreshing
+                postAdapter.loadStateFlow.collectLatest { state ->
+                    binding.srlMainPosts.isRefreshing =
+                        state.refresh is LoadState.Loading
                 }
+            }
+        }
 
-//                eventAdapter.loadStateFlow.collectLatest { state ->
-//                    binding.srlMainEvent.isRefreshing =
-//                        state.refresh is LoadState.Loading
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                viewModelEvent.dataEvent.collectLatest(eventAdapter::submitList)
+
+                viewModelEvent.dataEvent.collectLatest(eventAdapter::submitData)
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                viewModelEvent.dataState.collectLatest { state ->
+//                    binding.progress.isVisible = state.loading
+//                    binding.srlMainEvents.isRefreshing = state.refreshing
 //                }
+
+                eventAdapter.loadStateFlow.collectLatest { state ->
+                    binding.srlMainEvents.isRefreshing =
+                        state.refresh is LoadState.Loading
+                }
             }
         }
 
@@ -498,12 +498,12 @@ class FeedFragment : Fragment() {
                         }
                     }
 
-                    viewModelPost.loadPosts()
-                    viewModelEvent.loadEvents()
+//                    viewModelPost.loadPosts()
+//                    viewModelEvent.loadEvents()
                     viewModelUser.loadUsers()
 
-//                    postAdapter.refresh()
-//                    eventAdapter.refresh()
+                    postAdapter.refresh()
+                    eventAdapter.refresh()
                 }
             }
         }

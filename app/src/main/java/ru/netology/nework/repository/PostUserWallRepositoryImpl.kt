@@ -1,6 +1,10 @@
 package ru.netology.nework.repository
 
 import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.netology.nework.api.ApiService
@@ -17,6 +21,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.netology.nework.dao.AuthorIdDao
 import ru.netology.nework.dao.PostUserWallDao
+import ru.netology.nework.dao.PostUserWallRemoteKeyDao
+import ru.netology.nework.db.AppDb
+import ru.netology.nework.entity.PostUserWallEntity
 import ru.netology.nework.entity.toPostUserWallDto
 import ru.netology.nework.entity.toPostUserWallEntity
 import ru.netology.nework.error.ErrorCode404
@@ -28,20 +35,34 @@ class PostUserWallRepositoryImpl @Inject constructor(
     private val dao: PostUserWallDao,
 //    private val authorIdDao: AuthorIdDao,
     private val apiService: ApiService,
-//    appDb: AppDb,
-//    postUserWallRemoteKeyDao: PostUserWallRemoteKeyDao,
+    val appDb: AppDb,
+    val postUserWallRemoteKeyDao: PostUserWallRemoteKeyDao,
 ) : PostUserWallRepository {
+    private var authorIdLong = 0L
 //    override val data: Flow<PagingData<Post>> = Pager(
 //        config = PagingConfig(pageSize = 5, enablePlaceholders = true),
-//        pagingSourceFactory = { postUserWallDao.getPagingSource() },
-//        remoteMediator = UserWallRemoteMediator(apiService, appDb, postUserWallDao, authorIdDao, postUserWallRemoteKeyDao)
+//        pagingSourceFactory = { dao.getPagingSource() },
+//        remoteMediator = PostUserWallRemoteMediator(apiService, appDb, dao, authorIdLong, postUserWallRemoteKeyDao
+//        )
 //    ).flow.map {
 //        it.map(PostUserWallEntity::toPostUserWallDto)
 //    }
 
 //    private var authorId = 0L
 
-    override val data: Flow<List<Post>> = dao.getAllFlow().map { it.toPostUserWallDto() }
+    //    override val data: Flow<List<Post>> = dao.getAllFlow().map { it.toPostUserWallDto() }
+    override fun getData(authorId: Long): Flow<PagingData<Post>> = Pager(
+        config = PagingConfig(pageSize = 5, enablePlaceholders = true),
+        pagingSourceFactory = { dao.getPagingSource() },
+        remoteMediator = PostUserWallRemoteMediator(apiService, appDb, dao, authorId, postUserWallRemoteKeyDao
+        )
+    ).flow.map {
+        it.map(PostUserWallEntity::toPostUserWallDto)
+    }
+
+    //    override fun initializeAuthorIdRep(authorId: Long) {
+//        authorIdLong = authorId
+//    }
 
     override suspend fun getAll(authorId: Long) {
         try {

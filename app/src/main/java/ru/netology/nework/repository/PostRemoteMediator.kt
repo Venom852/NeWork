@@ -50,8 +50,6 @@ class PostRemoteMediator(
                 }
             }
 
-//            val f = JsonArray(response.body())
-
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -95,7 +93,11 @@ class PostRemoteMediator(
                         )
                     )
                 }
-                dao.insertPosts(body.toPostEntity())
+                dao.insertPosts(body.map {
+                    it.copy(
+                        likes = it.likeOwnerIds.count().toLong()
+                    )
+                }.toPostEntity())
             }
             return MediatorResult.Success(endOfPaginationReached = false)
         } catch (e: Exception) {
@@ -103,7 +105,6 @@ class PostRemoteMediator(
                 throw e
             }
 
-            print(e)
             return MediatorResult.Error(e)
         }
     }
