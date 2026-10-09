@@ -1,7 +1,5 @@
 package ru.netology.nework.dto
 
-import java.time.Instant
-
 data class Post (
     val id: Long,
     val author: String,

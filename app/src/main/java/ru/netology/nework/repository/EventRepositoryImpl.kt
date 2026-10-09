@@ -26,12 +26,7 @@ import androidx.paging.map
 import ru.netology.nework.dao.EventDao
 import ru.netology.nework.dao.EventRemoteKeyDao
 import ru.netology.nework.db.AppDb
-import ru.netology.nework.dto.Post
 import ru.netology.nework.entity.EventEntity
-import ru.netology.nework.entity.toEventDto
-import ru.netology.nework.entity.toEventEntity
-import ru.netology.nework.entity.toPostDto
-import ru.netology.nework.entity.toPostEntity
 import ru.netology.nework.error.ErrorCode404
 import ru.netology.nework.error.ErrorCode415
 import kotlin.time.ExperimentalTime
@@ -50,32 +45,6 @@ class EventRepositoryImpl @Inject constructor(
         remoteMediator = EventRemoteMediator(apiService, appDb, eventDao, eventRemoteKeyDao)
     ).flow.map {
         it.map(EventEntity::toEventDto)
-    }
-
-//    override val data: Flow<List<Event>> = eventDao.getAllFlow().map { it.toEventDto() }
-
-    override suspend fun getAll() {
-        try {
-            val response = apiService.getAllEvents()
-
-            if (response.isSuccessful) {
-                val body = response.body() ?: throw ApiError(response.code(), response.message())
-                eventDao.insertEvents(body.map {
-                    it.copy(
-                        likes = it.likeOwnerIds.count().toLong(),
-                        participants = it.participantsIds.count().toLong()
-                    )
-                }.toEventEntity())
-
-                return
-            }
-
-            throw ApiError(response.code(), response.message())
-        } catch (_: IOException) {
-            throw NetworkError()
-        } catch (_: Exception) {
-            throw UnknownError()
-        }
     }
 
     override suspend fun likeById(id: Long, eventLikedByMe: Boolean?) {
@@ -217,11 +186,7 @@ class EventRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun saveWithAttachment(
-        event: Event,
-        upload: MediaUpload,
-        attachmentType: AttachmentType
-    ): Event {
+    override suspend fun saveWithAttachment(event: Event, upload: MediaUpload, attachmentType: AttachmentType): Event {
         try {
             val media = upload(upload)
             val eventWithAttachment = event.copy(

@@ -39,40 +39,11 @@
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
 
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.VIEW" />-->
-
-<!--                <data android:mimeType="video/*" />-->
-<!--                <data android:scheme="https" />-->
-<!--                <data android:host="*.rutube.ru" />-->
-
-<!--                <category android:name="android.intent.category.BROWSABLE" />-->
-<!--            </intent-filter>-->
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="ru.netology.nework.fileProvider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths" />
-        </provider>
     </application>
-
-<!--    <queries>-->
-<!--        <package android:name="ru.rutube.app" />-->
-<!--        <intent>-->
-<!--            <action android:name="android.intent.action.VIEW" />-->
-<!--            <data android:scheme="*" />-->
-<!--        </intent>-->
-<!--    </queries>-->
-
 </manifest>

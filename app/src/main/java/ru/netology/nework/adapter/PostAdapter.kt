@@ -2,7 +2,6 @@ package ru.netology.nework.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.ListAdapter
 import androidx.paging.PagingDataAdapter
 import ru.netology.nework.databinding.CardPostBinding
 import ru.netology.nework.dto.Post
@@ -10,7 +9,6 @@ import ru.netology.nework.dto.Post
 class PostAdapter(
     private val onInteractionPostListener: OnInteractionPostListener
 ) : PagingDataAdapter<Post, PostViewHolder>(PostDiffCallback()) {
-//) : ListAdapter<Post, PostViewHolder>(PostDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)

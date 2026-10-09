@@ -1,13 +1,9 @@
 package ru.netology.nework.repository
 
 import androidx.paging.ExperimentalPagingApi
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import ru.netology.nework.api.ApiService
-import ru.netology.nework.dao.AuthorIdDao
 import ru.netology.nework.dao.JobDao
 import ru.netology.nework.dto.Job
 import ru.netology.nework.error.ApiError
@@ -23,20 +19,12 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalPagingApi::class, ExperimentalTime::class)
 class JobRepositoryImpl @Inject constructor(
     private val jobDao: JobDao,
-    private val apiService: ApiService,
-    private val authorIdDao: AuthorIdDao,
+    private val apiService: ApiService
 ) : JobRepository {
     override val data: Flow<List<Job>> = jobDao.getAllFlow().map { it.toJobDto() }
 
-//    var userId = 0L
-
     override suspend fun getAll(userId: Long) {
         try {
-//            val job = CoroutineScope(Dispatchers.IO).launch {
-//                userId = authorIdDao.getAuthorId().id
-//            }
-//            job.join()
-
             val response = apiService.getAllJobs(userId)
 
             if (response.isSuccessful) {

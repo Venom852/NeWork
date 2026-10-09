@@ -41,10 +41,6 @@ class JobViewModel @Inject constructor(
 
     private var oldJobs = emptyList<Job>()
 
-//    init {
-//        loadJobs()
-//    }
-
     fun loadJobs(id: Long) {
         viewModelScope.launch {
             try {
@@ -62,20 +58,9 @@ class JobViewModel @Inject constructor(
         }
     }
 
-//    fun refreshJobs() {
-//        viewModelScope.launch {
-//            try {
-//                CoroutineScope(Dispatchers.IO).launch {
-//                    oldJobs = jobDao.getAll().toJobDto()
-//                }
-//
-//                _dataState.value = FeedModelState(refreshing = true)
-//                repository.getAll(id)
-//                _dataState.value = FeedModelState()
-//            } catch (e: Exception) {
-//                jobDao.insertJobs(oldJobs.toJobEntity())
-//                e.printStackTrace()
-//            }
-//        }
-//    }
+    fun removeJobUser() {
+        viewModelScope.launch {
+            jobDao.removeDao()
+        }
+    }
 }

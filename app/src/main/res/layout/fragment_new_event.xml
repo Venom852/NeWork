@@ -44,43 +44,6 @@
         app:layout_constraintEnd_toStartOf="@id/save"
         app:title="@string/new_event"/>
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/errorCode400And500"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:foregroundGravity="bottom"
-        app:cardElevation="0dp"
-        app:layoutManager="com.google.android.material.card.MaterialCardView"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/dateDialogBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:foregroundGravity="bottom"
-        app:cardElevation="0dp"
-        app:layoutManager="com.google.android.material.card.MaterialCardView"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/calendarDialogBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:foregroundGravity="center"
-        app:cardElevation="0dp"
-        app:layoutManager="com.google.android.material.card.MaterialCardView"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-<!--    android:layout_gravity="center"-->
-
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
@@ -221,5 +184,4 @@
             android:layout_gravity="center"
             app:srcCompat="@drawable/ic_add_24" />
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

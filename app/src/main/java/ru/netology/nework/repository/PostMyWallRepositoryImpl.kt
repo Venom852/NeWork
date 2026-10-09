@@ -27,10 +27,6 @@ import ru.netology.nework.dao.PostMyWallDao
 import ru.netology.nework.dao.PostMyWallRemoteKeyDao
 import ru.netology.nework.db.AppDb
 import ru.netology.nework.entity.PostMyWallEntity
-import ru.netology.nework.entity.toPostDto
-import ru.netology.nework.entity.toPostEntity
-import ru.netology.nework.entity.toPostMyWallDto
-import ru.netology.nework.entity.toPostMyWallEntity
 import ru.netology.nework.error.ErrorCode404
 import ru.netology.nework.error.ErrorCode415
 import kotlin.time.ExperimentalTime
@@ -49,31 +45,6 @@ class PostMyWallRepositoryImpl @Inject constructor(
         remoteMediator = PostMyWallRemoteMediator(apiService, appDb, dao, postMyWallRemoteKeyDao)
     ).flow.map {
         it.map(PostMyWallEntity::toPostMyWallDto)
-    }
-
-//    override val data: Flow<List<Post>> = dao.getAllFlow().map { it.toPostMyWallDto() }
-
-    override suspend fun getAll() {
-        try {
-            val response = apiService.getAllMyWallPosts()
-
-            if (response.isSuccessful) {
-                val body = response.body() ?: throw ApiError(response.code(), response.message())
-                dao.insertPosts(body.map {
-                    it.copy(
-                        likes = it.likeOwnerIds.count().toLong()
-                    )
-                }.toPostMyWallEntity())
-
-                return
-            }
-
-            throw ApiError(response.code(), response.message())
-        } catch (_: IOException) {
-            throw NetworkError()
-        } catch (_: Exception) {
-            throw UnknownError()
-        }
     }
 
     override suspend fun likeById(id: Long, postLikedByMe: Boolean?) {

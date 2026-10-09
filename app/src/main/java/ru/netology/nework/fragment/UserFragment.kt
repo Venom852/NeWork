@@ -17,15 +17,11 @@ import androidx.navigation.fragment.findNavController
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netology.nework.R
 import ru.netology.nework.adapter.OnInteractionUserListener
 import ru.netology.nework.adapter.UserAdapter
-import ru.netology.nework.dao.PostDao
-import ru.netology.nework.dao.UserListDao
 import ru.netology.nework.databinding.FragmentUserBinding
 import ru.netology.nework.dto.User
 import ru.netology.nework.dto.UserPreview
@@ -34,17 +30,8 @@ import ru.netology.nework.viewmodel.PostViewModel
 import ru.netology.nework.viewmodel.EventViewModel
 import ru.netology.nework.viewmodel.PostMyWallViewModel
 import ru.netology.nework.viewmodel.UserViewModel
-import androidx.fragment.app.viewModels
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import ru.netology.nework.auth.AppAuth
-import ru.netology.nework.dao.UserDao
-import ru.netology.nework.fragment.NewPostFragment.Companion.listIdUsersFragment
-import ru.netology.nework.fragment.NewPostFragment.Companion.listMapUsersFragment
-import ru.netology.nework.viewmodel.PostUserWallViewModel
 import java.lang.reflect.Type
 import javax.inject.Inject
 import kotlin.getValue
@@ -52,10 +39,6 @@ import kotlin.getValue
 @AndroidEntryPoint
 @OptIn(ExperimentalCoroutinesApi::class)
 class UserFragment : Fragment() {
-    @Inject
-    lateinit var userListDao: UserListDao
-    @Inject
-    lateinit var userDao: UserDao
     @Inject
     lateinit var auth: AppAuth
 
@@ -81,35 +64,27 @@ class UserFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val binding = FragmentUserBinding.inflate(layoutInflater, container, false)
 
         val viewModelPost: PostViewModel by activityViewModels()
         val viewModelMyWall: PostMyWallViewModel by activityViewModels()
         val viewModelEvent: EventViewModel by activityViewModels()
         val viewModelUser: UserViewModel by activityViewModels()
-        val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
         val listIdUsers = mutableSetOf<Long>()
         val listMapUsers = mutableMapOf<Long, UserPreview>()
         val typeToken: Type = object : TypeToken<List<Long>>() {}.type
 
-        applyInset(binding.cardUser)
-
         val userAdapter = UserAdapter(object : OnInteractionUserListener {
             override fun onRadioButton(user: User) {
-                //TODO(Проверить работу логики и функции remove)
                 if (listIdUsers.any { it == user.id }) {
                     listMapUsers.remove(user.id, UserPreview(user.name, user.avatar))
                     listIdUsers.remove(user.id)
                 } else {
-                    listMapUsers.put(user.id, UserPreview(user.name, user.avatar))
+                    listMapUsers[user.id] = UserPreview(user.name, user.avatar)
                     listIdUsers.add(user.id)
                 }
-            }
-
-            override fun onSaveAuthorId(authorId: Long) {
-                viewModelPostUserWall.saveAuthorId(authorId)
             }
         })
 
@@ -177,12 +152,6 @@ class UserFragment : Fragment() {
                 }
 
                 findNavController().navigateUp()
-//                findNavController().navigate(
-//                    R.id.action_userFragment_to_newPostFragment,
-//                    Bundle().apply {
-//                    listIdUsersFragment = gson.toJson(listIdUsers)
-//                    listMapUsersFragment = gson.toJson(listMapUsers)
-//                })
             }
 
             srlUsers.setOnRefreshListener {
@@ -222,26 +191,11 @@ class UserFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModelUser.dataState.collectLatest { state ->
                     binding.progress.isVisible = state.loading
-                    binding.srlUsers.isRefreshing = state.refreshing
+                    binding.srlUsers.isRefreshing = state.loading
                 }
             }
         }
 
         return binding.root
-    }
-
-    private fun applyInset(main: View) {
-        ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            v.setPadding(
-                v.paddingLeft,
-                systemBars.top,
-                v.paddingRight,
-                if (isImeVisible) imeInsets.bottom else systemBars.bottom
-            )
-            insets
-        }
     }
 }

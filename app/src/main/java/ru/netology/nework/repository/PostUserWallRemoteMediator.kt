@@ -6,11 +6,7 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import ru.netology.nework.api.ApiService
-import ru.netology.nework.dao.AuthorIdDao
 import ru.netology.nework.dao.PostUserWallDao
 import ru.netology.nework.dao.PostUserWallRemoteKeyDao
 import ru.netology.nework.db.AppDb
@@ -27,20 +23,17 @@ class PostUserWallRemoteMediator(
     private val authorIdLong: Long,
     private val postUserWallRemoteKeyDao: PostUserWallRemoteKeyDao,
 ) : RemoteMediator<Int, PostUserWallEntity>() {
-    private var authorId = 0L
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, PostUserWallEntity>
     ): MediatorResult {
         try {
-//            authorId = authorIdLong
-
             val response = when (loadType) {
                 LoadType.REFRESH -> {
                     if (postUserWallRemoteKeyDao.max() == null) {
                         apiService.getLatestWallPosts(authorIdLong, state.config.initialLoadSize)
                     } else {
-                        val id = postUserWallRemoteKeyDao.max()!!
+                        val id = 0L
                         apiService.getAfterWallPosts(authorIdLong, id, state.config.pageSize)
                     }
                 }

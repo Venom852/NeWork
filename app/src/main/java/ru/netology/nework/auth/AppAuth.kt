@@ -1,6 +1,7 @@
 package ru.netology.nework.auth
 
 import android.content.Context
+import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
@@ -22,8 +23,7 @@ class AppAuth @Inject constructor(@ApplicationContext private val context: Conte
         if (id == 0L || token == null) {
             _authStateFlow = MutableStateFlow(AuthState())
 
-            //TODO(Проверить изменение функции)
-            with(prefs.edit()) {
+            prefs.edit {
                 clear()
                 apply()
             }
@@ -38,8 +38,7 @@ class AppAuth @Inject constructor(@ApplicationContext private val context: Conte
     fun setAuth(id: Long, token: String, avatar: String?) {
         _authStateFlow.value = AuthState(id, token, avatar)
 
-        //TODO(Проверить изменение функции)
-        with(prefs.edit()) {
+        prefs.edit {
             putLong(idKey, id)
             putString(tokenKey, token)
 
@@ -55,8 +54,7 @@ class AppAuth @Inject constructor(@ApplicationContext private val context: Conte
     fun removeAuth() {
         _authStateFlow.value = AuthState()
 
-        //TODO(Проверить изменение функции)
-        with(prefs.edit()) {
+        prefs.edit {
             clear()
             commit()
         }

@@ -18,19 +18,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import ru.netology.nework.BuildConfig
 import ru.netology.nework.R
 import ru.netology.nework.dao.EventDao
 import ru.netology.nework.dao.PostDao
 import ru.netology.nework.databinding.FragmentPhotoBinding
 import ru.netology.nework.dto.Event
 import ru.netology.nework.dto.Post
-import ru.netology.nework.enumeration.EventType
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.EventViewModel
 import ru.netology.nework.viewmodel.PostViewModel
-import java.time.Instant
 import javax.inject.Inject
 import kotlin.getValue
 
@@ -51,7 +48,7 @@ class PhotoFragment : Fragment() {
 
     private var post = Post(
         id = 0,
-        author = "Me",
+        author = "Me123",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -76,7 +73,7 @@ class PhotoFragment : Fragment() {
 
     private var event = Event(
         id = 0,
-        author = "Me",
+        author = "Me123",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -161,7 +158,6 @@ class PhotoFragment : Fragment() {
                 findNavController().navigateUp()
             }
 
-            //TODO(Настроить)
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     if (statusFragment == POST) {

@@ -104,9 +104,6 @@ class PostViewHolder(
             //TODO(Настроить)
             if (post.attachment?.type == AttachmentType.VIDEO) {
                 groupVideo.visibility = View.VISIBLE
-
-//                videoContent.setMediaController(MediaController(itemView.context, MediaSession.Token))
-//                videoContent.setVideoURI(post.attachment.url.toUri())
             }
 
             //TODO(Настроить)
@@ -141,14 +138,6 @@ class PostViewHolder(
                 onInteractionPostListener.onShare(post)
             }
 
-//            groupPost.setAllOnClickListener {
-//                findNavController(it).navigate(
-//                    R.id.action_feedFragment_to_postFragment2,
-//                    Bundle().apply {
-//                        postBundle = gson.toJson(post)
-//                    })
-//            }
-
             cardPostConstraint.setOnClickListener {
                 if (permissionToCross == ALLOW) {
                     findNavController(it).navigate(
@@ -159,7 +148,6 @@ class PostViewHolder(
                 }
             }
 
-            //TODO(Настроить)
             avatar.setOnClickListener {
                 if (permissionToCross == ALLOW) {
                     findNavController(it).navigate(
@@ -179,7 +167,6 @@ class PostViewHolder(
                 }
             }
 
-            //TODO(Настроить)
             imageContent.setOnClickListener {
                 findNavController(it).navigate(
                     R.id.action_feedFragment_to_photoFragment2,
@@ -194,7 +181,8 @@ class PostViewHolder(
             groupVideo.setAllOnClickListener {
 //                videoContent.setMediaController(MediaController(itemView.context, MediaSession.Token))
                 videoContent.apply {
-                    videoContent.setVideoURI(post.attachment?.url?.toUri())
+                    setVideoURI(post.attachment?.url?.toUri())
+
                     setOnPreparedListener {
                         start()
                     }

@@ -8,7 +8,6 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.dto.UserPreview
-import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.entity.PostMyWallEntity
 import ru.netology.nework.enumeration.AttachmentType
 
@@ -22,12 +21,6 @@ interface PostMyWallDao {
 
     @Query("SELECT * FROM PostMyWallEntity ORDER BY id DESC")
     fun getPagingSource(): PagingSource<Int, PostMyWallEntity>
-
-    @Query("SELECT * FROM PostMyWallEntity WHERE id = :id")
-    fun getPost(id: Long): PostMyWallEntity
-
-//    @Query("SELECT * FROM PostEntity WHERE viewed == 1 ORDER BY id DESC")
-//    fun getAll(): Flow<List<PostEntity>>
 
     @Query("SELECT COUNT(*) == 0 FROM PostMyWallEntity")
     suspend fun isEmpty(): Boolean
@@ -65,9 +58,6 @@ interface PostMyWallDao {
         newType: AttachmentType?
     )
 
-//    @Query("UPDATE PostEntity Set viewed = 1 WHERE viewed = 0")
-//    suspend fun browse()
-
     suspend fun save(post: PostMyWallEntity) =
         if (post.id == 0L) insert(post) else changeContentById(post.id, post.content,
             post.mentionIds, post.users, post.coords)
@@ -77,11 +67,12 @@ interface PostMyWallDao {
             UPDATE PostMyWallEntity SET
                 likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
                 likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END,
-                likeOwnerIds = :likeOwnerIds
+                likeOwnerIds = :likeOwnerIds,
+                users = :users
             WHERE id = :id;
         """
     )
-    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>)
+    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>, users: Map<Long, UserPreview>)
 
     @Query(
         """

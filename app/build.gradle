@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     alias(libs.plugins.android.application)
-//    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.hilt)
 }
@@ -28,7 +27,6 @@ private String getMapkitApiKey() {
 android {
     namespace 'ru.netology.nework'
     compileSdk 37
-//    compileSdkVersion 37
 
     defaultConfig {
         applicationId "ru.netology.nework"
@@ -59,7 +57,6 @@ android {
 
         debug {
             manifestPlaceholders.usesCleartextTraffic = true
-//            buildConfigField "String", "BASE_URL", '"http://10.0.2.2:9999"'
             buildConfigField "String", "BASE_URL", '"http://94.228.125.136:8080"'
             buildConfigField "String", "URL", '"https://ik.imagekit.io"'
         }
@@ -70,10 +67,6 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
 
-//    kotlinOptions {
-//        jvmTarget = '11'
-//        freeCompilerArgs = ['-XXLanguage:+PropertyParamAnnotationDefaultTargetMode']
-//    }
     packagingOptions {
         resources {
             excludes += ['META-INF/versions/9/OSGI-INF/MANIFEST.MF']
@@ -112,10 +105,6 @@ dependencies {
     implementation libs.androidx.room.paging
     implementation libs.androidx.recyclerview
     implementation libs.maps.mobile
-
-//    implementation libs.firebase.messaging
-//    implementation platform(libs.firebase.bom)
-//    implementation libs.play.services.bas
 
     coreLibraryDesugaring libs.desugar.jdk.libs
     ksp libs.androidx.room.compiler

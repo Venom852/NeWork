@@ -56,7 +56,6 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:enabled="true"/>
-<!--                android:padding="@dimen/_8dp" -->
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -81,7 +80,6 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:enabled="true"/>
-<!--                android:padding="@dimen/_8dp" -->
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -106,29 +104,21 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:enabled="true"/>
-<!--                android:padding="@dimen/_8dp" -->
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/date"
+        <TextView
+            android:id="@+id/dateInput"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="@string/press_enter_date"
             android:layout_marginStart="@dimen/_16dp"
             android:layout_marginTop="@dimen/_22dp"
+            android:background="@xml/frame"
+            android:textSize="18sp"
+            android:padding="5dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/link">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/dateInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@null"
-                android:padding="2dp"
-                android:text="@string/press_enter_date"
-                android:clickable="true"/>
-
-        </com.google.android.material.textfield.TextInputLayout>
+            app:layout_constraintTop_toBottomOf="@id/link"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/create"
@@ -142,31 +132,6 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/selectDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:foregroundGravity="center"
-            app:cardElevation="0dp"
-            app:layoutManager="com.google.android.material.card.MaterialCardView"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/calendarDialogBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:foregroundGravity="center"
-            app:cardElevation="0dp"
-            app:layoutManager="com.google.android.material.card.MaterialCardView"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-        <!--    android:layout_gravity="center"-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

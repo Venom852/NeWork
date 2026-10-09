@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.EventEntity
-import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.enumeration.EventType
 
@@ -26,9 +25,6 @@ interface EventDao {
 
     @Query("SELECT * FROM EventEntity WHERE id = :id")
     fun getEvent(id: Long): EventEntity
-
-//    @Query("SELECT * FROM EventEntity WHERE viewed == 1 ORDER BY id DESC")
-//    fun getAll(): Flow<List<EventEntity>>
 
     @Query("SELECT COUNT(*) == 0 FROM EventEntity")
     suspend fun isEmpty(): Boolean
@@ -71,9 +67,6 @@ interface EventDao {
         newType: AttachmentType?
     )
 
-//    @Query("UPDATE EventEntity Set viewed = 1 WHERE viewed = 0")
-//    suspend fun browse()
-
     suspend fun save(event: EventEntity) =
         if (event.id == 0L) insert(event) else changeContentById(event.id, event.content,
             event.speakerIds, event.users, event.coords,
@@ -94,22 +87,24 @@ interface EventDao {
             UPDATE EventEntity SET
                 likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
                 likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END,
-                likeOwnerIds = :likeOwnerIds
+                likeOwnerIds = :likeOwnerIds,
+                users = :users
             WHERE id = :id;
         """
     )
-    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>)
+    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>, users: Map<Long, UserPreview>)
 
     @Query(
         """
             UPDATE EventEntity SET
                 participants = participants + CASE WHEN participatedByMe THEN -1 ELSE 1 END,
                 participatedByMe = CASE WHEN participatedByMe THEN 0 ELSE 1 END,
-                participantsIds = :participantsIds
+                participantsIds = :participantsIds,
+                users = :users
             WHERE id = :id;
         """
     )
-    suspend fun participateById(id: Long, participantsIds: Set<Long>)
+    suspend fun participateById(id: Long, participantsIds: Set<Long>, users: Map<Long, UserPreview>)
 
     @Query(
         """

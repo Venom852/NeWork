@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.TextUtils.isEmpty
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -37,7 +36,6 @@ import ru.netology.nework.databinding.CardCalendarBinding
 import ru.netology.nework.databinding.FragmentNewEventBinding
 import ru.netology.nework.databinding.SelectDateEventBinding
 import ru.netology.nework.dto.Coordinates
-import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.enumeration.EventType
 import ru.netology.nework.fragment.AddLocationFragment.Companion.EVENT
@@ -47,6 +45,7 @@ import ru.netology.nework.fragment.UserFragment.Companion.statusUserFragment
 import ru.netology.nework.util.SwipeDirection
 import ru.netology.nework.util.detectSwipe
 import java.io.File
+import java.io.FileOutputStream
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -82,18 +81,6 @@ class NewEventFragment : Fragment() {
         var dateEvent = ""
 
         arguments?.newEventFragmentBundle?.let {
-//            val text = it
-//            if (text == NEW_EVENT) {
-//                lifecycleScope.launch {
-//                    if (contentDraftDao.getDraft() != null) {
-//                        binding.content.setText(contentDraftDao.getDraft())
-//                        contentDraftDao.removeDraft()
-//                    }
-//                }
-//            } else {
-//                binding.content.setText(text)
-//                editing = true
-//            }
             binding.content.setText(it)
             editing = true
             arguments?.newEventFragmentBundle = null
@@ -125,54 +112,67 @@ class NewEventFragment : Fragment() {
 
                     Activity.RESULT_OK -> {
                         val uri: Uri? = it.data?.data
-                        viewModel.changeMedia(uri, uri?.toFile(), AttachmentType.IMAGE)
-                    }
-                }
-            }
 
-        val pickAudio =
-            registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                if (uri != null) {
-                    Log.d("Audio", "Selected URI: $uri")
-                    viewModel.changeMedia(uri, uri.toFile(), AttachmentType.AUDIO)
-                } else {
-                    Log.d("Audio", "No media selected")
+                        viewModel.changeMedia(uri, uri?.toFile(), AttachmentType.IMAGE)
+
+                        Toast.makeText(requireContext(), R.string.photo_added, Toast.LENGTH_SHORT)
+                            .show()
+                    }
                 }
             }
 
         val pickVideo =
             registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                 if (uri != null) {
-                    Log.d("Video", "Selected URI: $uri")
-                    viewModel.changeMedia(uri, uri.toFile(), AttachmentType.VIDEO)
-                } else {
-                    Log.d("Video", "No media selected")
+                    val tempFile = File(
+                        context?.cacheDir,
+                        "upload_${System.currentTimeMillis()}.tmp"
+                    )
+
+                    context?.contentResolver?.openInputStream(uri)?.use { input ->
+                        FileOutputStream(tempFile).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+
+                    val fileUri = Uri.fromFile(tempFile)
+                    tempFile.delete()
+
+                    viewModel.changeMedia(fileUri, fileUri.toFile(), AttachmentType.VIDEO)
+
+                    Toast.makeText(requireContext(), R.string.video_added, Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
 
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
-
         val audio =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 when (it.resultCode) {
                     Activity.RESULT_OK -> {
                         if (it.data?.data != null) {
                             val uri = it.data?.data
-                            val file = File.createTempFile("files", "index")
 
-                            uri?.let { uri ->
-                                context?.contentResolver?.openInputStream(uri)
-                            }.use { input ->
-                                file.outputStream().use { output ->
-                                    input?.copyTo(output)
+                            if (uri != null) {
+                                val tempFile = File(
+                                    context?.cacheDir,
+                                    "upload_${System.currentTimeMillis()}.tmp"
+                                )
+
+                                context?.contentResolver?.openInputStream(uri)?.use { input ->
+                                    FileOutputStream(tempFile).use { output ->
+                                        input.copyTo(output)
+                                    }
                                 }
-                            }
 
-                            file.delete()
-                            Log.d("Audio", "Selected URI: $uri")
-                            viewModel.changeMedia(uri, uri?.toFile(), AttachmentType.AUDIO)
-                        } else {
-                            Log.d("Audio", "No media selected")
+                                val fileUri = Uri.fromFile(tempFile)
+                                tempFile.delete()
+
+                                viewModel.changeMedia(fileUri, fileUri.toFile(), AttachmentType.AUDIO)
+
+                                Toast.makeText(requireContext(), R.string.audio_added, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         }
                     }
                 }
@@ -186,21 +186,23 @@ class NewEventFragment : Fragment() {
             save.setOnClickListener {
                 if (!content.text.isNullOrBlank()) {
                     viewModel.saveContent(content.text.toString())
+
                     AndroidUtils.hideKeyboard(requireView())
+                } else {
+                    Toast.makeText(requireContext(), R.string.empty_event, Toast.LENGTH_SHORT)
+                        .show()
                 }
-                //TODO(Проверить поведение)
-                viewModel.edited.value = viewModel.empty
-                viewModel.changeMedia(null, null, null)
             }
 
             back.setOnClickListener {
                 viewModel.edited.value = viewModel.empty
                 viewModel.changeMedia(null, null, null)
-                viewModel.listSpeakersUsers = emptySet<Long>()
-                viewModel.listMapUsers = emptyMap<Long, UserPreview>()
+                viewModel.listSpeakersUsers = emptySet()
+                viewModel.listMapUsers = emptyMap()
                 viewModel.coordinates = Coordinates(lat = 0.0, long = 0.0)
                 viewModel.dateTime = ""
                 viewModel.type = EventType.NOT_ASSIGNED
+                viewModel.statusMedia = false
 
                 findNavController().navigateUp()
             }
@@ -249,12 +251,6 @@ class NewEventFragment : Fragment() {
                         when (menuItem.itemId) {
                             R.id.pickAudio -> {
                                 audio.launch(intent)
-//                                pickAudio.launch(
-//                                    PickVisualMediaRequest(
-//                                        ActivityResultContracts.PickVisualMedia.VideoOnly
-//                                    )
-//                                )
-
                                 true
                             }
 
@@ -264,7 +260,6 @@ class NewEventFragment : Fragment() {
                                         ActivityResultContracts.PickVisualMedia.VideoOnly
                                     )
                                 )
-
                                 true
                             }
 
@@ -304,16 +299,6 @@ class NewEventFragment : Fragment() {
         }
 
         viewModel.media.observe(viewLifecycleOwner) {
-//            if (it.attachmentType == AttachmentType.IMAGE) {
-//                if (it.uri == null) {
-//                    binding.groupPhotoContainer.visibility = View.GONE
-//                    return@observe
-//                }
-//
-//                binding.groupPhotoContainer.visibility = View.VISIBLE
-//                binding.photo.setImageURI(it.uri)
-//            }
-
             if (it.uri == null) {
                 binding.groupPhotoContainer.visibility = View.GONE
                 return@observe
@@ -356,10 +341,8 @@ class NewEventFragment : Fragment() {
                         bindingSelectDateEvent.dateContent.text.toString().replace(date, dateEvent)
                             .replace(" ", "T")
 
-                    //TODO(Проверить поведение)
                     if (dateContent.length in 14..16) {
-//                        dateContent = "$dateContent:00.123Z"
-                        dateContent = "$dateContent:00"
+                        dateContent = "$dateContent:00.000Z"
 
                         if (bindingSelectDateEvent.online.isChecked) {
                             viewModel.saveDate(dateContent, EventType.ONLINE)
@@ -368,15 +351,14 @@ class NewEventFragment : Fragment() {
                         }
 
                         dialog.dismiss()
+
                         Toast.makeText(
                             requireContext(),
                             requireContext().getString(R.string.date_is_set),
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
-                        //TODO(Проверить поведение)
                         bindingSelectDateEvent.date.error = getString(R.string.enter_date)
-                        bindingSelectDateEvent.date.error = null
 
                         Toast.makeText(
                             requireContext(),
@@ -401,7 +383,29 @@ class NewEventFragment : Fragment() {
             calendar.set(year, month, day)
 
             date = "$month/$day/$year"
-            dateEvent = "$year-$month-$day"
+
+            var monthString = month.toString()
+            var dayString = day.toString()
+
+            when {
+                monthString.length != 2 && dayString.length != 2 -> {
+                    monthString = "0$monthString"
+                    dayString = "0$dayString"
+                    dateEvent = "$year-$monthString-$dayString"
+                }
+
+                monthString.length != 2 -> {
+                    monthString = "0$monthString"
+                    dateEvent = "$year-$monthString-$dayString"
+                }
+
+                dayString.length != 2 -> {
+                    dayString = "0$dayString"
+                    dateEvent = "$year-$monthString-$dayString"
+                }
+
+                else -> dateEvent = "$year-$monthString-$dayString"
+            }
 
             bindingSelectDateEvent.dateContent.setText(date)
             dialogCalendar.dismiss()
@@ -414,12 +418,17 @@ class NewEventFragment : Fragment() {
                         contentDraftDao.saveDraft(binding.content.text.toString())
                     }
                 }
-//                lifecycleScope.launch {
-//                    contentDraftDao.saveDraft(binding.content.text.toString())
-//                }
             }
             editing = false
             viewModel.edited.value = viewModel.empty
+            viewModel.changeMedia(null, null, null)
+            viewModel.listSpeakersUsers = emptySet()
+            viewModel.listMapUsers = emptyMap()
+            viewModel.coordinates = Coordinates(lat = 0.0, long = 0.0)
+            viewModel.dateTime = ""
+            viewModel.type = EventType.NOT_ASSIGNED
+            viewModel.statusMedia = false
+
             findNavController().navigateUp()
         }
 

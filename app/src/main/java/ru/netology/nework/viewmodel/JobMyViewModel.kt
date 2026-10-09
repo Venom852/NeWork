@@ -23,7 +23,6 @@ import ru.netology.nework.entity.toJobMyDto
 import ru.netology.nework.entity.toJobMyEntity
 import ru.netology.nework.model.FeedModelState
 import ru.netology.nework.repository.JobMyRepository
-import java.time.Instant
 import kotlin.Long
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,7 +33,7 @@ class JobMyViewModel @Inject constructor(
     auth: AppAuth,
 ) : ViewModel() {
     var empty = Job(
-        id = 0,
+        id = 0L,
         name = "",
         position = "",
         start = "",
@@ -59,7 +58,7 @@ class JobMyViewModel @Inject constructor(
     val errorMyJob403: LiveData<Unit>
         get() = _errorMyJob403
 
-    private var oldJob = empty
+//    private var oldJob = empty
     private var oldJobs = emptyList<Job>()
     private var dateStart = ""
     private var dateEnd: String? = ""
@@ -85,29 +84,14 @@ class JobMyViewModel @Inject constructor(
         }
     }
 
-    fun refreshJobs() {
-        viewModelScope.launch {
-            try {
-                CoroutineScope(Dispatchers.IO).launch {
-                    oldJobs = jobMyDao.getAll().toJobMyDto()
-                }
-
-                _dataState.value = FeedModelState(refreshing = true)
-                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                jobMyDao.insertJobs(oldJobs.toJobMyEntity())
-                e.printStackTrace()
-            }
-        }
-    }
-
     fun removeById(id: Long) {
         viewModelScope.launch {
             CoroutineScope(Dispatchers.IO).launch {
                 oldJobs = jobMyDao.getAll().toJobMyDto()
             }
+
             jobMyDao.removeById(id)
+
             try {
                 repository.removeById(id)
             } catch (_: ErrorCode403) {
@@ -121,39 +105,39 @@ class JobMyViewModel @Inject constructor(
     }
 
     fun saveJob(titleJob: String, jobPost: String, link: String? = null) {
-        edited.value?.let {
+        edited.value?.let { newJob ->
             viewModelScope.launch {
                 CoroutineScope(Dispatchers.IO).launch {
                     oldJobs = jobMyDao.getAll().toJobMyDto()
                 }
 
-                var job = it.copy(
+                var jobServer: Job
+                var job = newJob.copy(
                     name = titleJob,
-                    position = jobPost,
-                    link = link
+                    position = jobPost
                 )
-                var jobServer = empty
+
+                if (link != null) {
+                    job = job.copy(link = link)
+                }
 
                 if (dateStart != "" && dateEnd != "") {
-                    job = job.copy(start = Instant.parse(dateStart).toString(), finish = Instant.parse(dateEnd).toString())
+                    job = job.copy(start = dateStart, finish = dateEnd)
                 } else {
-                    job = job.copy(start = Instant.parse(dateStart).toString())
+                    job = job.copy(start = dateStart)
                 }
 
                 jobMyDao.saveJob(JobMyEntity.fromJobMyDto(job))
                 _jobCreated.value = Unit
 
                 try {
-
                     jobServer = repository.save(job)
 
-//                    if (post.id == 0L) {
-                    oldJob = oldJobs.first()
-                    jobMyDao.changeIdJobById(oldJob.id, jobServer.id)
+//                    oldJob = oldJobs.first()
+                    jobMyDao.changeIdJobById(0L, jobServer.id)
 
                     dateStart = ""
                     dateEnd = ""
-//                    }
                 } catch (_: ErrorCode403) {
                     _errorMyJob403.value = Unit
                     jobMyDao.insertJobs(oldJobs.toJobMyEntity())

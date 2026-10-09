@@ -27,13 +27,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import ru.netology.nework.dao.EventDao
 import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.dto.Event
-import ru.netology.nework.dto.Post
 import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.EventEntity
 import ru.netology.nework.entity.toEventDto
 import ru.netology.nework.entity.toEventEntity
-import ru.netology.nework.entity.toPostDto
-import ru.netology.nework.entity.toPostEntity
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.enumeration.EventType
 import ru.netology.nework.error.ErrorCode404
@@ -42,11 +39,6 @@ import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.model.FeedModelState
 import ru.netology.nework.repository.EventRepository
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import kotlin.collections.map
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -56,8 +48,8 @@ class EventViewModel @Inject constructor(
     auth: AppAuth,
 ) : ViewModel() {
     var empty = Event(
-        id = 0,
-        author = "Me",
+        id = 0L,
+        author = "Me123",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -102,15 +94,6 @@ class EventViewModel @Inject constructor(
             }
         }
 
-//    val dataEvent: Flow<List<Event>> = auth.authStateFlow
-//        .flatMapLatest { (myId, _) ->
-//            eventRepository.data.map { listEvent ->
-//                listEvent.map { event ->
-//                    event.copy(ownedByMe = event.authorId == myId)
-//                }
-//            }
-//        }
-
     val edited = MutableLiveData(empty)
 
     private val _eventCreated = SingleLiveEvent<Unit>()
@@ -133,51 +116,14 @@ class EventViewModel @Inject constructor(
     val media: LiveData<MediaModel>
         get() = _media
 
-    private var oldEvent = empty
+//    private var oldEvent = empty
     private var oldEvents = emptyList<Event>()
     var listSpeakersUsers = emptySet<Long>()
+    var statusMedia = false
     var listMapUsers = emptyMap<Long, UserPreview>()
     var coordinates = Coordinates(lat = 0.0, long = 0.0)
     var dateTime = ""
     var type = EventType.NOT_ASSIGNED
-
-    init {
-        loadEvents()
-    }
-
-    fun loadEvents() {
-        viewModelScope.launch {
-            CoroutineScope(Dispatchers.IO).launch {
-                oldEvents = eventDao.getAll().toEventDto()
-            }
-
-            try {
-                _dataState.value = FeedModelState(loading = true)
-                eventRepository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                eventDao.insertEvents(oldEvents.toEventEntity())
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun refreshEvents() {
-        viewModelScope.launch {
-            CoroutineScope(Dispatchers.IO).launch {
-                oldEvents = eventDao.getAll().toEventDto()
-            }
-
-            try {
-                _dataState.value = FeedModelState(loading = true)
-                eventRepository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                eventDao.insertEvents(oldEvents.toEventEntity())
-                e.printStackTrace()
-            }
-        }
-    }
 
     fun likeById(event: Event) {
         viewModelScope.launch {
@@ -186,7 +132,7 @@ class EventViewModel @Inject constructor(
             }
 
             val eventLikedByMe = oldEvents.find { it.id == event.id }?.likedByMe
-            eventDao.likeById(event.id, saveLikeOwnerIds(event))
+            eventDao.likeById(event.id, saveLikeOwnerIds(event), saveUsers(event))
 
             try {
                 eventRepository.likeById(event.id, eventLikedByMe)
@@ -210,7 +156,7 @@ class EventViewModel @Inject constructor(
             }
 
             val eventParticipatedByMe = oldEvents.find { it.id == event.id }?.participatedByMe
-            eventDao.participateById(event.id, saveParticipantsIds(event))
+            eventDao.participateById(event.id, saveParticipantsIds(event), saveUsers(event))
 
             try {
                 eventRepository.participateById(event.id, eventParticipatedByMe)
@@ -248,22 +194,22 @@ class EventViewModel @Inject constructor(
     }
 
     fun saveContent(content: String) {
-        edited.value?.let {
+        edited.value?.let { eventNew ->
             viewModelScope.launch {
                 CoroutineScope(Dispatchers.IO).launch {
                     oldEvents = eventDao.getAll().toEventDto()
                 }
 
-                val data = ZonedDateTime.now()
+                val data = Instant.now().toString()
                 var eventServer = empty
-                var event = it.copy(
-//                    published = "${data.dayOfMonth}.${data.monthValue}.${data.year} ${data.hour}:${data.minute}",
-                    published = data.toString(),
+                var event = eventNew.copy(
+                    published = data,
                     content = content,
+                    ownedByMe = true
                 )
 
-                if (!listSpeakersUsers.isEmpty() && !listMapUsers.isEmpty()) {
-                    event = it.copy(
+                if (!listSpeakersUsers.isEmpty() || !listMapUsers.isEmpty()) {
+                    event = event.copy(
                         speakerIds = listSpeakersUsers,
                         users = listMapUsers
                     )
@@ -277,14 +223,11 @@ class EventViewModel @Inject constructor(
                     event = event.copy(type = type)
                 }
 
-                //TODO(Настроить)
                 if (dateTime != "") {
-//                    event = event.copy(datetime = LocalDateTime.parse(dateTime).toInstant(ZoneOffset.ofHours(3)))
                     event = event.copy(datetime = dateTime)
                 }
 
                 eventDao.save(EventEntity.fromEventDto(event))
-                //TODO(Нужно ли здесь использовать)
                 _eventCreated.value = Unit
 
                 try {
@@ -300,6 +243,20 @@ class EventViewModel @Inject constructor(
                             }
                         }
                     }
+
+//                    if (!statusMedia) {
+//                        eventServer = eventRepository.save(event)
+//                    } else {
+//                        _media.value?.file?.let { file ->
+//                            _media.value?.attachmentType?.let { attachmentType ->
+//                                eventServer = eventRepository.saveWithAttachment(
+//                                    event,
+//                                    MediaUpload(file),
+//                                    attachmentType
+//                                )
+//                            }
+//                        }
+//                    }
 
                     if (event.id == 0L) {
 //                        oldEvent = oldEvents.first()
@@ -320,6 +277,7 @@ class EventViewModel @Inject constructor(
                         listMapUsers = emptyMap()
                         dateTime = ""
                         type = EventType.NOT_ASSIGNED
+                        statusMedia = false
                     }
                 } catch (_: ErrorCode403) {
                     eventDao.insertEvents(oldEvents.toEventEntity())
@@ -353,8 +311,9 @@ class EventViewModel @Inject constructor(
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
-        //TODO(Проверить нужно ли здесь)
-        _media.value = MediaModel(null, null, attachmentType)
+        if (uri != null) {
+            statusMedia = true
+        }
         _media.value = MediaModel(uri, file, attachmentType)
     }
 
@@ -422,7 +381,13 @@ class EventViewModel @Inject constructor(
 
     private fun saveParticipantsIds(event: Event): Set<Long> {
         val listParticipantsIds = event.participantsIds.toMutableSet()
-        listParticipantsIds.add(event.id)
+        listParticipantsIds.add(event.authorId)
         return listParticipantsIds.toSet()
+    }
+
+    private fun saveUsers(event: Event): Map<Long, UserPreview> {
+        val users = event.users.toMutableMap()
+        users[event.authorId] = UserPreview(event.author, event.authorAvatar)
+        return users.toMap()
     }
 }

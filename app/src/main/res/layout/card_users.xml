@@ -66,5 +66,4 @@
             app:constraint_referenced_ids="avatarUser,nameUser,loginUser" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>

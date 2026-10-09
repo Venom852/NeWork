@@ -30,17 +30,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:title="@string/login" />
 
-    <include
-        android:id="@+id/errorCode300"
-        layout="@layout/error_code_300"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/inputArea"
         android:layout_width="match_parent"
@@ -100,7 +89,6 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:enabled="true" />
-<!--            android:padding="@dimen/_8dp"-->
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -129,7 +117,6 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:enabled="true" />
-<!--            android:padding="@dimen/_8dp"-->
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -160,7 +147,6 @@
                 android:background="@null"
                 android:enabled="true"
                 android:inputType="textPassword" />
-<!--            android:padding="@dimen/_8dp"-->
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -191,7 +177,6 @@
                 android:background="@null"
                 android:enabled="true"
                 android:inputType="textPassword" />
-<!--            android:padding="@dimen/_8dp"-->
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -209,5 +194,4 @@
             app:layout_constraintTop_toBottomOf="@id/confirmationPassword" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

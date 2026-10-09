@@ -7,8 +7,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.gson.Gson
-import dagger.hilt.android.AndroidEntryPoint
-import ru.netology.nework.BuildConfig
 import ru.netology.nework.R
 import ru.netology.nework.databinding.CardUsersBinding
 import ru.netology.nework.dto.User
@@ -26,7 +24,6 @@ import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.MENTIONED
 import ru.netology.nework.fragment.UserFragment.Companion.PARTICIPANTS
 import ru.netology.nework.fragment.UserFragment.Companion.SPEAKERS
-import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 
 class UserViewHolder(
     private val binding: CardUsersBinding,
@@ -59,26 +56,7 @@ class UserViewHolder(
                 onInteractionUserListener.onRadioButton(user)
             }
 
-
-//            groupUser.setAllOnClickListener {
-//                if (status == CHOOSING_MENTIONED_USER_POST
-//                    || status == CHOOSING_SPEAKERS_USER) {
-//                    findNavController(it).navigate(
-//                        R.id.action_feedFragment_to_yourProfileFragment,
-//                        Bundle().apply {
-//                            userFragmentBundle = gson.toJson(user)
-//                        })
-//                } else {
-//                    findNavController(it).navigate(
-//                        R.id.action_userFragment_to_yourProfileFragment,
-//                        Bundle().apply {
-//                            userFragmentBundle = gson.toJson(user)
-//                        })
-//                }
-//            }
-
             userConstraint.setOnClickListener {
-                //TODO(Настроить)
                 if (status == CHOOSING_MENTIONED_USER_POST || status == CHOOSING_SPEAKERS_USER
                     || status == CHOOSING_MENTIONED_USER_WALL || status == LIKE
                     || status == MENTIONED || status == PARTICIPANTS || status == SPEAKERS) {

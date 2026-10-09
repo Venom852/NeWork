@@ -29,21 +29,15 @@ import androidx.paging.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.forEach
 import ru.netology.nework.dto.Coordinates
-import ru.netology.nework.dto.Event
 import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.toPostDto
-import ru.netology.nework.entity.toUserDto
-import ru.netology.nework.entity.toUserEntity
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.error.ErrorCode404
 import ru.netology.nework.error.ErrorCode415
 import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.model.FeedModelState
 import java.time.Instant
-import java.time.ZonedDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -97,15 +91,6 @@ class PostViewModel @Inject constructor(
             }
         }
 
-//    val dataPost: Flow<List<Post>> = auth.authStateFlow
-//        .flatMapLatest { (myId, _) ->
-//            repository.data.map { listPost ->
-//                listPost.map { post ->
-//                    post.copy(ownedByMe = post.authorId == myId)
-//                }
-//            }
-//        }
-
     val edited = MutableLiveData(empty)
 
     private val _postCreated = SingleLiveEvent<Unit>()
@@ -128,50 +113,12 @@ class PostViewModel @Inject constructor(
     val media: LiveData<MediaModel>
         get() = _media
 
-    private var oldPost = empty
+//    private var oldPost = empty
     private var oldPosts = emptyList<Post>()
     var statusMedia = false
     var listMentionedUser = emptySet<Long>()
     var listMapUser = emptyMap<Long, UserPreview>()
     var coordinates = Coordinates(lat = 0.0, long = 0.0)
-
-//    init {
-//        loadPosts()
-//    }
-
-    fun loadPosts() {
-        viewModelScope.launch {
-            CoroutineScope(Dispatchers.IO).launch {
-                oldPosts = dao.getAll().toPostDto()
-            }
-
-            try {
-                _dataState.value = FeedModelState(loading = true)
-                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                dao.insertPosts(oldPosts.toPostEntity())
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun refreshPosts() {
-        viewModelScope.launch {
-            CoroutineScope(Dispatchers.IO).launch {
-                oldPosts = dao.getAll().toPostDto()
-            }
-
-            try {
-                _dataState.value = FeedModelState(loading = true)
-                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                dao.insertPosts(oldPosts.toPostEntity())
-                e.printStackTrace()
-            }
-        }
-    }
 
     fun likeById(post: Post) {
         viewModelScope.launch {
@@ -180,7 +127,7 @@ class PostViewModel @Inject constructor(
             }
 
             val postLikedByMe = oldPosts.find { it.id == post.id }?.likedByMe
-            dao.likeById(post.id, saveLikeOwnerIds(post))
+            dao.likeById(post.id, saveLikeOwnerIds(post), saveUsers(post))
 
             try {
                 repository.likeById(post.id, postLikedByMe)
@@ -217,9 +164,8 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun saveContent(content: String, listIdUsers: Set<Long>? = null, listMapUsers: Map<Long, UserPreview>? = null) {
+    fun saveContent(content: String) {
         edited.value?.let { newPost ->
-            //TODO(Нужно ли заключить весь код в корутину)
             viewModelScope.launch {
                 CoroutineScope(Dispatchers.IO).launch {
                     oldPosts = dao.getAll().toPostDto()
@@ -233,13 +179,6 @@ class PostViewModel @Inject constructor(
                     ownedByMe = true
                 )
 
-//                if (listIdUsers != null && listMapUsers != null) {
-//                    post = newPost.copy(
-//                        mentionIds = listIdUsers,
-//                        users = listMapUsers
-//                    )
-//                }
-
                 if (!listMentionedUser.isEmpty() || !listMapUser.isEmpty()) {
                     post = post.copy(
                         mentionIds = listMentionedUser,
@@ -252,27 +191,12 @@ class PostViewModel @Inject constructor(
                 }
 
                 dao.save(PostEntity.fromPostDto(post))
-                //TODO(Нужно ли здесь использовать)
                 _postCreated.value = Unit
 
                 try {
-//                    when (_media.value) {
-//                        noMedia -> postServer = repository.save(post)
-//                        else -> _media.value?.file?.let { file ->
-//                            _media.value?.attachmentType?.let { attachmentType ->
-//                                postServer = repository.saveWithAttachment(
-//                                    post,
-//                                    MediaUpload(file),
-//                                    attachmentType
-//                                )
-//                            }
-//                        }
-//                    }
-
-                    if (!statusMedia) {
-                        postServer = repository.save(post)
-                    } else {
-                        _media.value?.file?.let { file ->
+                    when (_media.value) {
+                        noMedia -> postServer = repository.save(post)
+                        else -> _media.value?.file?.let { file ->
                             _media.value?.attachmentType?.let { attachmentType ->
                                 postServer = repository.saveWithAttachment(
                                     post,
@@ -282,6 +206,20 @@ class PostViewModel @Inject constructor(
                             }
                         }
                     }
+
+//                    if (!statusMedia) {
+//                        postServer = repository.save(post)
+//                    } else {
+//                        _media.value?.file?.let { file ->
+//                            _media.value?.attachmentType?.let { attachmentType ->
+//                                postServer = repository.saveWithAttachment(
+//                                    post,
+//                                    MediaUpload(file),
+//                                    attachmentType
+//                                )
+//                            }
+//                        }
+//                    }
 
 
                     if (post.id == 0L) {
@@ -336,9 +274,10 @@ class PostViewModel @Inject constructor(
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
-        statusMedia = true
-        //TODO(Проверить нужно ли здесь)
-//        _media.value = MediaModel(null, null, attachmentType)
+        if (uri != null) {
+            statusMedia = true
+        }
+
         _media.value = MediaModel(uri, file, attachmentType)
     }
 
@@ -391,7 +330,13 @@ class PostViewModel @Inject constructor(
 
     private fun saveLikeOwnerIds(post: Post): Set<Long> {
         val listLikeOwnerIds = post.likeOwnerIds.toMutableSet()
-        listLikeOwnerIds.add(post.id)
+        listLikeOwnerIds.add(post.authorId)
         return listLikeOwnerIds.toSet()
+    }
+
+    private fun saveUsers(post: Post): Map<Long, UserPreview> {
+        val users = post.users.toMutableMap()
+        users[post.authorId] = UserPreview(post.author, post.authorAvatar)
+        return users.toMap()
     }
 }

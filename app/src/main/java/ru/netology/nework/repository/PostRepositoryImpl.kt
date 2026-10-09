@@ -27,11 +27,6 @@ import androidx.paging.map
 import ru.netology.nework.db.AppDb
 import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.dao.PostRemoteKeyDao
-import ru.netology.nework.dto.User
-import ru.netology.nework.entity.toPostDto
-import ru.netology.nework.entity.toPostEntity
-import ru.netology.nework.entity.toUserDto
-import ru.netology.nework.entity.toUserEntity
 import ru.netology.nework.error.ErrorCode404
 import ru.netology.nework.error.ErrorCode415
 import kotlin.time.ExperimentalTime
@@ -50,31 +45,6 @@ class PostRepositoryImpl @Inject constructor(
         remoteMediator = PostRemoteMediator(apiService, appDb, dao, postRemoteKeyDao)
     ).flow.map {
         it.map(PostEntity::toPostDto)
-    }
-
-//    override val data: Flow<List<Post>> = dao.getAllFlow().map { it.toPostDto() }
-
-    override suspend fun getAll() {
-        try {
-            val response = apiService.getAllPosts()
-
-            if (response.isSuccessful) {
-                val body = response.body() ?: throw ApiError(response.code(), response.message())
-                dao.insertPosts(body.map {
-                    it.copy(
-                        likes = it.likeOwnerIds.count().toLong()
-                    )
-                }.toPostEntity())
-
-                return
-            }
-
-            throw ApiError(response.code(), response.message())
-        } catch (_: IOException) {
-            throw NetworkError()
-        } catch (_: Exception) {
-            throw UnknownError()
-        }
     }
 
     override suspend fun likeById(id: Long, postLikedByMe: Boolean?) {

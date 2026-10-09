@@ -10,5 +10,4 @@ interface OnInteractionEventListener {
     fun onEdit(event: Event)
     fun onPlayVideo(event: Event)
     fun onPlaySong(event: Event)
-    fun onSaveAuthorId(authorId: Long)
 }

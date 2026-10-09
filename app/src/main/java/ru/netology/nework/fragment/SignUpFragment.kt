@@ -11,7 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
@@ -22,7 +21,6 @@ import ru.netology.nework.R
 import ru.netology.nework.auth.AppAuth
 import ru.netology.nework.databinding.FragmentSignUpBinding
 import ru.netology.nework.viewmodel.SignUpViewModel
-import ru.netology.nework.viewmodel.UserViewModel
 import javax.inject.Inject
 import kotlin.getValue
 
@@ -39,7 +37,6 @@ class SignUpFragment : Fragment() {
         val binding = FragmentSignUpBinding.inflate(layoutInflater, container, false)
 
         val viewModel: SignUpViewModel by viewModels()
-        val viewModelUser: UserViewModel by activityViewModels()
 
         val pickPhotoLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -68,22 +65,18 @@ class SignUpFragment : Fragment() {
 
             signUp.setOnClickListener {
                 if (loginInput.text.toString().isEmpty()) {
-                    loginInput.error = null
                     loginInput.error = getString(R.string.empty_login)
                 }
 
                 if (nameInput.text.toString().isEmpty()) {
-                    nameInput.error = null
                     nameInput.error = getString(R.string.empty_user_name)
                 }
 
                 if (passwordInput.text.toString().isEmpty()) {
-                    passwordInput.error = null
                     passwordInput.error = getString(R.string.empty_password)
                 }
 
                 if (confirmationPasswordInput.text.toString().isEmpty()) {
-                    confirmationPasswordInput.error = null
                     confirmationPasswordInput.error = getString(R.string.empty_password_confirmation)
                 }
 
@@ -93,9 +86,7 @@ class SignUpFragment : Fragment() {
                     !confirmationPasswordInput.text.toString().isEmpty() &&
                     passwordInput.text.toString() == confirmationPasswordInput.text.toString()
                 ) {
-                    viewModel.signUp(
-                        loginInput.text.toString(),
-                        nameInput.text.toString(),
+                    viewModel.signUp(loginInput.text.toString(), nameInput.text.toString(),
                         passwordInput.text.toString()
                     )
                 } else {
@@ -200,8 +191,6 @@ class SignUpFragment : Fragment() {
         }
 
         viewModel.authState.observe(viewLifecycleOwner) {
-//            viewModelUser.refreshUsers()
-
             when {
                 it.token != null && it.avatar != null -> {
                     auth.setAuth(it.id, it.token, it.avatar)
@@ -213,11 +202,6 @@ class SignUpFragment : Fragment() {
                     findNavController().navigateUp()
                 }
             }
-
-//            if (it.token != null) {
-//                auth.setAuth(it.id, it.token, null)
-//                findNavController().navigateUp()
-//            }
         }
 
         viewModel.photo.observe(viewLifecycleOwner) {

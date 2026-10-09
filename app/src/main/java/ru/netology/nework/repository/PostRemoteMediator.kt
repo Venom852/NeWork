@@ -5,7 +5,6 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import com.google.gson.JsonArray
 import kotlinx.coroutines.CancellationException
 import ru.netology.nework.api.ApiService
 import ru.netology.nework.dao.PostDao

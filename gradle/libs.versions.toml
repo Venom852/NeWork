@@ -1,6 +1,5 @@
 [versions]
 agp = "9.2.1"
-kotlin = "2.4.0"
 coreKtx = "1.19.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -56,7 +55,6 @@ maps-mobile = { module = "com.yandex.android:maps.mobile", version.ref = "mapsMo
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-#kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp_version" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 

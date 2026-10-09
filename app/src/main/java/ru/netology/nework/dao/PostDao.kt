@@ -6,11 +6,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
-import ru.netology.nework.dto.AttachmentEmbeddable
 import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.PostEntity
-import ru.netology.nework.entity.UserEntity
 import ru.netology.nework.enumeration.AttachmentType
 
 @Dao
@@ -26,9 +24,6 @@ interface PostDao {
 
     @Query("SELECT * FROM PostEntity WHERE id = :id")
     fun getPost(id: Long): PostEntity
-
-//    @Query("SELECT * FROM PostEntity WHERE viewed == 1 ORDER BY id DESC")
-//    fun getAll(): Flow<List<PostEntity>>
 
     @Query("SELECT COUNT(*) == 0 FROM PostEntity")
     suspend fun isEmpty(): Boolean
@@ -66,9 +61,6 @@ interface PostDao {
         newType: AttachmentType?
     )
 
-//    @Query("UPDATE PostEntity Set viewed = 1 WHERE viewed = 0")
-//    suspend fun browse()
-
     suspend fun save(post: PostEntity) =
         if (post.id == 0L) insert(post) else changeContentById(post.id, post.content,
             post.mentionIds, post.users, post.coords)
@@ -78,11 +70,12 @@ interface PostDao {
             UPDATE PostEntity SET
                 likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
                 likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END,
-                likeOwnerIds = :likeOwnerIds
+                likeOwnerIds = :likeOwnerIds,
+                users = :users
             WHERE id = :id;
         """
     )
-    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>)
+    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>, users: Map<Long, UserPreview>)
 
     @Query(
         """

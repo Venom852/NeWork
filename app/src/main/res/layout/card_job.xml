@@ -74,5 +74,4 @@
             tools:text="@sample/posts.json/data/previewLink" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>

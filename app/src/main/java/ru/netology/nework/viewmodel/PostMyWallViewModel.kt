@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.flow.map
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -32,8 +31,6 @@ import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.dto.User
 import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.PostMyWallEntity
-import ru.netology.nework.entity.toPostDto
-import ru.netology.nework.entity.toPostEntity
 import ru.netology.nework.entity.toPostMyWallDto
 import ru.netology.nework.entity.toPostMyWallEntity
 import ru.netology.nework.enumeration.AttachmentType
@@ -42,7 +39,7 @@ import ru.netology.nework.error.ErrorCode415
 import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.model.FeedModelState
 import ru.netology.nework.repository.PostMyWallRepository
-import java.time.ZonedDateTime
+import java.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -50,11 +47,11 @@ class PostMyWallViewModel @Inject constructor(
     private val repository: PostMyWallRepository,
     private val postMyWallDao: PostMyWallDao,
     private val userDao: UserDao,
-    val auth: AppAuth,
+    private val auth: AppAuth,
 ) : ViewModel() {
     var empty = Post(
         id = 0,
-        author = "Me",
+        author = "Me123",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -79,7 +76,6 @@ class PostMyWallViewModel @Inject constructor(
 
     private val noMedia = MediaModel()
     private val mediaObserver = MediaLifecycleObserver()
-    private var authorId = 0L
     private val _dataState = MutableStateFlow(FeedModelState())
     val dataState: Flow<FeedModelState>
         get() = _dataState
@@ -88,7 +84,6 @@ class PostMyWallViewModel @Inject constructor(
         .data
         .cachedIn(viewModelScope)
 
-    //TODO(Нужно ли здесь присваивание)
     val dataPostMyWall: Flow<PagingData<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
             cachedPost.map { pagingData ->
@@ -97,20 +92,6 @@ class PostMyWallViewModel @Inject constructor(
                 }
             }
         }
-
-    //TODO(Нужно ли здесь присваивание)
-//    val dataPostMyWall: Flow<List<Post>> = auth.authStateFlow
-//        .flatMapLatest { (myId, _) ->
-//            repository.data.map { listPost ->
-//                listPost.map { post ->
-//                    post.copy(ownedByMe = post.authorId == myId)
-//                }
-//            }
-//        }
-
-//    val dataMyUserWall: LiveData<User> = auth.authStateFlow
-//        .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
-//        .asLiveData()
 
     val edited = MutableLiveData(empty)
 
@@ -134,59 +115,15 @@ class PostMyWallViewModel @Inject constructor(
     val media: LiveData<MediaModel>
         get() = _media
 
-    private var oldPost = empty
+//    private var oldPost = empty
     private var oldPosts = emptyList<Post>()
+    var statusMedia = false
     var listMentionedUser = emptySet<Long>()
     var listMapUser = emptyMap<Long, UserPreview>()
     var coordinates = Coordinates(lat = 0.0, long = 0.0)
 
-//    init {
-//        loadPosts()
-//    }
-
-    fun dataMyUserWall(authorId: Long): LiveData<User> = auth.authStateFlow
+    fun dataMyUserWall(authorId: Long): Flow<User> = auth.authStateFlow
         .flatMapLatest { userDao.getUserFlow(authorId).map { it.toUserDto() } }
-        .asLiveData(Dispatchers.IO)
-
-//    fun initializeAuthorId(id: Long) {
-//        authorId = id
-//    }
-
-    fun loadPosts(id: Long) {
-        viewModelScope.launch {
-            CoroutineScope(Dispatchers.IO).launch {
-                oldPosts = postMyWallDao.getAll().toPostMyWallDto()
-            }
-
-            authorId = id
-
-            try {
-                _dataState.value = FeedModelState(loading = true)
-                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun refreshPosts() {
-        viewModelScope.launch {
-            CoroutineScope(Dispatchers.IO).launch {
-                oldPosts = postMyWallDao.getAll().toPostMyWallDto()
-            }
-
-            try {
-                _dataState.value = FeedModelState(loading = true)
-                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
-                e.printStackTrace()
-            }
-        }
-    }
 
     fun likeById(post: Post) {
         viewModelScope.launch {
@@ -195,7 +132,7 @@ class PostMyWallViewModel @Inject constructor(
             }
 
             val postLikedByMe = oldPosts.find { it.id == post.id }?.likedByMe
-            postMyWallDao.likeById(post.id, saveLikeOwnerIds(post))
+            postMyWallDao.likeById(post.id, saveLikeOwnerIds(post), saveUsers(post))
 
             try {
                 repository.likeById(post.id, postLikedByMe)
@@ -239,12 +176,12 @@ class PostMyWallViewModel @Inject constructor(
                     oldPosts = postMyWallDao.getAll().toPostMyWallDto()
                 }
 
-                val data = ZonedDateTime.now()
+                val data = Instant.now().toString()
                 var postServer = empty
                 var post = it.copy(
-//                    published = "${data.dayOfMonth}.${data.monthValue}.${data.year} ${data.hour}:${data.minute}",
-                    published = data.toString(),
-                    content = content
+                    published = data,
+                    content = content,
+                    ownedByMe = true
                 )
 
                 if (!listMentionedUser.isEmpty() && !listMapUser.isEmpty()) {
@@ -259,7 +196,6 @@ class PostMyWallViewModel @Inject constructor(
                 }
 
                 postMyWallDao.save(PostMyWallEntity.fromPostMyWallDto(post))
-                //TODO(Нужно ли здесь использовать)
                 _postCreated.value = Unit
 
                 try {
@@ -275,6 +211,20 @@ class PostMyWallViewModel @Inject constructor(
                             }
                         }
                     }
+
+//                    if (!statusMedia) {
+//                        postServer = repository.save(post)
+//                    } else {
+//                        _media.value?.file?.let { file ->
+//                            _media.value?.attachmentType?.let { attachmentType ->
+//                                postServer = repository.saveWithAttachment(
+//                                    post,
+//                                    MediaUpload(file),
+//                                    attachmentType
+//                                )
+//                            }
+//                        }
+//                    }
 
                     if (post.id == 0L) {
 //                    oldPost = oldPosts.first()
@@ -294,6 +244,7 @@ class PostMyWallViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
+                        statusMedia = false
                     }
                 } catch (_: ErrorCode403) {
                     postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
@@ -327,8 +278,9 @@ class PostMyWallViewModel @Inject constructor(
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
-        //TODO(Проверить нужно ли здесь)
-        _media.value = MediaModel(null, null, attachmentType)
+        if (uri != null) {
+            statusMedia = true
+        }
         _media.value = MediaModel(uri, file, attachmentType)
     }
 
@@ -360,12 +312,12 @@ class PostMyWallViewModel @Inject constructor(
     }
 
     fun playVideo(post: Post) {
-        mediaObserver.stop()
-        mediaObserver.apply {
-            mediaPlayer?.setDataSource(
-                post.attachment?.url
-            )
-        }.play()
+//        mediaObserver.stop()
+//        mediaObserver.apply {
+//            mediaPlayer?.setDataSource(
+//                post.attachment?.url
+//            )
+//        }.play()
     }
 
     fun pauseVideo() {
@@ -385,7 +337,13 @@ class PostMyWallViewModel @Inject constructor(
 
     private fun saveLikeOwnerIds(post: Post): Set<Long> {
         val listLikeOwnerIds = post.likeOwnerIds.toMutableSet()
-        listLikeOwnerIds.add(post.id)
+        listLikeOwnerIds.add(post.authorId)
         return listLikeOwnerIds.toSet()
+    }
+
+    private fun saveUsers(post: Post): Map<Long, UserPreview> {
+        val users = post.users.toMutableMap()
+        users[post.authorId] = UserPreview(post.author, post.authorAvatar)
+        return users.toMap()
     }
 }

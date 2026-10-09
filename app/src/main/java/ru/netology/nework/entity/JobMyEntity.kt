@@ -3,7 +3,6 @@ package ru.netology.nework.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.netology.nework.dto.Job
-import java.time.Instant
 
 @Entity
 data class JobMyEntity(

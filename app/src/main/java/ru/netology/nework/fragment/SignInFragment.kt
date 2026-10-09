@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
@@ -14,7 +13,6 @@ import ru.netology.nework.R
 import ru.netology.nework.auth.AppAuth
 import ru.netology.nework.databinding.FragmentSignInBinding
 import ru.netology.nework.viewmodel.SignInViewModel
-import ru.netology.nework.viewmodel.UserViewModel
 import javax.inject.Inject
 import kotlin.getValue
 
@@ -31,7 +29,6 @@ class SignInFragment : Fragment() {
         val binding = FragmentSignInBinding.inflate(layoutInflater, container, false)
 
         val viewModel: SignInViewModel by viewModels()
-        val viewModelUser: UserViewModel by activityViewModels()
 
         with(binding) {
             login.requestFocus()
@@ -42,12 +39,10 @@ class SignInFragment : Fragment() {
 
             signIn.setOnClickListener {
                 if (loginInput.text.toString().isEmpty()) {
-                    loginInput.error = null
                     loginInput.error = getString(R.string.empty_login)
                 }
 
                 if (passwordInput.text.toString().isEmpty()) {
-                    passwordInput.error = null
                     passwordInput.error = getString(R.string.empty_password)
                 }
 
@@ -64,8 +59,6 @@ class SignInFragment : Fragment() {
         }
 
         viewModel.authState.observe(viewLifecycleOwner) {
-//            viewModelUser.refreshUsers()
-
             when {
                 it.token != null && it.avatar != null -> {
                     auth.setAuth(it.id, it.token, it.avatar)
@@ -77,10 +70,6 @@ class SignInFragment : Fragment() {
                     findNavController().navigateUp()
                 }
             }
-//            if (it.token != null && it.avatar != null) {
-//                auth.setAuth(it.id, it.token, it.avatar)
-//                findNavController().navigateUp()
-//            }
         }
 
         viewModel.errorPost400.observe(viewLifecycleOwner) {

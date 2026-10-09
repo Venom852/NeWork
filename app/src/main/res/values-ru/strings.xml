@@ -105,4 +105,6 @@
     <string name="audio_added">Аудио добавлено</string>
     <string name="video_added">Видео добавлено</string>
     <string name="photo_added">Фото добавлено</string>
+    <string name="empty_post">Поле текста поста пустое</string>
+    <string name="empty_event">Поле текста события пустое</string>
 </resources>

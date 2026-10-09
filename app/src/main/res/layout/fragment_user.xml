@@ -42,7 +42,7 @@
         app:layout_constraintEnd_toStartOf="@id/save"
         app:layout_constraintStart_toEndOf="@id/back"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="@string/likers" />
+        app:title="@string/choose_users" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/srlUsers"
@@ -60,6 +60,7 @@
             android:background="#FFFFFF"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/card_users" />
+
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <ProgressBar

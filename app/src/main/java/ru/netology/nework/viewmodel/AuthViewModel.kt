@@ -14,7 +14,7 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val auth: AppAuth
 ) : ViewModel() {
-    val data: Flow<AuthState> = auth.authStateFlow
+//    val data: Flow<AuthState> = auth.authStateFlow
 //        .asLiveData(Dispatchers.Default)
     val authenticated: Boolean
         get() = auth.authStateFlow.value.id != 0L

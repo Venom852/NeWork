@@ -9,8 +9,6 @@ import ru.netology.nework.enumeration.AttachmentType
 
 interface PostMyWallRepository {
     val data: Flow<PagingData<Post>>
-//    val data: Flow<List<Post>>
-    suspend fun getAll()
     suspend fun save(post: Post): Post
     suspend fun removeById(id: Long)
     suspend fun likeById(id: Long, postLikedByMe: Boolean?)

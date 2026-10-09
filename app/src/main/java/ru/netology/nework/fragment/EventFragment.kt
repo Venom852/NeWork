@@ -87,16 +87,13 @@ class EventFragment : Fragment() {
     @Inject
     lateinit var eventDao: EventDao
 
-    @Inject
-    lateinit var userDao: UserDao
-
     companion object {
         var Bundle.eventBundle by StringArg
     }
 
     private var event = Event(
         id = 0,
-        author = "Me",
+        author = "Me123",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -122,12 +119,6 @@ class EventFragment : Fragment() {
         playSong = false,
         playVideo = false
     )
-    private var user = User(
-        id = 0,
-        name = "",
-        login = "",
-        avatar = null
-    )
     private val gson = Gson()
     private var eventId = 0L
     private var numberUsers = 0
@@ -148,13 +139,10 @@ class EventFragment : Fragment() {
             AuthorizationDialogBoxBinding.inflate(layoutInflater, container, false)
 
         val viewModel: EventViewModel by activityViewModels()
-        val viewModelUser: UserViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
-        val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
-        var listUsers = ""
 
         arguments?.eventBundle?.let {
             event = gson.fromJson(it, Event::class.java)
@@ -165,7 +153,6 @@ class EventFragment : Fragment() {
         with(binding) {
             setValues(this, event)
 
-            //TODO(Настроить поведение, чтобы кнопка не кликалась если нет авторизации)
             like.setOnClickListener {
                 if (authorization) {
                     viewModel.likeById(event)
@@ -186,7 +173,6 @@ class EventFragment : Fragment() {
                 startActivity(chooser)
             }
 
-            //TODO(Настроить поведение, чтобы кнопка не кликалась если нет авторизации)
             participate.setOnClickListener {
                 if (authorization) {
                     viewModel.participateById(event)
@@ -197,7 +183,6 @@ class EventFragment : Fragment() {
                 }
             }
 
-            //TODO(Настроить)
             avatar.setOnClickListener {
                 findNavController().navigate(
                     R.id.action_eventFragment2_to_yourProfileFragment,
@@ -217,10 +202,17 @@ class EventFragment : Fragment() {
 
             //TODO(Настроить)
 //            groupVideo.setAllOnClickListener {
-//                if (!event.playSong) {
-//                    viewModel.playVideo(event)
-//                } else {
-//                    viewModel.pauseVideo()
+////                videoContent.setMediaController(MediaController(itemView.context, MediaSession.Token))
+//                videoContent.apply {
+//                    setVideoURI(event.attachment?.url?.toUri())
+//
+//                    setOnPreparedListener {
+//                        start()
+//                    }
+//
+//                    setOnCompletionListener {
+//                        stopPlayback()
+//                    }
 //                }
 //
 //                viewModel.playButtonVideo(event.id)
@@ -316,7 +308,6 @@ class EventFragment : Fragment() {
                 }
             }
 
-            //TODO(Настроить)
             imageContent.setOnClickListener {
                 Navigation.findNavController(it).navigate(
                     R.id.action_eventFragment2_to_photoFragment2,
@@ -752,8 +743,6 @@ class EventFragment : Fragment() {
             it.setIcon(imageProvider)
             it.geometry = target
             it.setText(context?.getString(R.string.place_work) ?: "")
-//            it.addTapListener(placemarkTapListener)
-//            it.userData = context?.getString(R.string.place_work) ?: ""
         }
     }
 

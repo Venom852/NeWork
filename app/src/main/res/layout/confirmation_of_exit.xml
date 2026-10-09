@@ -22,20 +22,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:cardElevation="0dp"
             app:cardCornerRadius="@dimen/_30dp"
-            app:strokeColor="#d3d3d3">
-
-            <!--        <View-->
-            <!--            android:id="@+id/line"-->
-            <!--            android:layout_width="40dp"-->
-            <!--            android:layout_height="5dp"-->
-            <!--            android:layout_marginTop="@dimen/_8dp"-->
-            <!--            android:background="#D8BFD8"-->
-            <!--            app:layout_constraintHorizontal_chainStyle="spread"-->
-            <!--            app:layout_constraintStart_toStartOf="parent"-->
-            <!--            app:layout_constraintEnd_toEndOf="parent"-->
-            <!--            app:layout_constraintTop_toTopOf="parent" />-->
-
-        </com.google.android.material.card.MaterialCardView>
+            app:strokeColor="#d3d3d3"/>
 
         <ImageView
             android:id="@+id/imageError"

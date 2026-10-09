@@ -1,7 +1,6 @@
 package ru.netology.nework.dto
 
 import ru.netology.nework.enumeration.EventType
-import java.time.Instant
 
 data class Event (
     val id: Long,
@@ -10,8 +9,8 @@ data class Event (
     val authorAvatar: String?,
     val authorJob: String?,
     val content: String,
-    val published: String?,
-    val datetime: String?,
+    val published: String,
+    val datetime: String,
     val type: EventType?,
     val link: String?,
     val likedByMe: Boolean,

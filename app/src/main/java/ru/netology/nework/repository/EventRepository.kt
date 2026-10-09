@@ -10,8 +10,6 @@ import ru.netology.nework.enumeration.AttachmentType
 
 interface EventRepository {
     val data: Flow<PagingData<Event>>
-//    val data: Flow<List<Event>>
-    suspend fun getAll()
     suspend fun save(event: Event): Event
     suspend fun removeById(id: Long)
     suspend fun likeById(id: Long, eventLikedByMe: Boolean?)

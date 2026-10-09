@@ -7,8 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -22,11 +20,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.tabs.TabLayout
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import ru.netology.nework.BuildConfig
 import ru.netology.nework.R
 import ru.netology.nework.adapter.JobAdapter
 import ru.netology.nework.adapter.OnInteractionPostListener
@@ -34,28 +29,22 @@ import ru.netology.nework.adapter.OnInteractionJobListener
 import ru.netology.nework.adapter.PostAdapter
 import ru.netology.nework.adapter.PostLoadingStateAdapter
 import ru.netology.nework.auth.AppAuth
-import ru.netology.nework.dao.JobDao
-import ru.netology.nework.dao.PostUserWallDao
-import ru.netology.nework.dao.UserDao
 import ru.netology.nework.databinding.ConfirmationOfExitBinding
 import ru.netology.nework.databinding.FragmentProfileBinding
-import ru.netology.nework.dto.Event
 import ru.netology.nework.dto.Job
 import ru.netology.nework.dto.Post
 import ru.netology.nework.dto.User
-import ru.netology.nework.enumeration.EventType
 import ru.netology.nework.fragment.NewJobFragment.Companion.NEW_JOB
 import ru.netology.nework.fragment.NewPostFragment.Companion.EDITING_NEW_POST_WALL
 import ru.netology.nework.fragment.NewPostFragment.Companion.NEW_POST
 import ru.netology.nework.fragment.NewPostFragment.Companion.NEW_POST_WALL
 import ru.netology.nework.fragment.NewPostFragment.Companion.newPostFragmentBundle
-import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
+import ru.netology.nework.fragment.NewPostFragment.Companion.statusPostFragment
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.JobMyViewModel
 import ru.netology.nework.viewmodel.JobViewModel
 import ru.netology.nework.viewmodel.PostMyWallViewModel
 import ru.netology.nework.viewmodel.PostUserWallViewModel
-import java.time.Instant
 import javax.inject.Inject
 import kotlin.getValue
 
@@ -64,12 +53,6 @@ import kotlin.getValue
 class ProfileFragment : Fragment() {
     @Inject
     lateinit var auth: AppAuth
-    @Inject
-    lateinit var userDao: UserDao
-    @Inject
-    lateinit var postUserWallDao: PostUserWallDao
-    @Inject
-    lateinit var jobDao: JobDao
 
     companion object {
         const val YOUR = "your"
@@ -107,8 +90,6 @@ class ProfileFragment : Fragment() {
         val viewModelMyJob: JobMyViewModel by activityViewModels()
         val viewModelJob: JobViewModel by activityViewModels()
 
-//        applyInset(binding.main)
-
         val dialog = BottomSheetDialog(requireContext())
         var conditionAdd = NEW_POST
 
@@ -126,12 +107,7 @@ class ProfileFragment : Fragment() {
         arguments?.profileFragmentBundle?.let {
             authorId = gson.fromJson(it, Long::class.java)
 
-            if (privateStatusProfile == YOUR) {
-//                viewModelPostMyWall.loadPosts(authorId)
-//                viewModelPostMyWall.initializeAuthorId(authorId)
-            } else {
-//                viewModelPostUserWall.loadPosts(authorId)
-//                viewModelPostUserWall.initializeAuthorId(authorId)
+            if (privateStatusProfile == USER) {
                 viewModelJob.loadJobs(authorId)
             }
 
@@ -167,7 +143,7 @@ class ProfileFragment : Fragment() {
                     R.id.action_yourProfileFragment_to_newPostFragment2,
                     Bundle().apply {
                         newPostFragmentBundle = post.content
-                        statusFragment = EDITING_NEW_POST_WALL
+                        statusPostFragment = EDITING_NEW_POST_WALL
 
                     }
                 )
@@ -192,15 +168,12 @@ class ProfileFragment : Fragment() {
 
                 viewModelPostMyWall.playButtonSong(post.id)
             }
-
-            override fun onSaveAuthorId(authorId: Long) = Unit
         })
 
         val jobAdapter = JobAdapter(object : OnInteractionJobListener {
             override fun onDelete(job: Job) {
                 viewModelMyJob.removeById(job.id)
             }
-
         })
 
         with(binding) {
@@ -218,66 +191,46 @@ class ProfileFragment : Fragment() {
                     }
                 })
             )
-
-//            main.adapter = postAdapter
             job.adapter = jobAdapter
+
             srlPosts.setOnRefreshListener(postAdapter::refresh)
-
-//            CoroutineScope(Dispatchers.IO).launch {
-//                user = userDao.getUser(authorId).toUserDto()
-//            }
-
-//            viewLifecycleOwner.lifecycleScope.launch {
-//                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                    viewModelPostUserWall.dataUserWall.collectLatest {
-//                        user = it
-//                    }
-//                }
-//            }
-
-            if (privateStatusProfile == YOUR) {
-                viewModelPostMyWall.dataMyUserWall(authorId).observe(viewLifecycleOwner) {
-                    user = it
-
-                    Glide.with(photo)
-                        .load(user.avatar.toString())
-                        .error(R.drawable.ic_error_24)
-                        .timeout(10_000)
-                        .into(photo)
-                }
-            } else {
-                viewModelPostUserWall.dataUserWall(authorId).observe(viewLifecycleOwner) {
-                    user = it
-
-                    Glide.with(photo)
-                        .load(user.avatar.toString())
-                        .error(R.drawable.ic_error_24)
-                        .timeout(10_000)
-                        .into(photo)
-
-                    if (privateStatusProfile == USER) {
-                        fillingToolbar(binding)
-                    }
-
+            srlJobs.setOnRefreshListener {
+                if (privateStatusProfile == YOUR) {
+                    viewModelMyJob.loadJobs()
+                } else {
+                    viewModelJob.loadJobs(authorId)
                 }
             }
 
-//            if (privateStatusProfile == USER) {
-//                fillingToolbar(binding)
-//            }
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    if (privateStatusProfile == YOUR) {
+                        viewModelPostMyWall.dataMyUserWall(authorId).collectLatest {
+                            user = it
 
-//            Glide.with(photo)
-//                .load(user.avatar.toString())
-//                .error(R.drawable.ic_error_24)
-//                .timeout(10_000)
-//                .into(photo)
+                            downloadPhoto(this@with)
+                        }
+                    } else {
+                        viewModelPostUserWall.dataUserWall(authorId).collectLatest {
+                            user = it
+
+                            downloadPhoto(this@with)
+
+                            if (privateStatusProfile == USER) {
+                                fillingToolbar(binding)
+                            }
+
+                        }
+                    }
+                }
+            }
 
             back.setOnClickListener {
                 permissionToCross = ALLOW
 
                 lifecycleScope.launch{
-                    postUserWallDao.removeDao()
-                    jobDao.removeDao()
+                    viewModelPostUserWall.removeUserWall()
+                    viewModelJob.removeJobUser()
                 }
 
                 findNavController().navigateUp()
@@ -294,8 +247,7 @@ class ProfileFragment : Fragment() {
                     findNavController().navigate(
                         R.id.action_yourProfileFragment_to_newPostFragment,
                         Bundle().apply {
-//                            newPostFragmentBundle = NEW_POST_WALL
-                            statusFragment = NEW_POST_WALL
+                            statusPostFragment = NEW_POST_WALL
                         }
                     )
                 } else {
@@ -308,13 +260,13 @@ class ProfileFragment : Fragment() {
             tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(p0: TabLayout.Tab?) {
                     if (p0?.position == 0) {
-//                        applyInset(binding.main)
                         conditionAdd = NEW_POST
+
                         srlPosts.visibility = View.VISIBLE
                         srlJobs.visibility = View.GONE
                     } else {
-//                        applyInset(binding.job)
                         conditionAdd = NEW_JOB
+
                         srlPosts.visibility = View.GONE
                         srlJobs.visibility = View.VISIBLE
                     }
@@ -325,22 +277,6 @@ class ProfileFragment : Fragment() {
                 override fun onTabReselected(p0: TabLayout.Tab?) = Unit
 
             })
-
-//            srlPosts.setOnRefreshListener {
-//                if (privateStatusProfile == YOUR) {
-//                    viewModelPostMyWall.loadPosts(authorId)
-//                } else {
-//                    viewModelPostUserWall.loadPosts(authorId)
-//                }
-//            }
-
-            srlJobs.setOnRefreshListener {
-                if (privateStatusProfile == YOUR) {
-                    viewModelMyJob.loadJobs()
-                } else {
-                    viewModelJob.loadJobs(authorId)
-                }
-            }
         }
 
         with(bindingConfirmationOfExit) {
@@ -358,10 +294,8 @@ class ProfileFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 if (privateStatusProfile == YOUR) {
-//                    viewModelPostMyWall.dataPostMyWall.collectLatest(postAdapter::submitList)
                     viewModelPostMyWall.dataPostMyWall.collectLatest(postAdapter::submitData)
                 } else {
-//                    viewModelPostUserWall.dataPostUserWall.collectLatest(postAdapter::submitList)
                     viewModelPostUserWall.dataPostUserWall(authorId).collectLatest(postAdapter::submitData)
                 }
             }
@@ -369,17 +303,6 @@ class ProfileFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                if (privateStatusProfile == YOUR) {
-//                    viewModelPostMyWall.dataState.collectLatest { state ->
-//                        binding.progress.isVisible = state.loading
-//                        binding.srlPosts.isRefreshing = state.refreshing
-//                    }
-//                } else {
-//                    viewModelPostUserWall.dataState.collectLatest { state ->
-//                        binding.progress.isVisible = state.loading
-//                        binding.srlPosts.isRefreshing = state.refreshing
-//                    }
-//                }
                 postAdapter.loadStateFlow.collectLatest { state ->
                     binding.srlPosts.isRefreshing =
                         state.refresh is LoadState.Loading
@@ -402,12 +325,12 @@ class ProfileFragment : Fragment() {
                 if (privateStatusProfile == YOUR) {
                     viewModelMyJob.dataState.collectLatest { state ->
                         binding.progress.isVisible = state.loading
-                        binding.srlJobs.isRefreshing = state.refreshing
+                        binding.srlJobs.isRefreshing = state.loading
                     }
                 } else {
-                    viewModelMyJob.dataState.collectLatest { state ->
+                    viewModelJob.dataState.collectLatest { state ->
                         binding.progress.isVisible = state.loading
-                        binding.srlJobs.isRefreshing = state.refreshing
+                        binding.srlJobs.isRefreshing = state.loading
                     }
                 }
             }
@@ -453,18 +376,13 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun applyInset(main: View) {
-        ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            v.setPadding(
-                v.paddingLeft,
-                systemBars.top,
-                v.paddingRight,
-                if (isImeVisible) imeInsets.bottom else systemBars.bottom
-            )
-            insets
+    private fun downloadPhoto(binding: FragmentProfileBinding) {
+        with(binding) {
+            Glide.with(photo)
+                .load(user.avatar.toString())
+                .error(R.drawable.ic_error_24)
+                .timeout(10_000)
+                .into(photo)
         }
     }
 }

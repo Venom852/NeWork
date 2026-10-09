@@ -1,5 +1,6 @@
 package ru.netology.nework.adapter
 
+import android.annotation.SuppressLint
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nework.R
@@ -7,7 +8,9 @@ import ru.netology.nework.databinding.CardJobBinding
 import ru.netology.nework.dto.Job
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfile
+import java.time.ZonedDateTime
 
+@SuppressLint("SetTextI18n")
 class JobViewHolder(
     private val binding: CardJobBinding,
     private val onInteractionJobListener: OnInteractionJobListener,
@@ -18,11 +21,21 @@ class JobViewHolder(
             jobPost.text = job.position
 
             if (job.finish != null) {
-                val text = "${job.start} - ${job.finish}"
-                jobTime.text = text
+                val jobStart = ZonedDateTime.parse(job.start)
+                val jobStartString =
+                    "${jobStart.dayOfMonth}.${jobStart.monthValue}.${jobStart.year} ${jobStart.hour}:${jobStart.minute}"
+
+                val jobFinish = ZonedDateTime.parse(job.finish)
+                val jobFinishString =
+                    "${jobFinish.dayOfMonth}.${jobFinish.monthValue}.${jobFinish.year} ${jobFinish.hour}:${jobFinish.minute}"
+
+                jobTime.text = "$jobStartString - $jobFinishString"
             } else {
-                val text = "${job.start} - ${itemView.context.getString(R.string.present_time)}"
-                jobTime.text = text
+                val jobStart = ZonedDateTime.parse(job.start)
+                val jobStartString =
+                    "${jobStart.dayOfMonth}.${jobStart.monthValue}.${jobStart.year} ${jobStart.hour}:${jobStart.minute}"
+
+                jobTime.text = "$jobStartString - ${itemView.context.getString(R.string.present_time)}"
             }
 
             if (job.link != null) link.text = job.link else link.visibility = View.GONE

@@ -44,10 +44,4 @@ object DaoModule {
 
     @Provides
     fun provideJobDao(appDb: AppDb): JobDao = appDb.jobDao
-
-    @Provides
-    fun provideAuthorIdDao(appDb: AppDb): AuthorIdDao = appDb.authorIdDao
-
-    @Provides
-    fun provideUserListDao(appDb: AppDb): UserListDao = appDb.userListDao
 }

@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.TextUtils.isEmpty
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +14,6 @@ import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -31,13 +29,10 @@ import com.github.dhaval2404.imagepicker.ImagePicker
 import com.github.dhaval2404.imagepicker.constant.ImageProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nework.R
 import ru.netology.nework.dao.ContentDraftDao
 import ru.netology.nework.dto.Coordinates
-import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.fragment.AddLocationFragment.Companion.POST
 import ru.netology.nework.fragment.AddLocationFragment.Companion.WALL
@@ -48,7 +43,6 @@ import ru.netology.nework.fragment.UserFragment.Companion.statusUserFragment
 import ru.netology.nework.viewmodel.PostMyWallViewModel
 import java.io.File
 import java.io.FileOutputStream
-import java.lang.reflect.Type
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -64,17 +58,10 @@ class NewPostFragment : Fragment() {
         private var editing = false
         var Bundle.textArg by StringArg
         var Bundle.newPostFragmentBundle by StringArg
-        var Bundle.statusFragment by StringArg
-        var Bundle.listIdUsersFragment by StringArg
-        var Bundle.listMapUsersFragment by StringArg
+        var Bundle.statusPostFragment by StringArg
     }
 
     private var status = ""
-    private val gson = Gson()
-    private val typeTokenSet: Type = object : TypeToken<Set<Long>>() {}.type
-    private val typeTokenMap: Type = object : TypeToken<Map<Long, UserPreview>>() {}.type
-    private var listIdUsers = setOf<Long>()
-    private var listMapUsers = mapOf<Long, UserPreview>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -92,24 +79,12 @@ class NewPostFragment : Fragment() {
         }
 
         arguments?.newPostFragmentBundle?.let {
-//            status = it
-//            if (status == NEW_POST || status == NEW_POST_WALL) {
-//                lifecycleScope.launch {
-//                    if (contentDraftDao.getDraft() != null) {
-//                        binding.content.setText(contentDraftDao.getDraft())
-//                        contentDraftDao.removeDraft()
-//                    }
-//                }
-//            } else {
-//                binding.content.setText(it)
-//                editing = true
-//            }
             binding.content.setText(it)
             editing = true
             arguments?.newPostFragmentBundle = null
         }
 
-        arguments?.statusFragment?.let {
+        arguments?.statusPostFragment?.let {
             status = it
             if (status == NEW_POST || status == NEW_POST_WALL) {
                 lifecycleScope.launch {
@@ -119,18 +94,8 @@ class NewPostFragment : Fragment() {
                     }
                 }
             }
-            arguments?.statusFragment = null
+            arguments?.statusPostFragment = null
         }
-
-//        arguments?.listIdUsersFragment?.let {
-//            listIdUsers = gson.fromJson(it, typeTokenSet)
-//            arguments?.listIdUsersFragment = null
-//        }
-//
-//        arguments?.listMapUsersFragment?.let {
-//            listMapUsers = gson.fromJson(it, typeTokenMap)
-//            arguments?.listMapUsersFragment = null
-//        }
 
         val pickPhotoLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -160,22 +125,6 @@ class NewPostFragment : Fragment() {
                     }
                 }
             }
-
-//        val pickAudio =
-//            registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-//
-//                if (uri != null) {
-//                    Log.d("Audio", "Selected URI: $uri")
-//
-//                    if (status == NEW_POST || status == EDITING_NEW_POST) {
-//                        viewModel.changeMedia(uri, uri.toFile(), AttachmentType.AUDIO)
-//                    } else {
-//                        viewModelMyWall.changeMedia(uri, uri.toFile(), AttachmentType.AUDIO)
-//                    }
-//                } else {
-//                    Log.d("Audio", "No media selected")
-//                }
-//            }
 
         val pickVideo =
             registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -215,27 +164,12 @@ class NewPostFragment : Fragment() {
                     Activity.RESULT_OK -> {
                         if (it.data?.data != null) {
                             val uri = it.data?.data
-//                            val file = File.createTempFile("files", "index")
-
-//                            uri?.let { uri ->
-//                                context?.contentResolver?.openInputStream(uri)
-//                            }.use { input ->
-//                                file.outputStream().use { output ->
-//                                    input?.copyTo(output)
-//                                }
-//                            }
-//
-//                            file.delete()
-//                            Log.d("Audio", "Selected URI: $uri")
 
                             if (uri != null) {
                                 val tempFile = File(
                                     context?.cacheDir,
                                     "upload_${System.currentTimeMillis()}.tmp"
                                 )
-//                                val inputStream = context?.contentResolver?.openInputStream(uri)
-//                                    ?: throw Exception("InputStream is null")
-//                                tempFile.writeBytes(inputStream.readBytes())
 
                                 context?.contentResolver?.openInputStream(uri)?.use { input ->
                                         FileOutputStream(tempFile).use { output ->
@@ -245,16 +179,6 @@ class NewPostFragment : Fragment() {
 
                                 val fileUri = Uri.fromFile(tempFile)
                                 tempFile.delete()
-
-//                                val fileProviderUri = context?.let { it1 ->
-//                                    FileProvider.getUriForFile(
-//                                        it1,
-//                                        "ru.netology.nework.fileProvider",
-////                                        "${context?.packageName}.fileProvider", // authorities
-//                                        tempFile, // файл
-//                                        mapOf("com.android.providers.documents.document.extra.MIME_TYPE" to "file/*").toString()
-//                                    )
-//                                }
 
                                 if (status == NEW_POST || status == EDITING_NEW_POST) {
                                     viewModel.changeMedia(fileUri, fileUri?.toFile(), AttachmentType.AUDIO)
@@ -282,46 +206,31 @@ class NewPostFragment : Fragment() {
                 if (!content.text.isNullOrBlank()) {
 
                     if (status == NEW_POST || status == EDITING_NEW_POST) {
-//                        if (!listIdUsers.isEmpty() && !listMapUsers.isEmpty()) {
-                            viewModel.saveContent(
-                                content.text.toString(),
-//                                listIdUsers,
-//                                listMapUsers
-                            )
-//                        } else {
-//                            viewModel.saveContent(content.text.toString())
-//                        }
+                        viewModel.saveContent(content.text.toString())
                     } else {
-                        //TODO(Доделать если потребуется)
                         viewModelMyWall.saveContent(content.text.toString())
                     }
 
                     AndroidUtils.hideKeyboard(requireView())
-                }
-                //TODO(Проверить поведение)
-                if (status == NEW_POST || status == EDITING_NEW_POST) {
-                    viewModel.edited.value = viewModel.empty
-//                    viewModel.changeMedia(null, null, null)
                 } else {
-                    viewModelMyWall.edited.value = viewModelMyWall.empty
-//                    viewModelMyWall.changeMedia(null, null, null)
+                    Toast.makeText(requireContext(), R.string.empty_post, Toast.LENGTH_SHORT)
+                        .show()
                 }
-
             }
 
             back.setOnClickListener {
                 if (status == NEW_POST || status == EDITING_NEW_POST) {
                     viewModel.edited.value = viewModel.empty
                     viewModel.changeMedia(null, null, null)
-                    viewModel.listMentionedUser = emptySet<Long>()
-                    viewModel.listMapUser = emptyMap<Long, UserPreview>()
+                    viewModel.listMentionedUser = emptySet()
+                    viewModel.listMapUser = emptyMap()
                     viewModel.coordinates = Coordinates(lat = 0.0, long = 0.0)
                     viewModel.statusMedia = false
                 } else {
                     viewModelMyWall.edited.value = viewModelMyWall.empty
                     viewModelMyWall.changeMedia(null, null, null)
-                    viewModelMyWall.listMentionedUser = emptySet<Long>()
-                    viewModelMyWall.listMapUser = emptyMap<Long, UserPreview>()
+                    viewModelMyWall.listMentionedUser = emptySet()
+                    viewModelMyWall.listMapUser = emptyMap()
                     viewModelMyWall.coordinates = Coordinates(lat = 0.0, long = 0.0)
                 }
 
@@ -372,12 +281,6 @@ class NewPostFragment : Fragment() {
                         when (menuItem.itemId) {
                             R.id.pickAudio -> {
                                 audio.launch(intent)
-//                                pickAudio.launch(
-//                                    PickVisualMediaRequest(
-//                                        ActivityResultContracts.PickVisualMedia.VideoOnly
-//                                    )
-//                                )
-
                                 true
                             }
 
@@ -387,7 +290,6 @@ class NewPostFragment : Fragment() {
                                         ActivityResultContracts.PickVisualMedia.VideoOnly
                                     )
                                 )
-
                                 true
                             }
 
@@ -433,16 +335,6 @@ class NewPostFragment : Fragment() {
         }
 
         viewModel.media.observe(viewLifecycleOwner) {
-//            if (it.attachmentType == AttachmentType.IMAGE) {
-//                if (it.uri == null) {
-//                    binding.groupPhotoContainer.visibility = View.GONE
-//                    return@observe
-//                }
-//
-//                binding.groupPhotoContainer.visibility = View.VISIBLE
-//                binding.photo.setImageURI(it.uri)
-//            }
-
             if (it.uri == null) {
                 binding.groupPhotoContainer.visibility = View.GONE
                 return@observe
@@ -455,16 +347,6 @@ class NewPostFragment : Fragment() {
         }
 
         viewModelMyWall.media.observe(viewLifecycleOwner) {
-//            if (it.attachmentType == AttachmentType.IMAGE) {
-//                if (it.uri == null) {
-//                    binding.groupPhotoContainer.visibility = View.GONE
-//                    return@observe
-//                }
-//
-//                binding.groupPhotoContainer.visibility = View.VISIBLE
-//                binding.photo.setImageURI(it.uri)
-//            }
-
             if (it.uri == null) {
                 binding.groupPhotoContainer.visibility = View.GONE
                 return@observe
@@ -517,16 +399,22 @@ class NewPostFragment : Fragment() {
                         contentDraftDao.saveDraft(binding.content.text.toString())
                     }
                 }
-//                lifecycleScope.launch {
-//                    contentDraftDao.saveDraft(binding.content.text.toString())
-//                }
             }
             editing = false
 
             if (status == NEW_POST || status == EDITING_NEW_POST) {
                 viewModel.edited.value = viewModel.empty
+                viewModel.changeMedia(null, null, null)
+                viewModel.listMentionedUser = emptySet()
+                viewModel.listMapUser = emptyMap()
+                viewModel.coordinates = Coordinates(lat = 0.0, long = 0.0)
+                viewModel.statusMedia = false
             } else {
                 viewModelMyWall.edited.value = viewModelMyWall.empty
+                viewModelMyWall.changeMedia(null, null, null)
+                viewModelMyWall.listMentionedUser = emptySet()
+                viewModelMyWall.listMapUser = emptyMap()
+                viewModelMyWall.coordinates = Coordinates(lat = 0.0, long = 0.0)
             }
 
             findNavController().navigateUp()

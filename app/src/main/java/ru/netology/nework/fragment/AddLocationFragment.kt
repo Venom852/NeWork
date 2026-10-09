@@ -6,8 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -30,10 +28,6 @@ import ru.netology.nework.databinding.FragmentAddLocationBinding
 import ru.netology.nework.dto.Coordinates
 import ru.netology.nework.extensions.DrawableImageProvider
 import ru.netology.nework.extensions.ImageInfo
-import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_POST
-import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_WALL
-import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_SPEAKERS_USER
-import ru.netology.nework.fragment.UserFragment.Companion.status
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.PostViewModel
 import ru.netology.nework.viewmodel.EventViewModel
@@ -45,7 +39,6 @@ class AddLocationFragment : Fragment() {
         const val POST = "post"
         const val WALL = "wall"
         const val EVENT = "event"
-//        var statusFragment = ""
         var Bundle.statusAddLocationFragment by StringArg
     }
 
@@ -55,7 +48,6 @@ class AddLocationFragment : Fragment() {
     private lateinit var placemarkMapObject: PlacemarkMapObject
     private lateinit var binding: FragmentAddLocationBinding
     private val smoothAnimation = Animation(Animation.Type.SMOOTH, 3F)
-    //TODO(Нужно ли изменить переменную с коллекции на обычную)
     private val listPoint = mutableListOf<Coordinates>()
 
     private val placemarkTapListener = MapObjectTapListener { mapObject, point ->
@@ -99,17 +91,17 @@ class AddLocationFragment : Fragment() {
                 when (statusFragment) {
                     POST -> {
                         Toast.makeText(requireContext(), R.string.coordinates_added, Toast.LENGTH_SHORT).show()
-                        viewModelPost.addLocation(listPoint.first())
+                        viewModelPost.addLocation(listPoint.last())
                     }
 
                     WALL -> {
                         Toast.makeText(requireContext(), R.string.coordinates_added, Toast.LENGTH_SHORT).show()
-                        viewModelMyWall.addLocation(listPoint.first())
+                        viewModelMyWall.addLocation(listPoint.last())
                     }
 
                     EVENT -> {
                         Toast.makeText(requireContext(), R.string.coordinates_added, Toast.LENGTH_SHORT).show()
-                        viewModelEvent.addLocation(listPoint.first())
+                        viewModelEvent.addLocation(listPoint.last())
                     }
                 }
 
@@ -120,7 +112,6 @@ class AddLocationFragment : Fragment() {
         return binding.root
     }
 
-    //TODO(Проверить работает ли в другом методе)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val mapView = binding.map
         val mapWindow = mapView.mapWindow
@@ -150,18 +141,16 @@ class AddLocationFragment : Fragment() {
 
         listPoint.add(Coordinates(target.latitude, target.longitude))
 
-        placemarkMapObject = yandexMap.mapObjects.addPlacemark {
+        placemarkMapObject =
+            yandexMap.mapObjects.addPlacemark {
             it.setIcon(imageProvider)
             it.geometry = target
             it.setText(context?.getString(R.string.place_work) ?: "")
             it.addTapListener(placemarkTapListener)
-//            it.userData = context?.getString(R.string.place_work) ?: ""
         }
     }
 
     private fun deleteMarker(mapObject: MapObject, point: Point) {
-        //TODO(Проверить работу функции remove)
-//        listPoint = listPoint.filter { it.latitude != point.latitude && it.longitude != point.longitude }
         listPoint.remove(Coordinates(point.latitude, point.longitude))
         yandexMap.mapObjects.remove(mapObject)
     }

@@ -42,7 +42,8 @@ class EventViewHolder(
     @SuppressLint("SetTextI18n")
     fun bind(event: Event) {
         with(binding) {
-            val zonedDateTime = ZonedDateTime.parse(event.published)
+            val publishedEvent = ZonedDateTime.parse(event.published)
+            val dateTimeEvent = ZonedDateTime.parse(event.datetime)
             val options = RequestOptions()
 
             author.text = event.author
@@ -51,9 +52,9 @@ class EventViewHolder(
             like.text = CountCalculator.calculator(event.likes)
             participate.text = CountCalculator.calculator(event.participants)
             published.text =
-                "${zonedDateTime.dayOfMonth}.${zonedDateTime.monthValue}.${zonedDateTime.year} ${zonedDateTime.hour}:${zonedDateTime.minute}"
+                "${publishedEvent.dayOfMonth}.${publishedEvent.monthValue}.${publishedEvent.year} ${publishedEvent.hour}:${publishedEvent.minute}"
             eventDate.text =
-                "${zonedDateTime.dayOfMonth}.${zonedDateTime.monthValue}.${zonedDateTime.year} ${zonedDateTime.hour}:${zonedDateTime.minute}"
+                "${dateTimeEvent.dayOfMonth}.${dateTimeEvent.monthValue}.${dateTimeEvent.year} ${dateTimeEvent.hour}:${dateTimeEvent.minute}"
 
             playSong.isChecked = event.playSong
             playVideo.isChecked = event.playVideo
@@ -101,16 +102,14 @@ class EventViewHolder(
             }
 
             //TODO(Настроить)
-//            if (event.attachment?.type == AttachmentType.VIDEO) {
-//                groupVideo.visibility = View.VISIBLE
-//
-//                videoContent.setVideoURI(event.attachment.url.toUri())
-//            }
-//
+            if (event.attachment?.type == AttachmentType.VIDEO) {
+                groupVideo.visibility = View.VISIBLE
+            }
+
             //TODO(Настроить)
-//            if (event.attachment?.type == AttachmentType.AUDIO) {
-//                groupSong.visibility = View.VISIBLE
-//
+            if (event.attachment?.type == AttachmentType.AUDIO) {
+                groupSong.visibility = View.VISIBLE
+
 //                val songFile = event.attachment.url.toUri().toFile()
 //
 //                val retriever = MediaMetadataRetriever()
@@ -127,7 +126,7 @@ class EventViewHolder(
 //
 //                titleSong.text = title
 //                timeSong.text = duration.toString()
-//            }
+            }
 
             like.setOnClickListener {
                 onInteractionEventListener.onLike(event)
@@ -141,14 +140,6 @@ class EventViewHolder(
                 onInteractionEventListener.onParticipate(event)
             }
 
-//            groupEvent.setAllOnClickListener {
-//                findNavController(it).navigate(
-//                    R.id.action_feedFragment_to_eventFragment22,
-//                    Bundle().apply {
-//                        eventBundle = gson.toJson(event)
-//                    })
-//            }
-
             cardEventConstraint.setOnClickListener {
                 findNavController(it).navigate(
                     R.id.action_feedFragment_to_eventFragment22,
@@ -157,7 +148,6 @@ class EventViewHolder(
                     })
             }
 
-            //TODO(Настроить)
             avatar.setOnClickListener {
                 findNavController(it).navigate(
                     R.id.action_feedFragment_to_yourProfileFragment,
@@ -186,13 +176,26 @@ class EventViewHolder(
             }
 
             //TODO(Настроить)
-//            groupVideo.setAllOnClickListener {
-//                onInteractionEventListener.onPlayVideo(event)
-//            }
+            groupVideo.setAllOnClickListener {
+//                videoContent.setMediaController(MediaController(itemView.context, MediaSession.Token))
+                videoContent.apply {
+                    setVideoURI(event.attachment?.url?.toUri())
+
+                    setOnPreparedListener {
+                        start()
+                    }
+
+                    setOnCompletionListener {
+                        stopPlayback()
+                    }
+                }
+
+                onInteractionEventListener.onPlayVideo(event)
+            }
             //TODO(Настроить)
-//            playSong.setOnClickListener {
-//                onInteractionEventListener.onPlaySong(event)
-//            }
+            playSong.setOnClickListener {
+                onInteractionEventListener.onPlaySong(event)
+            }
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {

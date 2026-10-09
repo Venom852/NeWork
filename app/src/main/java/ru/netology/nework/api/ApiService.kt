@@ -33,6 +33,7 @@ fun retrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
     .build()
 
 interface ApiService {
+    //TODO(Posts)
     @GET("posts")
     suspend fun getAllPosts(): Response<List<Post>>
 
@@ -44,9 +45,6 @@ interface ApiService {
 
     @GET("posts/latest")
     suspend fun getLatestPosts(@Query("count") count: Int): Response<List<Post>>
-
-    @GET("posts/{id}")
-    suspend fun getByIdPost(@Path("id") id: Long): Response<Post>
 
     @POST("posts")
     suspend fun savePost(@Body post: Post): Response<Post>
@@ -60,14 +58,11 @@ interface ApiService {
     @DELETE("posts/{id}/likes")
     suspend fun dislikeByIdPost(@Path("id") id: Long): Response<Post>
 
-    @GET("posts/{id}/newer")
-    suspend fun getNewerPosts(@Path("id") id: Long): Response<List<Post>>
-
     @Multipart
     @POST("media")
     suspend fun upload(@Part media: MultipartBody.Part): Response<Media>
 
-    //TODO(-------------------------------------)
+    //TODO(Events)
 
     @GET("events")
     suspend fun getAllEvents(): Response<List<Event>>
@@ -81,9 +76,6 @@ interface ApiService {
     @GET("events/latest")
     suspend fun getLatestEvents(@Query("count") count: Int): Response<List<Event>>
 
-    @GET("events/{id}")
-    suspend fun getByIdEvent(@Path("id") id: Long): Response<Event>
-
     @POST("events")
     suspend fun saveEvent(@Body event: Event): Response<Event>
 
@@ -96,16 +88,13 @@ interface ApiService {
     @DELETE("events/{id}/likes")
     suspend fun dislikeByIdEvent(@Path("id") id: Long): Response<Event>
 
-    @GET("events/{id}/newer")
-    suspend fun getNewerEvents(@Path("id") id: Long): Response<List<Event>>
-
     @POST("events/{id}/participants")
     suspend fun participateByIdEvent(@Path("id") id: Long): Response<Event>
 
     @DELETE("events/{id}/participants")
     suspend fun cancelParticipateByIdEvent(@Path("id") id: Long): Response<Event>
 
-    //TODO(-------------------------------------)
+    //TODO(Users)
 
     @FormUrlEncoded
     @POST("users/authentication")
@@ -134,16 +123,10 @@ interface ApiService {
     @GET("users")
     suspend fun getAllUsers(): Response<List<User>>
 
-    @GET("users/{id}")
-    suspend fun getByIdUser(@Path("id") id: Long): Response<User>
-
-    //TODO(-------------------------------------)
+    //TODO(PostsWallUsers)
 
     @GET("{authorId}/wall")
     suspend fun getAllWallPosts(@Path("authorId") authorId: Long): Response<List<Post>>
-
-    @GET("{authorId}/wall/{id}")
-    suspend fun getByIdWallPost(@Path("authorId") authorId: Long, @Path("id") id: Long): Response<Post>
 
     @GET("{authorId}/wall/{id}/before")
     suspend fun getBeforeWallPosts(@Path("authorId") authorId: Long, @Path("id") id: Long, @Query("count") count: Int): Response<List<Post>>
@@ -160,16 +143,10 @@ interface ApiService {
     @DELETE("{authorId}/wall/{id}/likes")
     suspend fun dislikeByIdWallPost(@Path("authorId") authorId: Long, @Path("id") id: Long): Response<Post>
 
-    @GET("{authorId}/wall/{id}/newer")
-    suspend fun getNewerWallPosts(@Path("authorId") authorId: Long, @Path("id") id: Long): Response<List<Post>>
-
-    //TODO(-------------------------------------)
+    //TODO(MyPostsWall)
 
     @GET("my/wall")
     suspend fun getAllMyWallPosts(): Response<List<Post>>
-
-    @GET("my/wall/{id}")
-    suspend fun getByIdMyWallPost(@Path("id") id: Long): Response<Post>
 
     @GET("my/wall/{id}/before")
     suspend fun getBeforeMyWallPosts(@Path("id") id: Long, @Query("count") count: Int): Response<List<Post>>
@@ -186,10 +163,7 @@ interface ApiService {
     @DELETE("my/wall/{id}/likes")
     suspend fun dislikeByIdMyWallPost(@Path("id") id: Long): Response<Post>
 
-    @GET("my/wall/{id}/newer")
-    suspend fun getNewerMyWallPosts(@Path("id") id: Long): Response<List<Post>>
-
-    //TODO(-------------------------------------)
+    //TODO(MyJobs)
 
     @GET("my/jobs")
     suspend fun getAllMyJobs(): Response<List<Job>>
@@ -200,7 +174,7 @@ interface ApiService {
     @DELETE("my/jobs/{id}")
     suspend fun removeByIdMyJob(@Path("id") id: Long): Response<Unit>
 
-    //TODO(-------------------------------------)
+    //TODO(JobsUsers)
 
     @GET("{userId}/jobs")
     suspend fun getAllJobs(@Path("userId") userId: Long): Response<List<Job>>

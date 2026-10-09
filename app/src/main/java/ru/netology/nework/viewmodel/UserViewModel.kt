@@ -1,8 +1,6 @@
 package ru.netology.nework.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
-import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -13,20 +11,11 @@ import ru.netology.nework.auth.AppAuth
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import ru.netology.nework.dao.UserDao
-import ru.netology.nework.dao.UserListDao
 import ru.netology.nework.dto.User
 import ru.netology.nework.entity.toUserDto
 import ru.netology.nework.entity.toUserEntity
-import ru.netology.nework.entity.toUserListDto
-import ru.netology.nework.entity.toUserListEntity
 import ru.netology.nework.model.FeedModelState
 import ru.netology.nework.repository.UserRepository
 
@@ -58,23 +47,6 @@ class UserViewModel @Inject constructor(
                 }
 
                 _dataState.value = FeedModelState(loading = true)
-                repository.getAll()
-                _dataState.value = FeedModelState()
-            } catch (e: Exception) {
-                userDao.insertUsers(oldUsers.toUserEntity())
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun refreshUsers() {
-        viewModelScope.launch {
-            try {
-                CoroutineScope(Dispatchers.IO).launch {
-                    oldUsers = userDao.getAllUser().toUserDto()
-                }
-
-                _dataState.value = FeedModelState(refreshing = true)
                 repository.getAll()
                 _dataState.value = FeedModelState()
             } catch (e: Exception) {

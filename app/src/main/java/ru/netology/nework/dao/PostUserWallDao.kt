@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
-import ru.netology.nework.entity.PostMyWallEntity
+import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.PostUserWallEntity
 
 @Dao
@@ -20,9 +20,6 @@ interface PostUserWallDao {
     @Query("SELECT * FROM PostUserWallEntity ORDER BY id DESC")
     fun getPagingSource(): PagingSource<Int, PostUserWallEntity>
 
-    @Query("SELECT * FROM PostUserWallEntity WHERE id = :id")
-    fun getPost(id: Long): PostUserWallEntity
-
     @Query("SELECT COUNT(*) == 0 FROM PostUserWallEntity")
     suspend fun isEmpty(): Boolean
 
@@ -34,11 +31,12 @@ interface PostUserWallDao {
             UPDATE PostUserWallEntity SET
                 likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
                 likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END,
-                likeOwnerIds = :likeOwnerIds
+                likeOwnerIds = :likeOwnerIds,
+                users = :users
             WHERE id = :id;
         """
     )
-    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>)
+    suspend fun likeById(id: Long, likeOwnerIds: Set<Long>, users: Map<Long, UserPreview>)
 
     @Query("DELETE FROM PostUserWallEntity")
     suspend fun removeDao()

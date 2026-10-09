@@ -3,7 +3,6 @@ package ru.netology.nework.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import ru.netology.nework.dao.AuthorIdDao
 import ru.netology.nework.dao.ContentDraftDao
 import ru.netology.nework.dao.EventDao
 import ru.netology.nework.dao.EventRemoteKeyDao
@@ -16,8 +15,6 @@ import ru.netology.nework.dao.PostRemoteKeyDao
 import ru.netology.nework.dao.PostUserWallDao
 import ru.netology.nework.dao.PostUserWallRemoteKeyDao
 import ru.netology.nework.dao.UserDao
-import ru.netology.nework.dao.UserListDao
-import ru.netology.nework.entity.AuthorIdEntity
 import ru.netology.nework.entity.ContentDraftEntity
 import ru.netology.nework.entity.PostEntity
 import ru.netology.nework.entity.PostUserWallEntity
@@ -31,12 +28,11 @@ import ru.netology.nework.entity.PostMyWallEntity
 import ru.netology.nework.entity.PostUserRemoteKeyEntity
 import ru.netology.nework.entity.PostMyWallRemoteKeyEntity
 import ru.netology.nework.entity.UserEntity
-import ru.netology.nework.entity.UserListEntity
 
 @Database(
     entities = [PostEntity::class, ContentDraftEntity::class, PostRemoteKeyEntity::class, EventEntity::class, EventRemoteKeyEntity::class, UserEntity::class,
-        JobEntity::class, AuthorIdEntity::class, JobMyEntity::class, PostUserRemoteKeyEntity::class, PostUserWallEntity::class, PostMyWallEntity::class,
-        PostMyWallRemoteKeyEntity::class, UserListEntity::class],
+        JobEntity::class, JobMyEntity::class, PostUserRemoteKeyEntity::class, PostUserWallEntity::class, PostMyWallEntity::class,
+        PostMyWallRemoteKeyEntity::class],
     version = 1,
     exportSchema = false
 )
@@ -54,6 +50,4 @@ abstract class AppDb : RoomDatabase() {
     abstract val userDao: UserDao
     abstract val jobMyDao: JobMyDao
     abstract val jobDao: JobDao
-    abstract val authorIdDao: AuthorIdDao
-    abstract val userListDao: UserListDao
 }

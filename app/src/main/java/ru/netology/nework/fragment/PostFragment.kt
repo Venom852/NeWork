@@ -3,17 +3,13 @@ package ru.netology.nework.fragment
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color.RED
-import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.net.toFile
 import androidx.core.net.toUri
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -42,22 +38,18 @@ import com.yandex.mapkit.mapview.MapView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import ru.netology.nework.BuildConfig
 import ru.netology.nework.dao.PostDao
 import ru.netology.nework.dao.UserDao
-import ru.netology.nework.dao.UserListDao
 import ru.netology.nework.databinding.AuthorizationDialogBoxBinding
 import ru.netology.nework.dto.Post
-import ru.netology.nework.dto.User
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.extensions.DrawableImageProvider
 import ru.netology.nework.extensions.ImageInfo
 import ru.netology.nework.fragment.NewPostFragment.Companion.EDITING_NEW_POST
 import ru.netology.nework.fragment.NewPostFragment.Companion.newPostFragmentBundle
-import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
+import ru.netology.nework.fragment.NewPostFragment.Companion.statusPostFragment
 import ru.netology.nework.fragment.PhotoFragment.Companion.photoBundle
 import ru.netology.nework.fragment.PhotoFragment.Companion.statusPhotoFragment
 import ru.netology.nework.fragment.PhotoFragment.Companion.POST
@@ -73,13 +65,9 @@ import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.MENTIONED
 import ru.netology.nework.fragment.UserFragment.Companion.statusUserFragment
 import ru.netology.nework.fragment.UserFragment.Companion.userBundleFragment
-import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.AuthViewModel
-import ru.netology.nework.viewmodel.PostUserWallViewModel
-import ru.netology.nework.viewmodel.UserViewModel
-import java.time.Instant
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.collections.emptyMap
@@ -100,7 +88,7 @@ class PostFragment : Fragment() {
 
     private var post = Post(
         id = 0,
-        author = "Me",
+        author = "Me123",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -121,12 +109,6 @@ class PostFragment : Fragment() {
         users = emptyMap(),
         playSong = false,
         playVideo = false
-    )
-    private var user = User(
-        id = 0,
-        name = "",
-        login = "",
-        avatar = null
     )
     private val gson = Gson()
     private var postId = 0L
@@ -149,7 +131,6 @@ class PostFragment : Fragment() {
 
         val viewModel: PostViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
-        val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
@@ -163,7 +144,6 @@ class PostFragment : Fragment() {
         with(binding) {
             setValues(this, post)
 
-            //TODO(Настроить поведение, чтобы кнопка не кликалась если нет авторизации)
             like.setOnClickListener {
                 if (authorization) {
                     viewModel.likeById(post)
@@ -184,7 +164,6 @@ class PostFragment : Fragment() {
                 startActivity(chooser)
             }
 
-            //TODO(Настроить)
             avatar.setOnClickListener {
                 if (permissionToCross == ALLOW) {
                     findNavController().navigate(
@@ -272,7 +251,7 @@ class PostFragment : Fragment() {
                                     R.id.action_postFragment2_to_newPostFragment,
                                     Bundle().apply {
                                         newPostFragmentBundle = post.content
-                                        statusFragment = EDITING_NEW_POST
+                                        statusPostFragment = EDITING_NEW_POST
                                     }
                                 )
                                 true
@@ -296,7 +275,6 @@ class PostFragment : Fragment() {
                 }
             }
 
-            //TODO(Настроить)
             imageContent.setOnClickListener {
                 Navigation.findNavController(it).navigate(
                     R.id.action_postFragment2_to_photoFragment2,
@@ -637,8 +615,6 @@ class PostFragment : Fragment() {
             it.setIcon(imageProvider)
             it.geometry = target
             it.setText(context?.getString(R.string.place_work) ?: "")
-//            it.addTapListener(placemarkTapListener)
-//            it.userData = context?.getString(R.string.place_work) ?: ""
         }
     }
 

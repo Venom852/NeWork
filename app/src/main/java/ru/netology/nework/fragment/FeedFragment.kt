@@ -42,15 +42,13 @@ import ru.netology.nework.adapter.EventAdapter
 import ru.netology.nework.adapter.PostLoadingStateAdapter
 import ru.netology.nework.adapter.UserAdapter
 import ru.netology.nework.auth.AppAuth
-import ru.netology.nework.databinding.CardPostBinding
-import ru.netology.nework.databinding.CardUsersBinding
 import ru.netology.nework.databinding.ConfirmationOfExitBinding
 import ru.netology.nework.dto.Event
 import ru.netology.nework.dto.User
 import ru.netology.nework.fragment.NewEventFragment.Companion.newEventFragmentBundle
 import ru.netology.nework.fragment.NewEventFragment.Companion.statusEventFragment
 import ru.netology.nework.fragment.NewPostFragment.Companion.EDITING_NEW_POST
-import ru.netology.nework.fragment.NewPostFragment.Companion.statusFragment
+import ru.netology.nework.fragment.NewPostFragment.Companion.statusPostFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
 import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.profileFragmentBundle
@@ -67,6 +65,13 @@ import javax.inject.Inject
 class FeedFragment : Fragment() {
     @Inject
     lateinit var auth: AppAuth
+
+    companion object {
+        const val KEY_CURRENT_TAB = "current_tab"
+    }
+
+    private var currentTabId = 0
+    private var conditionAdd = NEW_POST
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
@@ -88,7 +93,6 @@ class FeedFragment : Fragment() {
         val viewModelEvent: EventViewModel by activityViewModels()
         val viewModelUser: UserViewModel by activityViewModels()
         val viewModelAuth: AuthViewModel by viewModels()
-        val viewModelPostUserWall: PostUserWallViewModel by activityViewModels()
 
         val mediaObserver = MediaLifecycleObserver()
         val popupMenu = PopupMenu(binding.menuAuth.context, binding.menuAuth).apply {
@@ -96,14 +100,17 @@ class FeedFragment : Fragment() {
         }
         val dialog = BottomSheetDialog(requireContext())
         val authorization = viewModelAuth.authenticated
-        var conditionAdd = NEW_POST
         val gson = Gson()
 
+        if (savedInstanceState != null) {
+            currentTabId = savedInstanceState.getInt(KEY_CURRENT_TAB, R.id.posts)
+        }
+
         lifecycle.addObserver(mediaObserver)
+        selectFragment(binding, currentTabId)
 
         val postAdapter = PostAdapter(object : OnInteractionPostListener {
             override fun onLike(post: Post) {
-                //TODO(Настроить поведение, чтобы кнопка не кликалась если нет авторизации)
                 if (authorization) {
                     viewModelPost.likeById(post)
                 } else {
@@ -133,7 +140,7 @@ class FeedFragment : Fragment() {
                     R.id.action_feedFragment_to_newPostFragment,
                     Bundle().apply {
                         newPostFragmentBundle = post.content
-                        statusFragment = EDITING_NEW_POST
+                        statusPostFragment = EDITING_NEW_POST
                     }
                 )
             }
@@ -157,15 +164,10 @@ class FeedFragment : Fragment() {
 
                 viewModelPost.playButtonSong(post.id)
             }
-
-            override fun onSaveAuthorId(authorId: Long) {
-                viewModelPostUserWall.saveAuthorId(authorId)
-            }
         })
 
         val eventAdapter = EventAdapter(object : OnInteractionEventListener {
             override fun onLike(event: Event) {
-                //TODO(Настроить поведение, чтобы кнопка не кликалась если нет авторизации)
                 if (authorization) {
                     viewModelEvent.likeById(event)
                 } else {
@@ -228,18 +230,10 @@ class FeedFragment : Fragment() {
                     dialog.show()
                 }
             }
-
-            override fun onSaveAuthorId(authorId: Long) {
-                viewModelPostUserWall.saveAuthorId(authorId)
-            }
         })
 
         val userAdapter = UserAdapter(object : OnInteractionUserListener {
             override fun onRadioButton(user: User) = Unit
-
-            override fun onSaveAuthorId(authorId: Long) {
-                viewModelPostUserWall.saveAuthorId(authorId)
-            }
         })
 
         with(binding) {
@@ -273,16 +267,11 @@ class FeedFragment : Fragment() {
                 })
             )
 
-//            cardPost.adapter = postAdapter
-//            cardEvent.adapter = eventAdapter
             cardUser.adapter = userAdapter
-
-//            srlMainPosts.setOnRefreshListener { viewModelPost.loadPosts() }
-//            srlMainEvents.setOnRefreshListener { viewModelEvent.loadEvents() }
-            srlMainUsers.setOnRefreshListener { viewModelUser.loadUsers() }
 
             srlMainPosts.setOnRefreshListener(postAdapter::refresh)
             srlMainEvents.setOnRefreshListener(eventAdapter::refresh)
+            srlMainUsers.setOnRefreshListener { viewModelUser.loadUsers() }
 
             add.setOnClickListener {
                 if (authorization) {
@@ -291,8 +280,7 @@ class FeedFragment : Fragment() {
                             findNavController().navigate(
                                 R.id.action_feedFragment_to_newPostFragment,
                                 Bundle().apply {
-//                                    newPostFragmentBundle = NEW_POST
-                                    statusFragment = NEW_POST
+                                    statusPostFragment = NEW_POST
                                 }
                             )
                         }
@@ -332,8 +320,6 @@ class FeedFragment : Fragment() {
                             }
 
                             R.id.yourProfile -> {
-                                //TODO(Нужна ли здесь проверка авторизации?)
-                                if (authorization) {
                                     findNavController().navigate(
                                         R.id.action_feedFragment_to_yourProfileFragment,
                                         Bundle().apply {
@@ -342,11 +328,6 @@ class FeedFragment : Fragment() {
                                             profileFragmentBundle = gson.toJson(auth.authStateFlow.value.id)
                                         }
                                     )
-                                } else {
-                                    dialog.setCancelable(false)
-                                    dialog.setContentView(bindingAuthorizationDialogBox.root)
-                                    dialog.show()
-                                }
                                 true
                             }
 
@@ -364,45 +345,8 @@ class FeedFragment : Fragment() {
             }
 
             bottomNavigation.setOnItemSelectedListener { menuItem ->
-                when (menuItem.itemId) {
-                    R.id.posts -> {
-                        conditionAdd = NEW_POST
-//                        applyInset(binding.cardPost)
-
-                        srlMainPosts.visibility = View.VISIBLE
-                        srlMainEvents.visibility = View.GONE
-                        srlMainUsers.visibility = View.GONE
-//                        progress.visibility = View.GONE
-
-                        true
-                    }
-
-                    R.id.events -> {
-                        conditionAdd = NEW_EVENT
-//                        applyInset(binding.cardEvent)
-
-                        srlMainPosts.visibility = View.GONE
-                        srlMainEvents.visibility = View.VISIBLE
-                        srlMainUsers.visibility = View.GONE
-//                        progress.visibility = View.GONE
-
-                        true
-                    }
-
-                    R.id.users -> {
-                        conditionAdd = CHOOSING_MENTIONED_USER_POST
-//                        applyInset(binding.cardUser)
-
-                        srlMainPosts.visibility = View.GONE
-                        srlMainEvents.visibility = View.GONE
-                        srlMainUsers.visibility = View.VISIBLE
-//                        progress.visibility = View.GONE
-
-                        true
-                    }
-
-                    else -> false
-                }
+                selectFragment(this, menuItem.itemId)
+                true
             }
         }
 
@@ -431,19 +375,12 @@ class FeedFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                viewModelPost.dataPost.collectLatest(postAdapter::submitList)
-
                 viewModelPost.dataPost.collectLatest(postAdapter::submitData)
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                viewModelPost.dataState.collectLatest { state ->
-//                    binding.progress.isVisible = state.loading
-//                    binding.srlMainPosts.isRefreshing = state.refreshing
-//                }
-
                 postAdapter.loadStateFlow.collectLatest { state ->
                     binding.srlMainPosts.isRefreshing =
                         state.refresh is LoadState.Loading
@@ -453,19 +390,12 @@ class FeedFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                viewModelEvent.dataEvent.collectLatest(eventAdapter::submitList)
-
                 viewModelEvent.dataEvent.collectLatest(eventAdapter::submitData)
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                viewModelEvent.dataState.collectLatest { state ->
-//                    binding.progress.isVisible = state.loading
-//                    binding.srlMainEvents.isRefreshing = state.refreshing
-//                }
-
                 eventAdapter.loadStateFlow.collectLatest { state ->
                     binding.srlMainEvents.isRefreshing =
                         state.refresh is LoadState.Loading
@@ -483,14 +413,14 @@ class FeedFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModelUser.dataState.collectLatest { state ->
                     binding.progress.isVisible = state.loading
-                    binding.srlMainUsers.isRefreshing = state.refreshing
+                    binding.srlMainUsers.isRefreshing = state.loading
                 }
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                auth.authStateFlow.collectLatest { state ->
+                auth.authStateFlow.collectLatest {
                     popupMenu.apply {
                         menu.let {
                             it.setGroupVisible(R.id.unauthenticated, !viewModelAuth.authenticated)
@@ -498,12 +428,9 @@ class FeedFragment : Fragment() {
                         }
                     }
 
-//                    viewModelPost.loadPosts()
-//                    viewModelEvent.loadEvents()
-                    viewModelUser.loadUsers()
-
                     postAdapter.refresh()
                     eventAdapter.refresh()
+                    viewModelUser.loadUsers()
                 }
             }
         }
@@ -535,6 +462,44 @@ class FeedFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_CURRENT_TAB, currentTabId)
+    }
+
+    private fun selectFragment(binding: FragmentFeedBinding, itemId: Int) {
+        with(binding) {
+            when (itemId) {
+                R.id.posts -> {
+                    currentTabId = itemId
+                    conditionAdd = NEW_POST
+
+                    srlMainPosts.visibility = View.VISIBLE
+                    srlMainEvents.visibility = View.GONE
+                    srlMainUsers.visibility = View.GONE
+                }
+
+                R.id.events -> {
+                    currentTabId = itemId
+                    conditionAdd = NEW_EVENT
+
+                    srlMainPosts.visibility = View.GONE
+                    srlMainEvents.visibility = View.VISIBLE
+                    srlMainUsers.visibility = View.GONE
+                }
+
+                R.id.users -> {
+                    currentTabId = itemId
+                    conditionAdd = CHOOSING_MENTIONED_USER_POST
+
+                    srlMainPosts.visibility = View.GONE
+                    srlMainEvents.visibility = View.GONE
+                    srlMainUsers.visibility = View.VISIBLE
+                }
+            }
+        }
     }
 
     private fun applyInset(main: View) {
