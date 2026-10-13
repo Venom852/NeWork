@@ -21,7 +21,8 @@
         tools:targetApi="34">
         <activity
             android:name=".activity.AppActivity"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 

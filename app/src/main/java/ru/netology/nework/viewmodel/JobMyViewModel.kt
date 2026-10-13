@@ -24,6 +24,7 @@ import ru.netology.nework.entity.toJobMyEntity
 import ru.netology.nework.model.FeedModelState
 import ru.netology.nework.repository.JobMyRepository
 import kotlin.Long
+import kotlin.collections.maxByOrNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -58,7 +59,7 @@ class JobMyViewModel @Inject constructor(
     val errorMyJob403: LiveData<Unit>
         get() = _errorMyJob403
 
-//    private var oldJob = empty
+    private var oldJob = empty
     private var oldJobs = emptyList<Job>()
     private var dateStart = ""
     private var dateEnd: String? = ""
@@ -107,10 +108,6 @@ class JobMyViewModel @Inject constructor(
     fun saveJob(titleJob: String, jobPost: String, link: String? = null) {
         edited.value?.let { newJob ->
             viewModelScope.launch {
-                CoroutineScope(Dispatchers.IO).launch {
-                    oldJobs = jobMyDao.getAll().toJobMyDto()
-                }
-
                 var jobServer: Job
                 var job = newJob.copy(
                     name = titleJob,
@@ -128,22 +125,36 @@ class JobMyViewModel @Inject constructor(
                 }
 
                 jobMyDao.saveJob(JobMyEntity.fromJobMyDto(job))
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    oldJobs = jobMyDao.getAll().toJobMyDto()
+                }.join()
+
+                oldJob = oldJobs.maxByOrNull { it.id } ?: empty
+
                 _jobCreated.value = Unit
 
                 try {
                     jobServer = repository.save(job)
 
-//                    oldJob = oldJobs.first()
-                    jobMyDao.changeIdJobById(0L, jobServer.id)
+                    jobMyDao.changeIdJobById(oldJob.id, jobServer.id)
 
                     dateStart = ""
                     dateEnd = ""
                 } catch (_: ErrorCode403) {
                     _errorMyJob403.value = Unit
-                    jobMyDao.insertJobs(oldJobs.toJobMyEntity())
+
+                    jobMyDao.removeById(oldJob.id)
+
+                    dateStart = ""
+                    dateEnd = ""
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    jobMyDao.insertJobs(oldJobs.toJobMyEntity())
+
+                    jobMyDao.removeById(oldJob.id)
+
+                    dateStart = ""
+                    dateEnd = ""
                 }
             }
         }

@@ -191,7 +191,7 @@ class EventRepositoryImpl @Inject constructor(
             val media = upload(upload)
             val eventWithAttachment = event.copy(
                 attachment = Attachment(
-                    media.id,
+                    media.url,
                     attachmentType,
                 )
             )

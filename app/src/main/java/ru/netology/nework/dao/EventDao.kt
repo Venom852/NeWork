@@ -51,15 +51,12 @@ interface EventDao {
         newDateTime: String?
     )
 
-    @Query("UPDATE EventEntity Set id = :newId, " +
-//            "author = :newAuthor, " +
-            "authorId = :newAuthorId, " +
+    @Query("UPDATE EventEntity Set id = :newId, authorId = :newAuthorId, " +
             "authorAvatar = :newAuthorAvatar, authorJob = :newAuthorJob, url = :newUrl, " +
             "type = :newType WHERE id = :id")
     suspend fun changeIdEventById(
         id: Long,
         newId: Long,
-//        newAuthor: String,
         newAuthorId: Long,
         newAuthorAvatar: String?,
         newAuthorJob: String?,

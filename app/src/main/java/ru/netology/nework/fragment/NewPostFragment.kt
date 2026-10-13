@@ -337,6 +337,7 @@ class NewPostFragment : Fragment() {
         viewModel.media.observe(viewLifecycleOwner) {
             if (it.uri == null) {
                 binding.groupPhotoContainer.visibility = View.GONE
+                viewModel.statusMedia = false
                 return@observe
             }
 
@@ -349,6 +350,7 @@ class NewPostFragment : Fragment() {
         viewModelMyWall.media.observe(viewLifecycleOwner) {
             if (it.uri == null) {
                 binding.groupPhotoContainer.visibility = View.GONE
+                viewModelMyWall.statusMedia = false
                 return@observe
             }
 

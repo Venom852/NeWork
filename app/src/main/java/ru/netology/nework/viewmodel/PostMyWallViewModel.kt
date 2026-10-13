@@ -115,7 +115,7 @@ class PostMyWallViewModel @Inject constructor(
     val media: LiveData<MediaModel>
         get() = _media
 
-//    private var oldPost = empty
+    private var oldPost = empty
     private var oldPosts = emptyList<Post>()
     var statusMedia = false
     var listMentionedUser = emptySet<Long>()
@@ -170,22 +170,33 @@ class PostMyWallViewModel @Inject constructor(
     }
 
     fun saveContent(content: String) {
-        edited.value?.let {
+        edited.value?.let { newPost ->
             viewModelScope.launch {
-                CoroutineScope(Dispatchers.IO).launch {
-                    oldPosts = postMyWallDao.getAll().toPostMyWallDto()
+                var postServer = empty
+                var post = empty
+
+                if (newPost.id != 0L) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        oldPosts = postMyWallDao.getAll().toPostMyWallDto()
+                    }.join()
+
+                    post = newPost.copy(
+                        content = content
+                    )
                 }
 
-                val data = Instant.now().toString()
-                var postServer = empty
-                var post = it.copy(
-                    published = data,
-                    content = content,
-                    ownedByMe = true
-                )
+                if (newPost.id == 0L) {
+                    val data = Instant.now().toString()
 
-                if (!listMentionedUser.isEmpty() && !listMapUser.isEmpty()) {
-                    post = it.copy(
+                    post = newPost.copy(
+                        published = data,
+                        content = content,
+                        ownedByMe = true
+                    )
+                }
+
+                if (!listMentionedUser.isEmpty() || !listMapUser.isEmpty()) {
+                    post = post.copy(
                         mentionIds = listMentionedUser,
                         users = listMapUser
                     )
@@ -196,6 +207,15 @@ class PostMyWallViewModel @Inject constructor(
                 }
 
                 postMyWallDao.save(PostMyWallEntity.fromPostMyWallDto(post))
+
+                if (newPost.id == 0L) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        oldPosts = postMyWallDao.getAll().toPostMyWallDto()
+                    }.join()
+
+                    oldPost = oldPosts.maxByOrNull { it.id } ?: empty
+                }
+
                 _postCreated.value = Unit
 
                 try {
@@ -226,12 +246,11 @@ class PostMyWallViewModel @Inject constructor(
 //                        }
 //                    }
 
+
                     if (post.id == 0L) {
-//                    oldPost = oldPosts.first()
                         postMyWallDao.changeIdPostById(
-                            0L,
+                            oldPost.id,
                             postServer.id,
-//                            postServer.author,
                             postServer.authorId,
                             postServer.authorAvatar,
                             postServer.authorJob,
@@ -247,26 +266,71 @@ class PostMyWallViewModel @Inject constructor(
                         statusMedia = false
                     }
                 } catch (_: ErrorCode403) {
-                    postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
                     _errorMyWall403.value = Unit
-//                    if (post.id == 0L && _media.value == noMedia) {
-//                        dao.removeById(0L)
-//                        return@launch
-//                    } else dao.insertPosts(oldPosts.toPostEntity())
+
+                    if (post.id == 0L) {
+                        postMyWallDao.removeById(oldPost.id)
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+
+                        return@launch
+                    } else {
+                        postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+                    }
                 } catch (_: ErrorCode415) {
-                    postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
                     _errorMyWall415.value = Unit
-//                    if (post.id == 0L && _media.value == noMedia) {
-//                        dao.removeById(oldPost.id)
-//                        return@launch
-//                    } else dao.insertPosts(oldPosts.toPostEntity())
+
+                    if (post.id == 0L) {
+                        postMyWallDao.removeById(oldPost.id)
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+
+                        return@launch
+                    } else {
+                        postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+                    }
                 } catch (e: Exception) {
-                    postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
                     e.printStackTrace()
-//                    if (post.id == 0L && _media.value == noMedia) {
-//                        dao.removeById(oldPost.id)
-//                        return@launch
-//                    } else dao.insertPosts(oldPosts.toPostEntity())
+
+                    if (post.id == 0L) {
+                        postMyWallDao.removeById(oldPost.id)
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+
+                        return@launch
+                    } else {
+                        postMyWallDao.insertPosts(oldPosts.toPostMyWallEntity())
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+                    }
                 }
             }
         }

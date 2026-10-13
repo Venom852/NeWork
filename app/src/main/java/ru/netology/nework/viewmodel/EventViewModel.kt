@@ -31,6 +31,7 @@ import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.EventEntity
 import ru.netology.nework.entity.toEventDto
 import ru.netology.nework.entity.toEventEntity
+import ru.netology.nework.entity.toPostDto
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.enumeration.EventType
 import ru.netology.nework.error.ErrorCode404
@@ -116,7 +117,7 @@ class EventViewModel @Inject constructor(
     val media: LiveData<MediaModel>
         get() = _media
 
-//    private var oldEvent = empty
+    private var oldEvent = empty
     private var oldEvents = emptyList<Event>()
     var listSpeakersUsers = emptySet<Long>()
     var statusMedia = false
@@ -194,19 +195,30 @@ class EventViewModel @Inject constructor(
     }
 
     fun saveContent(content: String) {
-        edited.value?.let { eventNew ->
+        edited.value?.let { newEvent ->
             viewModelScope.launch {
-                CoroutineScope(Dispatchers.IO).launch {
-                    oldEvents = eventDao.getAll().toEventDto()
+                var eventServer = empty
+                var event = empty
+
+                if (newEvent.id != 0L) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        oldEvents = eventDao.getAll().toEventDto()
+                    }.join()
+
+                    event = newEvent.copy(
+                        content = content
+                    )
                 }
 
-                val data = Instant.now().toString()
-                var eventServer = empty
-                var event = eventNew.copy(
-                    published = data,
-                    content = content,
-                    ownedByMe = true
-                )
+                if (newEvent.id == 0L) {
+                    val data = Instant.now().toString()
+
+                    event = newEvent.copy(
+                        published = data,
+                        content = content,
+                        ownedByMe = true
+                    )
+                }
 
                 if (!listSpeakersUsers.isEmpty() || !listMapUsers.isEmpty()) {
                     event = event.copy(
@@ -228,6 +240,15 @@ class EventViewModel @Inject constructor(
                 }
 
                 eventDao.save(EventEntity.fromEventDto(event))
+
+                if (newEvent.id == 0L) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        oldEvents = eventDao.getAll().toEventDto()
+                    }.join()
+
+                    oldEvent = oldEvents.maxByOrNull { it.id } ?: empty
+                }
+
                 _eventCreated.value = Unit
 
                 try {
@@ -259,11 +280,9 @@ class EventViewModel @Inject constructor(
 //                    }
 
                     if (event.id == 0L) {
-//                        oldEvent = oldEvents.first()
                         eventDao.changeIdEventById(
-                            0L,
+                            oldEvent.id,
                             eventServer.id,
-//                            eventServer.author,
                             eventServer.authorId,
                             eventServer.authorAvatar,
                             eventServer.authorJob,
@@ -280,26 +299,83 @@ class EventViewModel @Inject constructor(
                         statusMedia = false
                     }
                 } catch (_: ErrorCode403) {
-                    eventDao.insertEvents(oldEvents.toEventEntity())
                     _errorEvent403.value = Unit
-//                    if (event.id == 0L && _media.value == noMedia) {
-//                        eventDao.removeById(oldEvent.id)
-//                        return@launch
-//                    } else eventDao.insertEvents(oldEvents.toEventEntity())
+
+                    if (event.id == 0L) {
+                        eventDao.removeById(oldEvent.id)
+
+                        _media.value = noMedia
+                        listSpeakersUsers = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUsers = emptyMap()
+                        dateTime = ""
+                        type = EventType.NOT_ASSIGNED
+                        statusMedia = false
+
+                        return@launch
+                    } else {
+                        eventDao.insertEvents(oldEvents.toEventEntity())
+
+                        _media.value = noMedia
+                        listSpeakersUsers = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUsers = emptyMap()
+                        dateTime = ""
+                        type = EventType.NOT_ASSIGNED
+                        statusMedia = false
+                    }
                 } catch (_: ErrorCode415) {
-                    eventDao.insertEvents(oldEvents.toEventEntity())
                     _errorEvent415.value = Unit
-//                    if (event.id == 0L && _media.value == noMedia) {
-//                        eventDao.removeById(oldEvent.id)
-//                        return@launch
-//                    } else eventDao.insertEvents(oldEvents.toEventEntity())
+
+                    if (event.id == 0L) {
+                        eventDao.removeById(oldEvent.id)
+
+                        _media.value = noMedia
+                        listSpeakersUsers = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUsers = emptyMap()
+                        dateTime = ""
+                        type = EventType.NOT_ASSIGNED
+                        statusMedia = false
+
+                        return@launch
+                    } else {
+                        eventDao.insertEvents(oldEvents.toEventEntity())
+
+                        _media.value = noMedia
+                        listSpeakersUsers = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUsers = emptyMap()
+                        dateTime = ""
+                        type = EventType.NOT_ASSIGNED
+                        statusMedia = false
+                    }
                 } catch (e: Exception) {
-                    eventDao.insertEvents(oldEvents.toEventEntity())
                     e.printStackTrace()
-//                    if (event.id == 0L && _media.value == noMedia) {
-//                        eventDao.removeById(oldEvent.id)
-//                        return@launch
-//                    } else eventDao.insertEvents(oldEvents.toEventEntity())
+
+                    if (event.id == 0L) {
+                        eventDao.removeById(oldEvent.id)
+
+                        _media.value = noMedia
+                        listSpeakersUsers = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUsers = emptyMap()
+                        dateTime = ""
+                        type = EventType.NOT_ASSIGNED
+                        statusMedia = false
+
+                        return@launch
+                    } else {
+                        eventDao.insertEvents(oldEvents.toEventEntity())
+
+                        _media.value = noMedia
+                        listSpeakersUsers = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUsers = emptyMap()
+                        dateTime = ""
+                        type = EventType.NOT_ASSIGNED
+                        statusMedia = false
+                    }
                 }
             }
         }

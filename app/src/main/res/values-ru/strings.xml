@@ -107,4 +107,5 @@
     <string name="photo_added">Фото добавлено</string>
     <string name="empty_post">Поле текста поста пустое</string>
     <string name="empty_event">Поле текста события пустое</string>
+    <string name="no_date">Вы не ввели дату</string>
 </resources>

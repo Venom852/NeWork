@@ -62,6 +62,7 @@ class NewEventFragment : Fragment() {
     }
 
     private var status = ""
+    private var saveDate = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -184,12 +185,17 @@ class NewEventFragment : Fragment() {
             groupPhotoContainer.visibility = View.GONE
 
             save.setOnClickListener {
-                if (!content.text.isNullOrBlank()) {
-                    viewModel.saveContent(content.text.toString())
+                if (saveDate) {
+                    if (!content.text.isNullOrBlank()) {
+                        viewModel.saveContent(content.text.toString())
 
-                    AndroidUtils.hideKeyboard(requireView())
+                        AndroidUtils.hideKeyboard(requireView())
+                    } else {
+                        Toast.makeText(requireContext(), R.string.empty_event, Toast.LENGTH_SHORT)
+                            .show()
+                    }
                 } else {
-                    Toast.makeText(requireContext(), R.string.empty_event, Toast.LENGTH_SHORT)
+                    Toast.makeText(requireContext(), R.string.no_date, Toast.LENGTH_SHORT)
                         .show()
                 }
             }
@@ -301,6 +307,7 @@ class NewEventFragment : Fragment() {
         viewModel.media.observe(viewLifecycleOwner) {
             if (it.uri == null) {
                 binding.groupPhotoContainer.visibility = View.GONE
+                viewModel.statusMedia = false
                 return@observe
             }
 
@@ -311,6 +318,7 @@ class NewEventFragment : Fragment() {
         }
 
         viewModel.eventCreated.observe(viewLifecycleOwner) {
+            saveDate = false
             findNavController().navigateUp()
         }
 
@@ -343,6 +351,7 @@ class NewEventFragment : Fragment() {
 
                     if (dateContent.length in 14..16) {
                         dateContent = "$dateContent:00.000Z"
+                        saveDate = true
 
                         if (bindingSelectDateEvent.online.isChecked) {
                             viewModel.saveDate(dateContent, EventType.ONLINE)

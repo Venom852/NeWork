@@ -58,7 +58,7 @@ class EventRemoteMediator(
             )
 
             if (body.isEmpty()) {
-                return MediatorResult.Success(endOfPaginationReached = true)
+                return MediatorResult.Success(endOfPaginationReached = false)
             }
 
             appDb.withTransaction {

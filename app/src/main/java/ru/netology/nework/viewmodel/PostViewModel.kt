@@ -113,7 +113,7 @@ class PostViewModel @Inject constructor(
     val media: LiveData<MediaModel>
         get() = _media
 
-//    private var oldPost = empty
+    private var oldPost = empty
     private var oldPosts = emptyList<Post>()
     var statusMedia = false
     var listMentionedUser = emptySet<Long>()
@@ -167,17 +167,28 @@ class PostViewModel @Inject constructor(
     fun saveContent(content: String) {
         edited.value?.let { newPost ->
             viewModelScope.launch {
-                CoroutineScope(Dispatchers.IO).launch {
-                    oldPosts = dao.getAll().toPostDto()
+                var postServer = empty
+                var post = empty
+
+                if (newPost.id != 0L) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        oldPosts = dao.getAll().toPostDto()
+                    }.join()
+
+                    post = newPost.copy(
+                        content = content
+                    )
                 }
 
-                val data = Instant.now().toString()
-                var postServer = empty
-                var post = newPost.copy(
-                    published = data,
-                    content = content,
-                    ownedByMe = true
-                )
+                if (newPost.id == 0L) {
+                    val data = Instant.now().toString()
+
+                    post = newPost.copy(
+                        published = data,
+                        content = content,
+                        ownedByMe = true
+                    )
+                }
 
                 if (!listMentionedUser.isEmpty() || !listMapUser.isEmpty()) {
                     post = post.copy(
@@ -191,6 +202,15 @@ class PostViewModel @Inject constructor(
                 }
 
                 dao.save(PostEntity.fromPostDto(post))
+
+                if (newPost.id == 0L) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        oldPosts = dao.getAll().toPostDto()
+                    }.join()
+
+                    oldPost = oldPosts.maxByOrNull { it.id } ?: empty
+                }
+
                 _postCreated.value = Unit
 
                 try {
@@ -223,11 +243,9 @@ class PostViewModel @Inject constructor(
 
 
                     if (post.id == 0L) {
-//                    oldPost = oldPosts.first()
                         dao.changeIdPostById(
-                            0L,
+                            oldPost.id,
                             postServer.id,
-//                            postServer.author,
                             postServer.authorId,
                             postServer.authorAvatar,
                             postServer.authorJob,
@@ -236,6 +254,7 @@ class PostViewModel @Inject constructor(
                             postServer.attachment?.type
                         )
 
+//                        edited.value = empty
                         _media.value = noMedia
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
@@ -243,26 +262,71 @@ class PostViewModel @Inject constructor(
                         statusMedia = false
                     }
                 } catch (_: ErrorCode403) {
-//                    dao.insertPosts(oldPosts.toPostEntity())
                     _errorPost403.value = Unit
-                    if (post.id == 0L && _media.value == noMedia) {
-                        dao.removeById(0L)
-                        return@launch
-                    } else dao.insertPosts(oldPosts.toPostEntity())
-                } catch (_: ErrorCode415) {
-//                    dao.insertPosts(oldPosts.toPostEntity())
-                    _errorPost415.value = Unit
-                    if (post.id == 0L && _media.value == noMedia) {
-                        dao.removeById(0L)
-                        return@launch
-                    } else dao.insertPosts(oldPosts.toPostEntity())
-                } catch (e: Exception) {
-//                    dao.insertPosts(oldPosts.toPostEntity())
-                    e.printStackTrace()
+
                     if (post.id == 0L) {
-                        dao.removeById(0L)
+                        dao.removeById(oldPost.id)
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+
                         return@launch
-                    } else dao.insertPosts(oldPosts.toPostEntity())
+                    } else {
+                        dao.insertPosts(oldPosts.toPostEntity())
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+                    }
+                } catch (_: ErrorCode415) {
+                    _errorPost415.value = Unit
+
+                    if (post.id == 0L) {
+                        dao.removeById(oldPost.id)
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+
+                        return@launch
+                    } else {
+                        dao.insertPosts(oldPosts.toPostEntity())
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+
+                    if (post.id == 0L) {
+                        dao.removeById(oldPost.id)
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+
+                        return@launch
+                    } else {
+                        dao.insertPosts(oldPosts.toPostEntity())
+
+                        _media.value = noMedia
+                        listMentionedUser = emptySet()
+                        coordinates = Coordinates(0.0, 0.0)
+                        listMapUser = emptyMap()
+                        statusMedia = false
+                    }
                 }
             }
         }

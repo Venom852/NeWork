@@ -57,7 +57,6 @@ import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragme
 import ru.netology.nework.fragment.UserFragment.Companion.CHOOSING_MENTIONED_USER_POST
 import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.viewmodel.EventViewModel
-import ru.netology.nework.viewmodel.PostUserWallViewModel
 import ru.netology.nework.viewmodel.UserViewModel
 import javax.inject.Inject
 
@@ -67,7 +66,7 @@ class FeedFragment : Fragment() {
     lateinit var auth: AppAuth
 
     companion object {
-        const val KEY_CURRENT_TAB = "current_tab"
+        const val KEY_CURRENT_TAB = "keyCurrentTab"
     }
 
     private var currentTabId = 0
