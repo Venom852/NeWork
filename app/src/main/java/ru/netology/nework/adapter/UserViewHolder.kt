@@ -8,6 +8,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.gson.Gson
 import ru.netology.nework.R
+import ru.netology.nework.auth.AppAuth
 import ru.netology.nework.databinding.CardUsersBinding
 import ru.netology.nework.dto.User
 import ru.netology.nework.fragment.ProfileFragment.Companion.PROHIBIT
@@ -24,13 +25,17 @@ import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.MENTIONED
 import ru.netology.nework.fragment.UserFragment.Companion.PARTICIPANTS
 import ru.netology.nework.fragment.UserFragment.Companion.SPEAKERS
+import ru.netology.nework.fragment.UserFragment.Companion.listUsers
 
 class UserViewHolder(
     private val binding: CardUsersBinding,
     private val onInteractionUserListener: OnInteractionUserListener,
-    private val gson: Gson = Gson()
+    private val gson: Gson = Gson(),
+    private val auth: AppAuth
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(user: User) {
+        val myId = auth.authStateFlow.value.id
+
         with(binding) {
             val options = RequestOptions()
 
@@ -57,6 +62,8 @@ class UserViewHolder(
             }
 
             userConstraint.setOnClickListener {
+                listUsers = mutableListOf()
+
                 if (status == CHOOSING_MENTIONED_USER_POST || status == CHOOSING_SPEAKERS_USER
                     || status == CHOOSING_MENTIONED_USER_WALL || status == LIKE
                     || status == MENTIONED || status == PARTICIPANTS || status == SPEAKERS) {
@@ -66,7 +73,7 @@ class UserViewHolder(
                         Bundle().apply {
                             statusPermissionToCross = PROHIBIT
 
-                            if (user.name == "Me123") {
+                            if (user.id == myId) {
                                 statusProfileFragment = YOUR
                                 profileFragmentBundle = gson.toJson(user.id)
                             } else {
@@ -80,7 +87,7 @@ class UserViewHolder(
                         Bundle().apply {
                             statusPermissionToCross = PROHIBIT
 
-                            if (user.name == "Me123") {
+                            if (user.id == myId) {
                                 statusProfileFragment = YOUR
                                 profileFragmentBundle = gson.toJson(user.id)
                             } else {

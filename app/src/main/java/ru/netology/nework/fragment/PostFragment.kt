@@ -88,7 +88,7 @@ class PostFragment : Fragment() {
 
     private var post = Post(
         id = 0,
-        author = "Me123",
+        author = "",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,

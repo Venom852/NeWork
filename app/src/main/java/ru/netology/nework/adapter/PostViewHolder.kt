@@ -168,13 +168,15 @@ class PostViewHolder(
             }
 
             imageContent.setOnClickListener {
-                findNavController(it).navigate(
-                    R.id.action_feedFragment_to_photoFragment2,
-                    Bundle().apply {
-                        photoBundle = gson.toJson(post)
-                        statusPhotoFragment = POST
-                    }
-                )
+                if (permissionToCross == ALLOW) {
+                    findNavController(it).navigate(
+                        R.id.action_feedFragment_to_photoFragment2,
+                        Bundle().apply {
+                            photoBundle = gson.toJson(post)
+                            statusPhotoFragment = POST
+                        }
+                    )
+                }
             }
 
             //TODO(Настроить)

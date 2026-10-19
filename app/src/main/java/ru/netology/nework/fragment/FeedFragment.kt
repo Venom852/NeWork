@@ -11,6 +11,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -61,18 +62,15 @@ import ru.netology.nework.viewmodel.UserViewModel
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@SuppressLint("ClickableViewAccessibility")
 class FeedFragment : Fragment() {
     @Inject
     lateinit var auth: AppAuth
 
-    companion object {
-        const val KEY_CURRENT_TAB = "keyCurrentTab"
-    }
-
+    private val keyCurrentTab = "keyCurrentTab"
     private var currentTabId = 0
     private var conditionAdd = NEW_POST
 
-    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -85,8 +83,6 @@ class FeedFragment : Fragment() {
             ConfirmationOfExitBinding.inflate(layoutInflater, container, false)
 
         applyInset(binding.main)
-//        applyInset(binding.cardEvent)
-//        applyInset(binding.cardUser)
 
         val viewModelPost: PostViewModel by activityViewModels()
         val viewModelEvent: EventViewModel by activityViewModels()
@@ -102,11 +98,10 @@ class FeedFragment : Fragment() {
         val gson = Gson()
 
         if (savedInstanceState != null) {
-            currentTabId = savedInstanceState.getInt(KEY_CURRENT_TAB, R.id.posts)
+            currentTabId = savedInstanceState.getInt(keyCurrentTab, R.id.posts)
         }
 
         lifecycle.addObserver(mediaObserver)
-        selectFragment(binding, currentTabId)
 
         val postAdapter = PostAdapter(object : OnInteractionPostListener {
             override fun onLike(post: Post) {
@@ -233,9 +228,11 @@ class FeedFragment : Fragment() {
 
         val userAdapter = UserAdapter(object : OnInteractionUserListener {
             override fun onRadioButton(user: User) = Unit
-        })
+        }, auth)
 
         with(binding) {
+            selectFragment(this, currentTabId)
+
             cardPost.adapter = postAdapter.withLoadStateHeaderAndFooter(
                 header = PostLoadingStateAdapter(object :
                     PostLoadingStateAdapter.OnInteractionListener {
@@ -465,7 +462,7 @@ class FeedFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(KEY_CURRENT_TAB, currentTabId)
+        outState.putInt(keyCurrentTab, currentTabId)
     }
 
     private fun selectFragment(binding: FragmentFeedBinding, itemId: Int) {
@@ -475,6 +472,7 @@ class FeedFragment : Fragment() {
                     currentTabId = itemId
                     conditionAdd = NEW_POST
 
+                    add.visibility = View.VISIBLE
                     srlMainPosts.visibility = View.VISIBLE
                     srlMainEvents.visibility = View.GONE
                     srlMainUsers.visibility = View.GONE
@@ -484,6 +482,7 @@ class FeedFragment : Fragment() {
                     currentTabId = itemId
                     conditionAdd = NEW_EVENT
 
+                    add.visibility = View.VISIBLE
                     srlMainPosts.visibility = View.GONE
                     srlMainEvents.visibility = View.VISIBLE
                     srlMainUsers.visibility = View.GONE
@@ -493,6 +492,7 @@ class FeedFragment : Fragment() {
                     currentTabId = itemId
                     conditionAdd = CHOOSING_MENTIONED_USER_POST
 
+                    add.visibility = View.GONE
                     srlMainPosts.visibility = View.GONE
                     srlMainEvents.visibility = View.GONE
                     srlMainUsers.visibility = View.VISIBLE
@@ -503,21 +503,11 @@ class FeedFragment : Fragment() {
 
     private fun applyInset(main: View) {
         ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
-            insets
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()
+                        or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(left = systemBars.left, top = 0, right = systemBars.right, bottom = 0)
+            WindowInsetsCompat.CONSUMED
         }
-//        ViewCompat.setOnApplyWindowInsetsListener(main) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-//            val isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-//            v.setPadding(
-//                v.paddingLeft,
-//                systemBars.top,
-//                v.paddingRight,
-//                if (isImeVisible) imeInsets.bottom else systemBars.bottom
-//            )
-//            insets
-//        }
     }
 }

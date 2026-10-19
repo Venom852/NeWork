@@ -93,7 +93,7 @@ class EventFragment : Fragment() {
 
     private var event = Event(
         id = 0,
-        author = "Me123",
+        author = "",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,

@@ -44,12 +44,13 @@ interface PostDao {
         newCoordinates: Coordinates?
     )
 
-    @Query("UPDATE PostEntity Set id = :newId, authorId = :newAuthorId," +
+    @Query("UPDATE PostEntity Set id = :newId, author = :newAuthor, authorId = :newAuthorId," +
             " authorAvatar = :newAuthorAvatar, authorJob = :newAuthorJob, mentionedMe = :newMentionedMe," +
             " url = :newUrl, type = :newType WHERE id = :id")
     suspend fun changeIdPostById(
         id: Long,
         newId: Long,
+        newAuthor: String,
         newAuthorId: Long,
         newAuthorAvatar: String?,
         newAuthorJob: String?,

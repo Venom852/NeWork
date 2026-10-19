@@ -48,7 +48,7 @@ class PhotoFragment : Fragment() {
 
     private var post = Post(
         id = 0,
-        author = "Me123",
+        author = "",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -73,7 +73,7 @@ class PhotoFragment : Fragment() {
 
     private var event = Event(
         id = 0,
-        author = "Me123",
+        author = "",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,

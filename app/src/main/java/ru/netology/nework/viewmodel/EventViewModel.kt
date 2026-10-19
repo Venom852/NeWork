@@ -50,7 +50,7 @@ class EventViewModel @Inject constructor(
 ) : ViewModel() {
     var empty = Event(
         id = 0L,
-        author = "Me123",
+        author = "",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -198,17 +198,7 @@ class EventViewModel @Inject constructor(
         edited.value?.let { newEvent ->
             viewModelScope.launch {
                 var eventServer = empty
-                var event = empty
-
-                if (newEvent.id != 0L) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        oldEvents = eventDao.getAll().toEventDto()
-                    }.join()
-
-                    event = newEvent.copy(
-                        content = content
-                    )
-                }
+                var event: Event
 
                 if (newEvent.id == 0L) {
                     val data = Instant.now().toString()
@@ -217,6 +207,14 @@ class EventViewModel @Inject constructor(
                         published = data,
                         content = content,
                         ownedByMe = true
+                    )
+                } else {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        oldEvents = eventDao.getAll().toEventDto()
+                    }.join()
+
+                    event = newEvent.copy(
+                        content = content
                     )
                 }
 
@@ -283,6 +281,7 @@ class EventViewModel @Inject constructor(
                         eventDao.changeIdEventById(
                             oldEvent.id,
                             eventServer.id,
+                            eventServer.author,
                             eventServer.authorId,
                             eventServer.authorAvatar,
                             eventServer.authorJob,

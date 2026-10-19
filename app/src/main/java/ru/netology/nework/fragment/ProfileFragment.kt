@@ -72,7 +72,10 @@ class ProfileFragment : Fragment() {
         login = "",
         avatar = null
     )
+    private val keyCurrentTab = "keyCurrentTabProfile"
+    private var currentTabId = 0
     private var privateStatusProfile = YOUR
+    private var conditionAdd = NEW_POST
     private var authorId = 0L
     private val gson = Gson()
 
@@ -91,7 +94,6 @@ class ProfileFragment : Fragment() {
         val viewModelJob: JobViewModel by activityViewModels()
 
         val dialog = BottomSheetDialog(requireContext())
-        var conditionAdd = NEW_POST
 
         arguments?.statusProfileFragment?.let {
             statusProfile = it
@@ -112,6 +114,10 @@ class ProfileFragment : Fragment() {
             }
 
             arguments?.profileFragmentBundle = null
+        }
+
+        if (savedInstanceState != null) {
+            currentTabId = savedInstanceState.getInt(keyCurrentTab, 0)
         }
 
         val postAdapter = PostAdapter(object : OnInteractionPostListener {
@@ -177,6 +183,9 @@ class ProfileFragment : Fragment() {
         })
 
         with(binding) {
+            tabs.getTabAt(currentTabId)?.select()
+            selectFragment(this, tabs.getTabAt(currentTabId))
+
             main.adapter = postAdapter.withLoadStateHeaderAndFooter(
                 header = PostLoadingStateAdapter(object :
                     PostLoadingStateAdapter.OnInteractionListener {
@@ -199,29 +208,6 @@ class ProfileFragment : Fragment() {
                     viewModelMyJob.loadJobs()
                 } else {
                     viewModelJob.loadJobs(authorId)
-                }
-            }
-
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    if (privateStatusProfile == YOUR) {
-                        viewModelPostMyWall.dataMyUserWall(authorId).collectLatest {
-                            user = it
-
-                            downloadPhoto(this@with)
-                        }
-                    } else {
-                        viewModelPostUserWall.dataUserWall(authorId).collectLatest {
-                            user = it
-
-                            downloadPhoto(this@with)
-
-                            if (privateStatusProfile == USER) {
-                                fillingToolbar(binding)
-                            }
-
-                        }
-                    }
                 }
             }
 
@@ -259,23 +245,12 @@ class ProfileFragment : Fragment() {
 
             tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(p0: TabLayout.Tab?) {
-                    if (p0?.position == 0) {
-                        conditionAdd = NEW_POST
-
-                        srlPosts.visibility = View.VISIBLE
-                        srlJobs.visibility = View.GONE
-                    } else {
-                        conditionAdd = NEW_JOB
-
-                        srlPosts.visibility = View.GONE
-                        srlJobs.visibility = View.VISIBLE
-                    }
+                    selectFragment(binding, p0)
                 }
 
                 override fun onTabUnselected(p0: TabLayout.Tab?) = Unit
 
                 override fun onTabReselected(p0: TabLayout.Tab?) = Unit
-
             })
         }
 
@@ -288,6 +263,29 @@ class ProfileFragment : Fragment() {
                 auth.removeAuth()
                 findNavController().navigateUp()
                 dialog.dismiss()
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                if (privateStatusProfile == YOUR) {
+                    viewModelPostMyWall.dataMyUserWall(authorId).collectLatest {
+                        user = it
+
+                        downloadPhoto(binding)
+                    }
+                } else {
+                    viewModelPostUserWall.dataUserWall(authorId).collectLatest {
+                        user = it
+
+                        downloadPhoto(binding)
+
+                        if (privateStatusProfile == USER) {
+                            fillingToolbar(binding)
+                        }
+
+                    }
+                }
             }
         }
 
@@ -366,6 +364,33 @@ class ProfileFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(keyCurrentTab, currentTabId)
+    }
+
+    private fun selectFragment(binding: FragmentProfileBinding, tab: TabLayout.Tab?) {
+        with(binding) {
+            when (tab?.position) {
+                0 -> {
+                    currentTabId = tab.position
+                    conditionAdd = NEW_POST
+
+                    srlPosts.visibility = View.VISIBLE
+                    srlJobs.visibility = View.GONE
+                }
+
+                1 -> {
+                    currentTabId = tab.position
+                    conditionAdd = NEW_JOB
+
+                    srlPosts.visibility = View.GONE
+                    srlJobs.visibility = View.VISIBLE
+                }
+            }
+        }
     }
 
     private fun fillingToolbar(binding: FragmentProfileBinding) {

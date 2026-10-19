@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -51,13 +49,13 @@ class UserFragment : Fragment() {
         const val PARTICIPANTS = "participants"
         const val SPEAKERS = "speakers"
         var status = ""
+        var listUsers = mutableListOf<User>()
 
         var Bundle.statusUserFragment by StringArg
         var Bundle.userBundleFragment by StringArg
     }
 
     private val gson = Gson()
-    private val listUsers = mutableListOf<User>()
     private var users = listOf<Long>()
 
     override fun onCreateView(
@@ -86,7 +84,7 @@ class UserFragment : Fragment() {
                     listIdUsers.add(user.id)
                 }
             }
-        })
+        }, auth)
 
         arguments?.statusUserFragment?.let {
             status = it
@@ -127,6 +125,8 @@ class UserFragment : Fragment() {
             cardUser.adapter = userAdapter
 
             back.setOnClickListener {
+                listUsers = mutableListOf()
+
                 findNavController().navigateUp()
             }
 

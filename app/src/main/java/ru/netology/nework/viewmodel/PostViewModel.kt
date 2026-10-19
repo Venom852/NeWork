@@ -48,7 +48,7 @@ class PostViewModel @Inject constructor(
 ) : ViewModel() {
     var empty = Post(
         id = 0L,
-        author = "Me123",
+        author = "",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -168,17 +168,7 @@ class PostViewModel @Inject constructor(
         edited.value?.let { newPost ->
             viewModelScope.launch {
                 var postServer = empty
-                var post = empty
-
-                if (newPost.id != 0L) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        oldPosts = dao.getAll().toPostDto()
-                    }.join()
-
-                    post = newPost.copy(
-                        content = content
-                    )
-                }
+                var post: Post
 
                 if (newPost.id == 0L) {
                     val data = Instant.now().toString()
@@ -187,6 +177,14 @@ class PostViewModel @Inject constructor(
                         published = data,
                         content = content,
                         ownedByMe = true
+                    )
+                } else {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        oldPosts = dao.getAll().toPostDto()
+                    }.join()
+
+                    post = newPost.copy(
+                        content = content
                     )
                 }
 
@@ -246,6 +244,7 @@ class PostViewModel @Inject constructor(
                         dao.changeIdPostById(
                             oldPost.id,
                             postServer.id,
+                            postServer.author,
                             postServer.authorId,
                             postServer.authorAvatar,
                             postServer.authorJob,
@@ -254,7 +253,6 @@ class PostViewModel @Inject constructor(
                             postServer.attachment?.type
                         )
 
-//                        edited.value = empty
                         _media.value = noMedia
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)

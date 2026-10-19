@@ -51,7 +51,7 @@ class PostMyWallViewModel @Inject constructor(
 ) : ViewModel() {
     var empty = Post(
         id = 0,
-        author = "Me123",
+        author = "",
         authorId = 0,
         authorAvatar = null,
         authorJob = null,
@@ -173,17 +173,7 @@ class PostMyWallViewModel @Inject constructor(
         edited.value?.let { newPost ->
             viewModelScope.launch {
                 var postServer = empty
-                var post = empty
-
-                if (newPost.id != 0L) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        oldPosts = postMyWallDao.getAll().toPostMyWallDto()
-                    }.join()
-
-                    post = newPost.copy(
-                        content = content
-                    )
-                }
+                var post: Post
 
                 if (newPost.id == 0L) {
                     val data = Instant.now().toString()
@@ -192,6 +182,14 @@ class PostMyWallViewModel @Inject constructor(
                         published = data,
                         content = content,
                         ownedByMe = true
+                    )
+                } else {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        oldPosts = postMyWallDao.getAll().toPostMyWallDto()
+                    }.join()
+
+                    post = newPost.copy(
+                        content = content
                     )
                 }
 
@@ -251,6 +249,7 @@ class PostMyWallViewModel @Inject constructor(
                         postMyWallDao.changeIdPostById(
                             oldPost.id,
                             postServer.id,
+                            postServer.author,
                             postServer.authorId,
                             postServer.authorAvatar,
                             postServer.authorJob,
