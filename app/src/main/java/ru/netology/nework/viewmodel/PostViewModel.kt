@@ -73,7 +73,7 @@ class PostViewModel @Inject constructor(
 
     private val noMedia = MediaModel()
 
-    //    private val mediaObserver = MediaLifecycleObserver()
+    private val mediaObserverr = MediaLifecycleObserver()
     private val _dataState = MutableStateFlow(FeedModelState())
     val dataState: Flow<FeedModelState>
         get() = _dataState
@@ -115,6 +115,7 @@ class PostViewModel @Inject constructor(
 
     private var oldPost = empty
     private var oldPosts = emptyList<Post>()
+    //TODO(Удалить если не нужна)
     var statusMedia = false
     var listMentionedUser = emptySet<Long>()
     var listMapUser = emptyMap<Long, UserPreview>()
@@ -356,16 +357,20 @@ class PostViewModel @Inject constructor(
     }
 
     fun playSong(post: Post, mediaObserver: MediaLifecycleObserver) {
-//        mediaObserver.stop()
+//        mediaObserverr.reset()
+        mediaObserver.reset()
         mediaObserver.apply {
+//        mediaObserverr.apply {
             mediaPlayer?.setDataSource(
-                post.attachment?.url
+                "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+//                post.attachment?.url
             )
         }.play()
     }
 
     fun pauseSong(mediaObserver: MediaLifecycleObserver) {
         mediaObserver.pause()
+//        mediaObserverr.pause()
     }
 
     fun playVideo(post: Post) {

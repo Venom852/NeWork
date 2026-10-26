@@ -141,7 +141,7 @@ class NewPostFragment : Fragment() {
                     }
 
                     val fileUri = Uri.fromFile(tempFile)
-                    tempFile.delete()
+//                    tempFile.delete()
 
                     if (status == NEW_POST || status == EDITING_NEW_POST) {
                         viewModel.changeMedia(fileUri, fileUri.toFile(), AttachmentType.VIDEO)
@@ -178,7 +178,7 @@ class NewPostFragment : Fragment() {
                                     }
 
                                 val fileUri = Uri.fromFile(tempFile)
-                                tempFile.delete()
+//                                tempFile.delete()
 
                                 if (status == NEW_POST || status == EDITING_NEW_POST) {
                                     viewModel.changeMedia(fileUri, fileUri?.toFile(), AttachmentType.AUDIO)

@@ -3,12 +3,14 @@ package ru.netology.nework.adapter
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.media.MediaMetadataRetriever
-import android.media.session.MediaController
+import android.widget.MediaController
 import android.media.session.MediaSession
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.fragment.app.activityViewModels
@@ -38,6 +40,7 @@ import ru.netology.nework.fragment.ProfileFragment.Companion.permissionToCross
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.profileFragmentBundle
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
+import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 import ru.netology.nework.viewmodel.PostUserWallViewModel
@@ -47,12 +50,13 @@ import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.getValue
 
+@SuppressLint("SetTextI18n")
 class PostViewHolder(
     private val binding: CardPostBinding,
     private val onInteractionPostListener: OnInteractionPostListener,
     private val gson: Gson = Gson()
 ) : RecyclerView.ViewHolder(binding.root) {
-    @SuppressLint("SetTextI18n")
+    private val mediaObserver = MediaLifecycleObserver()
     fun bind(post: Post) {
         with(binding) {
             val zonedDateTime = ZonedDateTime.parse(post.published)
@@ -110,24 +114,15 @@ class PostViewHolder(
             if (post.attachment?.type == AttachmentType.AUDIO) {
                 groupSong.visibility = View.VISIBLE
 
-//                val songFile = post.attachment.url.toUri().toFile()
-//
-//                val retriever = MediaMetadataRetriever()
-//                retriever.setDataSource(songFile.absolutePath)
-//
-//                val durationStr =
-//                    retriever.extractMetadata(
-//                        MediaMetadataRetriever.METADATA_KEY_DURATION
-//                    )
-//
-//                val duration = durationStr?.toIntOrNull() ?: 0
-//                val title = retriever.extractMetadata(
-//                    MediaMetadataRetriever.METADATA_KEY_TITLE
-//                ) ?: "noName"
-//                retriever.release()
-//
-//                titleSong.text = title
-//                timeSong.text = duration.toString()
+                mediaObserver.reset()
+                mediaObserver.apply {
+//                    mediaPlayer?.setDataSource(post.attachment.url)
+                    mediaPlayer?.setDataSource("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
+                }.getDuration{
+                    timeSong.text = it
+                }
+
+                titleSong.text = itemView.context.getString(R.string.title_song)
             }
 
             like.setOnClickListener {
@@ -180,20 +175,25 @@ class PostViewHolder(
             }
 
             //TODO(Настроить)
-            groupVideo.setAllOnClickListener {
-//                videoContent.setMediaController(MediaController(itemView.context, MediaSession.Token))
+//            groupVideo.setAllOnClickListener {
+            playVideo.setOnClickListener {
+//                onInteractionPostListener.onPlayVideo(post)
+
+                val mediaController = MediaController(itemView.context)
+                mediaController.setAnchorView(videoContent)
+                videoContent.setMediaController(mediaController)
                 videoContent.apply {
-                    setVideoURI(post.attachment?.url?.toUri())
+//                    setVideoURI(post.attachment?.url?.toUri())
+                    setVideoURI("https://samplelib.com/mp4/sample-5s.mp4".toUri())
 
                     setOnPreparedListener {
-                        start()
+                        it.start()
                     }
 
                     setOnCompletionListener {
                         stopPlayback()
                     }
                 }
-                onInteractionPostListener.onPlayVideo(post)
             }
 
             //TODO(Настроить)

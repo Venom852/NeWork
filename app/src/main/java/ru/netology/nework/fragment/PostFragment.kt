@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.MediaController
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.net.toUri
@@ -185,6 +186,24 @@ class PostFragment : Fragment() {
 
             //TODO(Настроить)
 //            groupVideo.setAllOnClickListener {
+            playVideo.setOnClickListener {
+//                onInteractionPostListener.onPlayVideo(post)
+
+                val mediaController = MediaController(context)
+                mediaController.setAnchorView(videoContent)
+                videoContent.setMediaController(mediaController)
+                videoContent.apply {
+//                    setVideoURI(post.attachment?.url?.toUri())
+                    setVideoURI("https://samplelib.com/mp4/sample-5s.mp4".toUri())
+
+                    setOnPreparedListener {
+                        it.start()
+                    }
+
+                    setOnCompletionListener {
+                        stopPlayback()
+                    }
+                }
 //                if (!post.playSong) {
 //                    viewModel.playVideo(post)
 //                } else {
@@ -192,7 +211,7 @@ class PostFragment : Fragment() {
 //                }
 //
 //                viewModel.playButtonVideo(post.id)
-//            }
+            }
 
             //TODO(Настроить)
 //            playSong.setOnClickListener {
@@ -387,11 +406,11 @@ class PostFragment : Fragment() {
             }
 
             //TODO(Настроить)
-//            if (post.attachment?.type == AttachmentType.VIDEO) {
-//                groupVideo.visibility = View.VISIBLE
-//
+            if (post.attachment?.type == AttachmentType.VIDEO) {
+                groupVideo.visibility = View.VISIBLE
+
 //                videoContent.setVideoURI(post.attachment.url.toUri())
-//            }
+            }
 
             //TODO(Настроить)
 //            if (post.attachment?.type == AttachmentType.AUDIO) {

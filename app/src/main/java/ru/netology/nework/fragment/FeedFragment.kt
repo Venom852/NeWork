@@ -150,13 +150,15 @@ class FeedFragment : Fragment() {
             }
 
             override fun onPlaySong(post: Post) {
+                viewModelPost.playButtonSong(post.id)
+
                 if (!post.playSong) {
                     viewModelPost.playSong(post, mediaObserver)
                 } else {
                     viewModelPost.pauseSong(mediaObserver)
                 }
 
-                viewModelPost.playButtonSong(post.id)
+//                viewModelPost.playButtonSong(post.id)
             }
         })
 
