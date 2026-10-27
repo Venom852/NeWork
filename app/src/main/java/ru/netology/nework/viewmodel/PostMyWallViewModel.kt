@@ -1,6 +1,7 @@
 package ru.netology.nework.viewmodel
 
 import android.net.Uri
+import android.widget.VideoView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -117,7 +118,6 @@ class PostMyWallViewModel @Inject constructor(
 
     private var oldPost = empty
     private var oldPosts = emptyList<Post>()
-    var statusMedia = false
     var listMentionedUser = emptySet<Long>()
     var listMapUser = emptyMap<Long, UserPreview>()
     var coordinates = Coordinates(lat = 0.0, long = 0.0)
@@ -230,21 +230,6 @@ class PostMyWallViewModel @Inject constructor(
                         }
                     }
 
-//                    if (!statusMedia) {
-//                        postServer = repository.save(post)
-//                    } else {
-//                        _media.value?.file?.let { file ->
-//                            _media.value?.attachmentType?.let { attachmentType ->
-//                                postServer = repository.saveWithAttachment(
-//                                    post,
-//                                    MediaUpload(file),
-//                                    attachmentType
-//                                )
-//                            }
-//                        }
-//                    }
-
-
                     if (post.id == 0L) {
                         postMyWallDao.changeIdPostById(
                             oldPost.id,
@@ -262,7 +247,6 @@ class PostMyWallViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
                     }
                 } catch (_: ErrorCode403) {
                     _errorMyWall403.value = Unit
@@ -274,7 +258,6 @@ class PostMyWallViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
 
                         return@launch
                     } else {
@@ -284,7 +267,6 @@ class PostMyWallViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
                     }
                 } catch (_: ErrorCode415) {
                     _errorMyWall415.value = Unit
@@ -296,7 +278,6 @@ class PostMyWallViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
 
                         return@launch
                     } else {
@@ -306,7 +287,6 @@ class PostMyWallViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -318,7 +298,6 @@ class PostMyWallViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
 
                         return@launch
                     } else {
@@ -328,7 +307,6 @@ class PostMyWallViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
                     }
                 }
             }
@@ -341,9 +319,6 @@ class PostMyWallViewModel @Inject constructor(
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
-        if (uri != null) {
-            statusMedia = true
-        }
         _media.value = MediaModel(uri, file, attachmentType)
     }
 
@@ -360,33 +335,25 @@ class PostMyWallViewModel @Inject constructor(
     }
 
     fun playSong(post: Post) {
-        mediaObserver.stop()
+        mediaObserver.reset()
         mediaObserver.apply {
             mediaPlayer?.setDataSource(
-                post.attachment?.url
+                "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+//                post.attachment?.url
             )
         }.play()
     }
 
     fun pauseSong() {
-        viewModelScope.launch {
-            mediaObserver.pause()
-        }
+        mediaObserver.pause()
     }
 
-    fun playVideo(post: Post) {
-//        mediaObserver.stop()
-//        mediaObserver.apply {
-//            mediaPlayer?.setDataSource(
-//                post.attachment?.url
-//            )
-//        }.play()
+    fun playVideo(videoView: VideoView) {
+        mediaObserver.playVideo(videoView)
     }
 
     fun pauseVideo() {
-        viewModelScope.launch {
-            mediaObserver.pause()
-        }
+        mediaObserver.pause()
     }
 
     fun mentionUsers(listMentioned: Set<Long>, listMap: Map<Long, UserPreview>) {

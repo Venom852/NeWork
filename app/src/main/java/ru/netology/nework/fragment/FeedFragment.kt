@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.widget.VideoView
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -130,6 +131,7 @@ class FeedFragment : Fragment() {
 
             override fun onEdit(post: Post) {
                 viewModelPost.editById(post)
+
                 findNavController().navigate(
                     R.id.action_feedFragment_to_newPostFragment,
                     Bundle().apply {
@@ -139,23 +141,23 @@ class FeedFragment : Fragment() {
                 )
             }
 
-            override fun onPlayVideo(post: Post) {
+            override fun onPlayVideo(post: Post, videoView: VideoView) {
+                viewModelPost.playButtonVideo(post.id)
+
                 if (!post.playSong) {
-                    viewModelPost.playVideo(post)
+                    viewModelPost.playVideo(videoView)
                 } else {
                     viewModelPost.pauseVideo()
                 }
-
-                viewModelPost.playButtonVideo(post.id)
             }
 
             override fun onPlaySong(post: Post) {
                 viewModelPost.playButtonSong(post.id)
 
                 if (!post.playSong) {
-                    viewModelPost.playSong(post, mediaObserver)
+                    viewModelPost.playSong(post)
                 } else {
-                    viewModelPost.pauseSong(mediaObserver)
+                    viewModelPost.pauseSong()
                 }
 
 //                viewModelPost.playButtonSong(post.id)
@@ -189,6 +191,7 @@ class FeedFragment : Fragment() {
 
             override fun onEdit(event: Event) {
                 viewModelEvent.editById(event)
+
                 findNavController().navigate(
                     R.id.action_feedFragment_to_newEventFragment3,
                     Bundle().apply {
@@ -197,24 +200,24 @@ class FeedFragment : Fragment() {
                 )
             }
 
-            override fun onPlayVideo(event: Event) {
+            override fun onPlayVideo(event: Event, videoView: VideoView) {
+                viewModelEvent.playButtonVideo(event.id)
+
                 if (!event.playSong) {
-                    viewModelEvent.playVideo(event)
+                    viewModelEvent.playVideo(videoView)
                 } else {
                     viewModelEvent.pauseVideo()
                 }
-
-                viewModelEvent.playButtonVideo(event.id)
             }
 
             override fun onPlaySong(event: Event) {
+                viewModelEvent.playButtonSong(event.id)
+
                 if (!event.playSong) {
                     viewModelEvent.playSong(event)
                 } else {
                     viewModelEvent.pauseSong()
                 }
-
-                viewModelEvent.playButtonSong(event.id)
             }
 
             override fun onParticipate(event: Event) {

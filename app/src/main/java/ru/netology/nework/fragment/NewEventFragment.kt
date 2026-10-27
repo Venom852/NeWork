@@ -137,7 +137,7 @@ class NewEventFragment : Fragment() {
                     }
 
                     val fileUri = Uri.fromFile(tempFile)
-                    tempFile.delete()
+//                    tempFile.delete()
 
                     viewModel.changeMedia(fileUri, fileUri.toFile(), AttachmentType.VIDEO)
 
@@ -167,7 +167,7 @@ class NewEventFragment : Fragment() {
                                 }
 
                                 val fileUri = Uri.fromFile(tempFile)
-                                tempFile.delete()
+//                                tempFile.delete()
 
                                 viewModel.changeMedia(fileUri, fileUri.toFile(), AttachmentType.AUDIO)
 
@@ -208,7 +208,6 @@ class NewEventFragment : Fragment() {
                 viewModel.coordinates = Coordinates(lat = 0.0, long = 0.0)
                 viewModel.dateTime = ""
                 viewModel.type = EventType.NOT_ASSIGNED
-                viewModel.statusMedia = false
 
                 findNavController().navigateUp()
             }
@@ -307,7 +306,6 @@ class NewEventFragment : Fragment() {
         viewModel.media.observe(viewLifecycleOwner) {
             if (it.uri == null) {
                 binding.groupPhotoContainer.visibility = View.GONE
-                viewModel.statusMedia = false
                 return@observe
             }
 
@@ -436,7 +434,6 @@ class NewEventFragment : Fragment() {
             viewModel.coordinates = Coordinates(lat = 0.0, long = 0.0)
             viewModel.dateTime = ""
             viewModel.type = EventType.NOT_ASSIGNED
-            viewModel.statusMedia = false
 
             findNavController().navigateUp()
         }

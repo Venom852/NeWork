@@ -42,7 +42,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netology.nework.dao.PostDao
-import ru.netology.nework.dao.UserDao
 import ru.netology.nework.databinding.AuthorizationDialogBoxBinding
 import ru.netology.nework.dto.Post
 import ru.netology.nework.enumeration.AttachmentType
@@ -66,6 +65,7 @@ import ru.netology.nework.fragment.UserFragment.Companion.LIKE
 import ru.netology.nework.fragment.UserFragment.Companion.MENTIONED
 import ru.netology.nework.fragment.UserFragment.Companion.statusUserFragment
 import ru.netology.nework.fragment.UserFragment.Companion.userBundleFragment
+import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.AuthViewModel
@@ -79,9 +79,6 @@ import kotlin.getValue
 class PostFragment : Fragment() {
     @Inject
     lateinit var postDao: PostDao
-
-    @Inject
-    lateinit var userDao: UserDao
 
     companion object {
         var Bundle.postBundle by StringArg
@@ -114,11 +111,12 @@ class PostFragment : Fragment() {
     private val gson = Gson()
     private var postId = 0L
     private var numberUsers = 0
+    private val mediaObserver = MediaLifecycleObserver()
+    private val smoothAnimation = Animation(Animation.Type.SMOOTH, 3F)
     private lateinit var yandexMap: Map
     private lateinit var mapKit: MapKit
     private lateinit var placemarkMapObject: PlacemarkMapObject
     private lateinit var binding: FragmentPostBinding
-    private val smoothAnimation = Animation(Animation.Type.SMOOTH, 3F)
 
 
     override fun onCreateView(
@@ -185,44 +183,45 @@ class PostFragment : Fragment() {
             }
 
             //TODO(Настроить)
-//            groupVideo.setAllOnClickListener {
             playVideo.setOnClickListener {
-//                onInteractionPostListener.onPlayVideo(post)
-
-                val mediaController = MediaController(context)
-                mediaController.setAnchorView(videoContent)
-                videoContent.setMediaController(mediaController)
-                videoContent.apply {
-//                    setVideoURI(post.attachment?.url?.toUri())
-                    setVideoURI("https://samplelib.com/mp4/sample-5s.mp4".toUri())
-
-                    setOnPreparedListener {
-                        it.start()
-                    }
-
-                    setOnCompletionListener {
-                        stopPlayback()
-                    }
-                }
+                playVideo.visibility = View.GONE
+//                viewModel.playButtonVideo(post.id)
+//
 //                if (!post.playSong) {
 //                    viewModel.playVideo(post)
 //                } else {
 //                    viewModel.pauseVideo()
 //                }
-//
-//                viewModel.playButtonVideo(post.id)
+
+                val mediaController = MediaController(context)
+                mediaController.setAnchorView(videoContent)
+                videoContent.setMediaController(mediaController)
+
+                videoContent.apply {
+//                    setVideoURI(post.attachment?.url?.toUri())
+                    setVideoURI("https://dn710207.ca.archive.org/0/items/youtube-IfeDb-O4gOg/IfeDb-O4gOg.mp4".toUri())
+
+                    setOnPreparedListener {
+                        this.start()
+                    }
+
+                    setOnCompletionListener {
+                        stopPlayback()
+                        playVideo.visibility = View.VISIBLE
+                    }
+                }
             }
 
             //TODO(Настроить)
-//            playSong.setOnClickListener {
-//                if (!post.playSong) {
-//                    viewModel.playSong(post)
-//                } else {
-//                    viewModel.pauseSong()
-//                }
-//
-//                viewModel.playButtonSong(post.id)
-//            }
+            playSong.setOnClickListener {
+                viewModel.playButtonSong(post.id)
+
+                if (!post.playSong) {
+                    viewModel.playSong(post)
+                } else {
+                    viewModel.pauseSong()
+                }
+            }
 
             link.setOnClickListener {
                 val intent = Intent(Intent.ACTION_VIEW, "http://${post.link}".toUri())
@@ -408,31 +407,22 @@ class PostFragment : Fragment() {
             //TODO(Настроить)
             if (post.attachment?.type == AttachmentType.VIDEO) {
                 groupVideo.visibility = View.VISIBLE
-
-//                videoContent.setVideoURI(post.attachment.url.toUri())
             }
 
             //TODO(Настроить)
-//            if (post.attachment?.type == AttachmentType.AUDIO) {
-//                groupSong.visibility = View.VISIBLE
-//
-//                val songFile = post.attachment.url.toUri().toFile()
-//
-//                val retriever = MediaMetadataRetriever()
-//                retriever.setDataSource(songFile.absolutePath)
-//                val durationStr =
-//                    retriever.extractMetadata(
-//                        MediaMetadataRetriever.METADATA_KEY_DURATION
-//                    )
-//                val duration = durationStr?.toIntOrNull() ?: 0
-//                val title = retriever.extractMetadata(
-//                    MediaMetadataRetriever.METADATA_KEY_TITLE
-//                ) ?: "noName"
-//                retriever.release()
-//
-//                titleSong.text = title
-//                timeSong.text = duration.toString()
-//            }
+            if (post.attachment?.type == AttachmentType.AUDIO) {
+                groupSong.visibility = View.VISIBLE
+
+                mediaObserver.reset()
+                mediaObserver.apply {
+//                    mediaPlayer?.setDataSource(post.attachment.url)
+                    mediaPlayer?.setDataSource("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
+                }.getDuration{
+                    timeSong.text = it
+                }
+
+                titleSong.text = context?.getString(R.string.title_song)
+            }
 
             if (!post.likeOwnerIds.isEmpty()) {
                 numberUsers = 0

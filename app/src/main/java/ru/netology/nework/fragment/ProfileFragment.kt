@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.widget.VideoView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -155,24 +156,24 @@ class ProfileFragment : Fragment() {
                 )
             }
 
-            override fun onPlayVideo(post: Post) {
+            override fun onPlayVideo(post: Post, videoView: VideoView) {
+                viewModelPostMyWall.playButtonVideo(post.id)
+
                 if (!post.playSong) {
-                    viewModelPostMyWall.playVideo(post)
+                    viewModelPostMyWall.playVideo(videoView)
                 } else {
                     viewModelPostMyWall.pauseVideo()
                 }
-
-                viewModelPostMyWall.playButtonVideo(post.id)
             }
 
             override fun onPlaySong(post: Post) {
+                viewModelPostMyWall.playButtonSong(post.id)
+
                 if (!post.playSong) {
                     viewModelPostMyWall.playSong(post)
                 } else {
                     viewModelPostMyWall.pauseSong()
                 }
-
-                viewModelPostMyWall.playButtonSong(post.id)
             }
         })
 

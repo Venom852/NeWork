@@ -1,6 +1,9 @@
 package ru.netology.nework.lifecycle
 
 import android.media.MediaPlayer
+import android.widget.MediaController
+import android.widget.VideoView
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -40,9 +43,22 @@ class MediaLifecycleObserver : LifecycleEventObserver {
         mediaPlayer?.prepareAsync()
     }
 
-    fun stop() {
-        mediaPlayer?.setOnPreparedListener {
-            it.stop()
+    fun playVideo(videoView: VideoView) {
+        val mediaController = MediaController(videoView.context)
+        mediaController.setAnchorView(videoView)
+        videoView.setMediaController(mediaController)
+
+        videoView.apply {
+//            setVideoURI(post.attachment?.url?.toUri())
+            setVideoURI("https://dn710207.ca.archive.org/0/items/youtube-IfeDb-O4gOg/IfeDb-O4gOg.mp4".toUri())
+
+            setOnPreparedListener {
+                this.start()
+            }
+
+            setOnCompletionListener {
+                stopPlayback()
+            }
         }
     }
 

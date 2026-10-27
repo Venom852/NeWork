@@ -3,17 +3,14 @@ package ru.netology.nework.fragment
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color.RED
-import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.MediaController
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.net.toFile
 import androidx.core.net.toUri
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -42,13 +39,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import ru.netology.nework.BuildConfig
 import ru.netology.nework.dao.EventDao
-import ru.netology.nework.dao.UserDao
 import ru.netology.nework.databinding.AuthorizationDialogBoxBinding
 import ru.netology.nework.databinding.FragmentEventBinding
 import ru.netology.nework.dto.Event
-import ru.netology.nework.dto.User
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.enumeration.EventType
 import ru.netology.nework.extensions.DrawableImageProvider
@@ -68,14 +62,11 @@ import ru.netology.nework.fragment.UserFragment.Companion.PARTICIPANTS
 import ru.netology.nework.fragment.UserFragment.Companion.SPEAKERS
 import ru.netology.nework.fragment.UserFragment.Companion.statusUserFragment
 import ru.netology.nework.fragment.UserFragment.Companion.userBundleFragment
-import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
+import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.util.CountCalculator
 import ru.netology.nework.util.StringArg
 import ru.netology.nework.viewmodel.EventViewModel
 import ru.netology.nework.viewmodel.AuthViewModel
-import ru.netology.nework.viewmodel.PostUserWallViewModel
-import ru.netology.nework.viewmodel.UserViewModel
-import java.time.Instant
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.collections.emptyMap
@@ -122,11 +113,12 @@ class EventFragment : Fragment() {
     private val gson = Gson()
     private var eventId = 0L
     private var numberUsers = 0
+    private val mediaObserver = MediaLifecycleObserver()
+    private val smoothAnimation = Animation(Animation.Type.SMOOTH, 3F)
     private lateinit var yandexMap: Map
     private lateinit var mapKit: MapKit
     private lateinit var placemarkMapObject: PlacemarkMapObject
     private lateinit var binding: FragmentEventBinding
-    private val smoothAnimation = Animation(Animation.Type.SMOOTH, 3F)
 
 
     override fun onCreateView(
@@ -201,33 +193,45 @@ class EventFragment : Fragment() {
             }
 
             //TODO(Настроить)
-//            groupVideo.setAllOnClickListener {
-////                videoContent.setMediaController(MediaController(itemView.context, MediaSession.Token))
-//                videoContent.apply {
-//                    setVideoURI(event.attachment?.url?.toUri())
-//
-//                    setOnPreparedListener {
-//                        start()
-//                    }
-//
-//                    setOnCompletionListener {
-//                        stopPlayback()
-//                    }
-//                }
-//
+            playSong.setOnClickListener {
+                playVideo.visibility = View.GONE
 //                viewModel.playButtonVideo(event.id)
-//            }
+//
+//                if (!event.playSong) {
+//                    viewModel.playVideo(event)
+//                } else {
+//                    viewModel.pauseVideo()
+//                }
+
+                val mediaController = MediaController(context)
+                mediaController.setAnchorView(videoContent)
+                videoContent.setMediaController(mediaController)
+
+                videoContent.apply {
+//                    setVideoURI(post.attachment?.url?.toUri())
+                    setVideoURI("https://dn710207.ca.archive.org/0/items/youtube-IfeDb-O4gOg/IfeDb-O4gOg.mp4".toUri())
+
+                    setOnPreparedListener {
+                        this.start()
+                    }
+
+                    setOnCompletionListener {
+                        stopPlayback()
+                        playVideo.visibility = View.VISIBLE
+                    }
+                }
+            }
 
             //TODO(Настроить)
-//            playSong.setOnClickListener {
-//                if (!event.playSong) {
-//                    viewModel.playSong(event)
-//                } else {
-//                    viewModel.pauseSong()
-//                }
-//
-//                viewModel.playButtonSong(event.id)
-//            }
+            playSong.setOnClickListener {
+                viewModel.playButtonSong(event.id)
+
+                if (!event.playSong) {
+                    viewModel.playSong(event)
+                } else {
+                    viewModel.pauseSong()
+                }
+            }
 
             link.setOnClickListener {
                 val intent = Intent(Intent.ACTION_VIEW, "http://${event.link}".toUri())
@@ -429,33 +433,24 @@ class EventFragment : Fragment() {
             }
 
             //TODO(Настроить)
-//            if (event.attachment?.type == AttachmentType.VIDEO) {
-//                groupVideo.visibility = View.VISIBLE
-//
-//                videoContent.setVideoURI(event.attachment.url.toUri())
-//            }
+            if (event.attachment?.type == AttachmentType.VIDEO) {
+                groupVideo.visibility = View.VISIBLE
+            }
 
             //TODO(Настроить)
-//            if (event.attachment?.type == AttachmentType.AUDIO) {
-//                groupSong.visibility = View.VISIBLE
-//
-//                val songFile = event.attachment.url.toUri().toFile()
-//
-//                val retriever = MediaMetadataRetriever()
-//                retriever.setDataSource(songFile.absolutePath)
-//                val durationStr =
-//                    retriever.extractMetadata(
-//                        MediaMetadataRetriever.METADATA_KEY_DURATION
-//                    )
-//                val duration = durationStr?.toIntOrNull() ?: 0
-//                val title = retriever.extractMetadata(
-//                    MediaMetadataRetriever.METADATA_KEY_TITLE
-//                ) ?: "noName"
-//                retriever.release()
-//
-//                titleSong.text = title
-//                timeSong.text = duration.toString()
-//            }
+            if (event.attachment?.type == AttachmentType.AUDIO) {
+                groupSong.visibility = View.VISIBLE
+
+                mediaObserver.reset()
+                mediaObserver.apply {
+//                    mediaPlayer?.setDataSource(post.attachment.url)
+                    mediaPlayer?.setDataSource("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
+                }.getDuration{
+                    timeSong.text = it
+                }
+
+                titleSong.text = context?.getString(R.string.title_song)
+            }
 
             if (!event.speakerIds.isEmpty()) {
                 numberUsers = 0

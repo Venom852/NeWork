@@ -59,6 +59,7 @@ class NewPostFragment : Fragment() {
         var Bundle.textArg by StringArg
         var Bundle.newPostFragmentBundle by StringArg
         var Bundle.statusPostFragment by StringArg
+        lateinit var tempFile: File
     }
 
     private var status = ""
@@ -129,7 +130,8 @@ class NewPostFragment : Fragment() {
         val pickVideo =
             registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                 if (uri != null) {
-                    val tempFile = File(
+//                    val tempFile = File(
+                    tempFile = File(
                         context?.cacheDir,
                         "upload_${System.currentTimeMillis()}.tmp"
                     )
@@ -166,7 +168,8 @@ class NewPostFragment : Fragment() {
                             val uri = it.data?.data
 
                             if (uri != null) {
-                                val tempFile = File(
+//                                val tempFile = File(
+                                tempFile = File(
                                     context?.cacheDir,
                                     "upload_${System.currentTimeMillis()}.tmp"
                                 )
@@ -225,7 +228,6 @@ class NewPostFragment : Fragment() {
                     viewModel.listMentionedUser = emptySet()
                     viewModel.listMapUser = emptyMap()
                     viewModel.coordinates = Coordinates(lat = 0.0, long = 0.0)
-                    viewModel.statusMedia = false
                 } else {
                     viewModelMyWall.edited.value = viewModelMyWall.empty
                     viewModelMyWall.changeMedia(null, null, null)
@@ -337,7 +339,6 @@ class NewPostFragment : Fragment() {
         viewModel.media.observe(viewLifecycleOwner) {
             if (it.uri == null) {
                 binding.groupPhotoContainer.visibility = View.GONE
-                viewModel.statusMedia = false
                 return@observe
             }
 
@@ -350,7 +351,6 @@ class NewPostFragment : Fragment() {
         viewModelMyWall.media.observe(viewLifecycleOwner) {
             if (it.uri == null) {
                 binding.groupPhotoContainer.visibility = View.GONE
-                viewModelMyWall.statusMedia = false
                 return@observe
             }
 
@@ -410,7 +410,6 @@ class NewPostFragment : Fragment() {
                 viewModel.listMentionedUser = emptySet()
                 viewModel.listMapUser = emptyMap()
                 viewModel.coordinates = Coordinates(lat = 0.0, long = 0.0)
-                viewModel.statusMedia = false
             } else {
                 viewModelMyWall.edited.value = viewModelMyWall.empty
                 viewModelMyWall.changeMedia(null, null, null)

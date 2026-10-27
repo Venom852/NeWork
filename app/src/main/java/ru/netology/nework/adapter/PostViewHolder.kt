@@ -2,29 +2,17 @@ package ru.netology.nework.adapter
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.media.MediaMetadataRetriever
 import android.widget.MediaController
-import android.media.session.MediaSession
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.FileProvider
-import androidx.core.net.toFile
 import androidx.core.net.toUri
-import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import ru.netology.nework.R
-import ru.netology.nework.dao.PostUserWallDao
 import ru.netology.nework.databinding.CardPostBinding
 import ru.netology.nework.dto.Post
 import ru.netology.nework.enumeration.AttachmentType
@@ -42,13 +30,7 @@ import ru.netology.nework.fragment.ProfileFragment.Companion.profileFragmentBund
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
 import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.util.CountCalculator
-import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
-import ru.netology.nework.viewmodel.PostUserWallViewModel
-import java.io.File
-import java.io.FileOutputStream
 import java.time.ZonedDateTime
-import javax.inject.Inject
-import kotlin.getValue
 
 @SuppressLint("SetTextI18n")
 class PostViewHolder(
@@ -175,23 +157,25 @@ class PostViewHolder(
             }
 
             //TODO(Настроить)
-//            groupVideo.setAllOnClickListener {
             playVideo.setOnClickListener {
-//                onInteractionPostListener.onPlayVideo(post)
+                playVideo.visibility = View.GONE
+//                onInteractionPostListener.onPlayVideo(post, videoContent)
 
                 val mediaController = MediaController(itemView.context)
                 mediaController.setAnchorView(videoContent)
                 videoContent.setMediaController(mediaController)
+
                 videoContent.apply {
 //                    setVideoURI(post.attachment?.url?.toUri())
-                    setVideoURI("https://samplelib.com/mp4/sample-5s.mp4".toUri())
+                    setVideoURI("https://dn710207.ca.archive.org/0/items/youtube-IfeDb-O4gOg/IfeDb-O4gOg.mp4".toUri())
 
                     setOnPreparedListener {
-                        it.start()
+                        this.start()
                     }
 
                     setOnCompletionListener {
                         stopPlayback()
+                        playVideo.visibility = View.VISIBLE
                     }
                 }
             }

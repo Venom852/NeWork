@@ -1,6 +1,7 @@
 package ru.netology.nework.viewmodel
 
 import android.net.Uri
+import android.widget.VideoView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -31,7 +32,6 @@ import ru.netology.nework.dto.UserPreview
 import ru.netology.nework.entity.EventEntity
 import ru.netology.nework.entity.toEventDto
 import ru.netology.nework.entity.toEventEntity
-import ru.netology.nework.entity.toPostDto
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.enumeration.EventType
 import ru.netology.nework.error.ErrorCode404
@@ -120,7 +120,6 @@ class EventViewModel @Inject constructor(
     private var oldEvent = empty
     private var oldEvents = emptyList<Event>()
     var listSpeakersUsers = emptySet<Long>()
-    var statusMedia = false
     var listMapUsers = emptyMap<Long, UserPreview>()
     var coordinates = Coordinates(lat = 0.0, long = 0.0)
     var dateTime = ""
@@ -263,20 +262,6 @@ class EventViewModel @Inject constructor(
                         }
                     }
 
-//                    if (!statusMedia) {
-//                        eventServer = eventRepository.save(event)
-//                    } else {
-//                        _media.value?.file?.let { file ->
-//                            _media.value?.attachmentType?.let { attachmentType ->
-//                                eventServer = eventRepository.saveWithAttachment(
-//                                    event,
-//                                    MediaUpload(file),
-//                                    attachmentType
-//                                )
-//                            }
-//                        }
-//                    }
-
                     if (event.id == 0L) {
                         eventDao.changeIdEventById(
                             oldEvent.id,
@@ -295,7 +280,6 @@ class EventViewModel @Inject constructor(
                         listMapUsers = emptyMap()
                         dateTime = ""
                         type = EventType.NOT_ASSIGNED
-                        statusMedia = false
                     }
                 } catch (_: ErrorCode403) {
                     _errorEvent403.value = Unit
@@ -309,7 +293,6 @@ class EventViewModel @Inject constructor(
                         listMapUsers = emptyMap()
                         dateTime = ""
                         type = EventType.NOT_ASSIGNED
-                        statusMedia = false
 
                         return@launch
                     } else {
@@ -321,7 +304,6 @@ class EventViewModel @Inject constructor(
                         listMapUsers = emptyMap()
                         dateTime = ""
                         type = EventType.NOT_ASSIGNED
-                        statusMedia = false
                     }
                 } catch (_: ErrorCode415) {
                     _errorEvent415.value = Unit
@@ -335,7 +317,6 @@ class EventViewModel @Inject constructor(
                         listMapUsers = emptyMap()
                         dateTime = ""
                         type = EventType.NOT_ASSIGNED
-                        statusMedia = false
 
                         return@launch
                     } else {
@@ -347,7 +328,6 @@ class EventViewModel @Inject constructor(
                         listMapUsers = emptyMap()
                         dateTime = ""
                         type = EventType.NOT_ASSIGNED
-                        statusMedia = false
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -361,7 +341,6 @@ class EventViewModel @Inject constructor(
                         listMapUsers = emptyMap()
                         dateTime = ""
                         type = EventType.NOT_ASSIGNED
-                        statusMedia = false
 
                         return@launch
                     } else {
@@ -373,7 +352,6 @@ class EventViewModel @Inject constructor(
                         listMapUsers = emptyMap()
                         dateTime = ""
                         type = EventType.NOT_ASSIGNED
-                        statusMedia = false
                     }
                 }
             }
@@ -386,9 +364,6 @@ class EventViewModel @Inject constructor(
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
-        if (uri != null) {
-            statusMedia = true
-        }
         _media.value = MediaModel(uri, file, attachmentType)
     }
 
@@ -405,33 +380,25 @@ class EventViewModel @Inject constructor(
     }
 
     fun playSong(event: Event) {
-        mediaObserver.stop()
+        mediaObserver.reset()
         mediaObserver.apply {
             mediaPlayer?.setDataSource(
-                event.attachment?.url
+                "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+//                post.attachment?.url
             )
         }.play()
     }
 
     fun pauseSong() {
-        viewModelScope.launch {
-            mediaObserver.pause()
-        }
+        mediaObserver.pause()
     }
 
-    fun playVideo(event: Event) {
-        mediaObserver.stop()
-        mediaObserver.apply {
-            mediaPlayer?.setDataSource(
-                event.attachment?.url
-            )
-        }.play()
+    fun playVideo(videoView: VideoView) {
+        mediaObserver.playVideo(videoView)
     }
 
     fun pauseVideo() {
-        viewModelScope.launch {
-            mediaObserver.pause()
-        }
+        mediaObserver.pause()
     }
 
     fun speakersAdded(listSpeakers: Set<Long>, listMap: Map<Long, UserPreview>) {

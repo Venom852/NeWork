@@ -2,18 +2,16 @@ package ru.netology.nework.adapter
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.View
+import android.widget.MediaController
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.navigation.Navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.gson.Gson
-import ru.netology.nework.BuildConfig
 import ru.netology.nework.R
 import ru.netology.nework.databinding.CardEventBinding
 import ru.netology.nework.dto.Event
@@ -29,17 +27,17 @@ import ru.netology.nework.fragment.ProfileFragment.Companion.YOUR
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusProfileFragment
 import ru.netology.nework.fragment.ProfileFragment.Companion.profileFragmentBundle
 import ru.netology.nework.fragment.ProfileFragment.Companion.statusPermissionToCross
+import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.util.CountCalculator
-import ru.netology.nework.util.AndroidUtils.setAllOnClickListener
 import java.time.ZonedDateTime
-import kotlin.toString
 
+@SuppressLint("SetTextI18n")
 class EventViewHolder(
     private val binding: CardEventBinding,
     private val onInteractionEventListener: OnInteractionEventListener,
     private val gson: Gson = Gson()
 ) : RecyclerView.ViewHolder(binding.root) {
-    @SuppressLint("SetTextI18n")
+    private val mediaObserver = MediaLifecycleObserver()
     fun bind(event: Event) {
         with(binding) {
             val publishedEvent = ZonedDateTime.parse(event.published)
@@ -110,22 +108,15 @@ class EventViewHolder(
             if (event.attachment?.type == AttachmentType.AUDIO) {
                 groupSong.visibility = View.VISIBLE
 
-//                val songFile = event.attachment.url.toUri().toFile()
-//
-//                val retriever = MediaMetadataRetriever()
-//                retriever.setDataSource(songFile.absolutePath)
-//                val durationStr =
-//                    retriever.extractMetadata(
-//                        MediaMetadataRetriever.METADATA_KEY_DURATION
-//                    )
-//                val duration = durationStr?.toIntOrNull() ?: 0
-//                val title = retriever.extractMetadata(
-//                    MediaMetadataRetriever.METADATA_KEY_TITLE
-//                ) ?: "noName"
-//                retriever.release()
-//
-//                titleSong.text = title
-//                timeSong.text = duration.toString()
+                mediaObserver.reset()
+                mediaObserver.apply {
+//                    mediaPlayer?.setDataSource(post.attachment.url)
+                    mediaPlayer?.setDataSource("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
+                }.getDuration{
+                    timeSong.text = it
+                }
+
+                titleSong.text = itemView.context.getString(R.string.title_song)
             }
 
             like.setOnClickListener {
@@ -176,22 +167,29 @@ class EventViewHolder(
             }
 
             //TODO(Настроить)
-            groupVideo.setAllOnClickListener {
-//                videoContent.setMediaController(MediaController(itemView.context, MediaSession.Token))
+            playVideo.setOnClickListener {
+                playVideo.visibility = View.GONE
+//                onInteractionEventListener.onPlayVideo(event)
+
+                val mediaController = MediaController(itemView.context)
+                mediaController.setAnchorView(videoContent)
+                videoContent.setMediaController(mediaController)
+
                 videoContent.apply {
-                    setVideoURI(event.attachment?.url?.toUri())
+//                    setVideoURI(post.attachment?.url?.toUri())
+                    setVideoURI("https://dn710207.ca.archive.org/0/items/youtube-IfeDb-O4gOg/IfeDb-O4gOg.mp4".toUri())
 
                     setOnPreparedListener {
-                        start()
+                        this.start()
                     }
 
                     setOnCompletionListener {
                         stopPlayback()
+                        playVideo.visibility = View.VISIBLE
                     }
                 }
-
-                onInteractionEventListener.onPlayVideo(event)
             }
+
             //TODO(Настроить)
             playSong.setOnClickListener {
                 onInteractionEventListener.onPlaySong(event)

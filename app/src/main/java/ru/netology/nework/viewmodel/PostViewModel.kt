@@ -1,6 +1,8 @@
 package ru.netology.nework.viewmodel
 
 import android.net.Uri
+import android.util.Log
+import android.widget.VideoView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -35,6 +37,7 @@ import ru.netology.nework.entity.toPostDto
 import ru.netology.nework.enumeration.AttachmentType
 import ru.netology.nework.error.ErrorCode404
 import ru.netology.nework.error.ErrorCode415
+import ru.netology.nework.fragment.NewPostFragment.Companion.tempFile
 import ru.netology.nework.lifecycle.MediaLifecycleObserver
 import ru.netology.nework.model.FeedModelState
 import java.time.Instant
@@ -73,7 +76,7 @@ class PostViewModel @Inject constructor(
 
     private val noMedia = MediaModel()
 
-    private val mediaObserverr = MediaLifecycleObserver()
+    private val mediaObserver = MediaLifecycleObserver()
     private val _dataState = MutableStateFlow(FeedModelState())
     val dataState: Flow<FeedModelState>
         get() = _dataState
@@ -115,8 +118,6 @@ class PostViewModel @Inject constructor(
 
     private var oldPost = empty
     private var oldPosts = emptyList<Post>()
-    //TODO(Удалить если не нужна)
-    var statusMedia = false
     var listMentionedUser = emptySet<Long>()
     var listMapUser = emptyMap<Long, UserPreview>()
     var coordinates = Coordinates(lat = 0.0, long = 0.0)
@@ -226,21 +227,6 @@ class PostViewModel @Inject constructor(
                         }
                     }
 
-//                    if (!statusMedia) {
-//                        postServer = repository.save(post)
-//                    } else {
-//                        _media.value?.file?.let { file ->
-//                            _media.value?.attachmentType?.let { attachmentType ->
-//                                postServer = repository.saveWithAttachment(
-//                                    post,
-//                                    MediaUpload(file),
-//                                    attachmentType
-//                                )
-//                            }
-//                        }
-//                    }
-
-
                     if (post.id == 0L) {
                         dao.changeIdPostById(
                             oldPost.id,
@@ -258,7 +244,9 @@ class PostViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
+                        Log.d("Это временный файл", "$tempFile")
+                        tempFile.delete()
+                        Log.d("Это удалённый временный файл", "$tempFile")
                     }
                 } catch (_: ErrorCode403) {
                     _errorPost403.value = Unit
@@ -270,7 +258,6 @@ class PostViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
 
                         return@launch
                     } else {
@@ -280,7 +267,6 @@ class PostViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
                     }
                 } catch (_: ErrorCode415) {
                     _errorPost415.value = Unit
@@ -292,7 +278,6 @@ class PostViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
 
                         return@launch
                     } else {
@@ -302,7 +287,6 @@ class PostViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -314,7 +298,6 @@ class PostViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
 
                         return@launch
                     } else {
@@ -324,7 +307,6 @@ class PostViewModel @Inject constructor(
                         listMentionedUser = emptySet()
                         coordinates = Coordinates(0.0, 0.0)
                         listMapUser = emptyMap()
-                        statusMedia = false
                     }
                 }
             }
@@ -337,10 +319,6 @@ class PostViewModel @Inject constructor(
     }
 
     fun changeMedia(uri: Uri?, file: File?, attachmentType: AttachmentType?) {
-        if (uri != null) {
-            statusMedia = true
-        }
-
         _media.value = MediaModel(uri, file, attachmentType)
     }
 
@@ -356,11 +334,9 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun playSong(post: Post, mediaObserver: MediaLifecycleObserver) {
-//        mediaObserverr.reset()
+    fun playSong(post: Post) {
         mediaObserver.reset()
         mediaObserver.apply {
-//        mediaObserverr.apply {
             mediaPlayer?.setDataSource(
                 "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
 //                post.attachment?.url
@@ -368,22 +344,16 @@ class PostViewModel @Inject constructor(
         }.play()
     }
 
-    fun pauseSong(mediaObserver: MediaLifecycleObserver) {
+    fun pauseSong() {
         mediaObserver.pause()
-//        mediaObserverr.pause()
     }
 
-    fun playVideo(post: Post) {
-//        mediaObserver.stop()
-//        mediaObserver.apply {
-//            mediaPlayer?.setDataSource(
-//                post.attachment?.url
-//            )
-//        }.play()
+    fun playVideo(videoView: VideoView) {
+        mediaObserver.playVideo(videoView)
     }
 
     fun pauseVideo() {
-//        mediaObserver.pause()
+        mediaObserver.pause()
     }
 
     fun mentionUsers(listIdUsers: Set<Long>, listMapUsers: Map<Long, UserPreview>) {
